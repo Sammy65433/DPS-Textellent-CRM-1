@@ -79,6 +79,7 @@
     min-width: 44px;
     min-height: 44px;
 }
+
 [data-theme="dark"] .dashboard-shell {
-  background: linear-gradient(180deg, #020617 0%, #0b1220 100%);
+    background: linear-gradient(180deg, #020617 0%, #0b1220 100%);
 }

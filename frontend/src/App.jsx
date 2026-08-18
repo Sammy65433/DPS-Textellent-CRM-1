@@ -50,11 +50,14 @@ function App() {
   });
 
   const [campaignForm, setCampaignForm] = useState({
-    userId: "user123",
-    name: "",
-    templateId: "",
-    contactIds: [],
-  });
+  userId: "user123",
+  name: "",
+  subject: "",
+  type: "sms",
+  templateId: "",
+  contactIds: [],
+});
+
 
   const [contactForm, setContactForm] = useState({
     userId: "user123",

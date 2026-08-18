@@ -16,14 +16,11 @@ import {
     deleteCampaign,
     updateContact,
     deleteContact,
-    deleteMessage,
     deleteMessageById,
     deleteConversationByContact,
     deleteEmailById,
     deleteEmailsByContact,
-
 } from "../api/api";
-
 
 export function useAppHandlers({
     setContacts,
@@ -210,7 +207,7 @@ export function useAppHandlers({
         showAlert("danger", "Contact deleted");
     };
 
-    const handleToggleContact = (contactId, campaignForm) => {
+    const handleToggleContact = contactId => {
         setCampaignForm(prev => ({
             ...prev,
             contactIds: prev.contactIds.includes(contactId)
@@ -226,6 +223,8 @@ export function useAppHandlers({
         setCampaignForm({
             userId: "user123",
             name: "",
+            subject: "",
+            type: "sms",
             templateId: "",
             contactIds: [],
         });
@@ -288,8 +287,6 @@ export function useAppHandlers({
     };
 
     const handleDeleteEmailConversation = async contactId => {
-        console.log("Deleting all emails for contact:", contactId);
-
         await deleteEmailsByContact(contactId);
 
         if (selectedContact && selectedContact._id === contactId) {
@@ -299,9 +296,6 @@ export function useAppHandlers({
         await loadData();
         showAlert("danger", "Email conversation deleted");
     };
-
-
-
 
     return {
         loadData,
@@ -318,11 +312,9 @@ export function useAppHandlers({
         handleSendCampaign,
         handleDeleteTemplate,
         handleDeleteCampaign,
-        deleteMessage,
         handleDeleteMessage,
         handleDeleteConversation,
         handleDeleteEmail,
         handleDeleteEmailConversation,
-
     };
 }

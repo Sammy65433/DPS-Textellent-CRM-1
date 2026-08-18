@@ -3,10 +3,15 @@ import Contact from "../models/Contact.js";
 import Template from "../models/Template.js";
 import Message from "../models/Message.js";
 import { sendSms } from "../services/twilioService.js";
+import { Resend } from "resend";
+import EmailMessage from "../models/EmailMessage.js";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 export const createCampaign = async (req, res) => {
     try {
-        const { userId, name, body, templateId, contactIds } = req.body;
+        const { userId, name, body, subject, type, templateId, contactIds } = req.body;
 
         if (!userId || !name || !contactIds || contactIds.length === 0) {
             return res.status(400).json({
@@ -24,6 +29,8 @@ export const createCampaign = async (req, res) => {
             userId,
             name,
             body: body || "",
+            subject: subject || "",
+            type: type || "sms",
             templateId: templateId || null,
             contactIds,
             status: "draft",
@@ -87,25 +94,62 @@ export const sendCampaign = async (req, res) => {
                 .replace(/{{firstName}}/g, contact.firstName || "")
                 .replace(/{{lastName}}/g, contact.lastName || "");
 
-            const twilioMessage = await sendSms(contact.phone, finalBody);
+            if (campaign.type === "sms" || campaign.type === "both") {
+                if (contact.phone) {
+                    const twilioMessage = await sendSms(contact.phone, finalBody);
 
-            const savedMessage = await Message.create({
-                userId: campaign.userId,
-                contactId: contact._id,
-                toPhone: contact.phone,
-                fromPhone: process.env.TWILIO_PHONE_NUMBER,
-                body: finalBody,
-                direction: "outbound",
-                status: twilioMessage.status || "sent",
-                twilioSid: twilioMessage.sid,
-            });
+                    const savedMessage = await Message.create({
+                        userId: campaign.userId,
+                        contactId: contact._id,
+                        toPhone: contact.phone,
+                        fromPhone: process.env.TWILIO_PHONE_NUMBER,
+                        body: finalBody,
+                        direction: "outbound",
+                        status: twilioMessage.status || "sent",
+                        twilioSid: twilioMessage.sid,
+                    });
 
-            results.push({
-                contactId: contact._id,
-                phone: contact.phone,
-                twilioSid: twilioMessage.sid,
-                messageId: savedMessage._id,
-            });
+                    results.push({
+                        channel: "sms",
+                        contactId: contact._id,
+                        phone: contact.phone,
+                        twilioSid: twilioMessage.sid,
+                        messageId: savedMessage._id,
+                    });
+                }
+            }
+
+            if (campaign.type === "email" || campaign.type === "both") {
+                if (contact.email) {
+                    const subject =
+                        campaign.subject || `Message from DPS CRM`;
+
+                    const emailResult = await resend.emails.send({
+                        from: "DPS CRM <appointments@dpstaxpro.com>",
+                        to: contact.email,
+                        subject,
+                        html: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${finalBody}</div>`,
+                    });
+
+                    const savedEmail = await EmailMessage.create({
+                        userId: campaign.userId,
+                        contactId: contact._id,
+                        toEmail: contact.email,
+                        subject,
+                        body: finalBody,
+                        status: "sent",
+                        resendId: emailResult?.data?.id || null,
+                    });
+
+                    results.push({
+                        channel: "email",
+                        contactId: contact._id,
+                        email: contact.email,
+                        resendId: emailResult?.data?.id || null,
+                        emailId: savedEmail._id,
+                    });
+                }
+            }
         }
 
         campaign.status = "sent";
@@ -123,6 +167,7 @@ export const sendCampaign = async (req, res) => {
         res.status(500).json({ error: "Failed to send campaign" });
     }
 };
+
 export const getCampaignById = async (req, res) => {
     try {
         const { id } = req.params;

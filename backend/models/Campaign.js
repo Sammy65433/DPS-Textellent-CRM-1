@@ -16,6 +16,16 @@ const campaignSchema = new mongoose.Schema(
             trim: true,
             default: "",
         },
+        subject: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        type: {
+            type: String,
+            enum: ["sms", "email", "both"],
+            default: "sms",
+        },
         templateId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Template",

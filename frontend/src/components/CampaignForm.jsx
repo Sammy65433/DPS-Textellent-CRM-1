@@ -29,6 +29,35 @@ function CampaignForm({
                     />
 
                     <Form.Select
+                        className="mb-2"
+                        value={campaignForm.type}
+                        onChange={e =>
+                            setCampaignForm(prev => ({
+                                ...prev,
+                                type: e.target.value,
+                            }))
+                        }
+                    >
+                        <option value="sms">SMS Campaign</option>
+                        <option value="email">Email Campaign</option>
+                        <option value="both">SMS + Email Campaign</option>
+                    </Form.Select>
+
+                    {(campaignForm.type === "email" || campaignForm.type === "both") && (
+                        <Form.Control
+                            className="mb-2"
+                            placeholder="Email subject"
+                            value={campaignForm.subject}
+                            onChange={e =>
+                                setCampaignForm(prev => ({
+                                    ...prev,
+                                    subject: e.target.value,
+                                }))
+                            }
+                        />
+                    )}
+
+                    <Form.Select
                         className="mb-3"
                         value={campaignForm.templateId}
                         onChange={e =>
