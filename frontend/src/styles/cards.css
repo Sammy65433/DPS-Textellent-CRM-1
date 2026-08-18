@@ -1,0 +1,494 @@
+.stats-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.dashboard-card,
+.crm-card,
+.email-history-card,
+.email-compose-card {
+    border: 1px solid var(--border-light) !important;
+    border-radius: var(--radius-xl) !important;
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm) !important;
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+
+.dashboard-card .card-body {
+    padding: 1.45rem;
+}
+
+.stats-card-link .dashboard-card:hover,
+.crm-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.dashboard-icon {
+    width: 58px;
+    height: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    font-size: 1.55rem;
+}
+
+.dashboard-stat-label {
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+    font-size: 0.94rem;
+    color: var(--text-soft);
+    font-weight: 600;
+}
+
+.dashboard-stat-value {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.03em;
+}
+
+.card-header-clean {
+    background: transparent !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-main);
+    padding: 1rem 1.25rem !important;
+}
+
+.contact-list .list-group-item,
+.list-group-item {
+    background: transparent !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-light) !important;
+}
+
+/* DASHBOARD STAT BOX COLORS */
+.stat-card-contacts {
+    background: linear-gradient(180deg, #f5f9ff 0%, #eaf2ff 100%) !important;
+    border-left: 5px solid #2563eb !important;
+}
+
+.stat-card-messages {
+    background: linear-gradient(180deg, #f4fcf7 0%, #e7f8ee 100%) !important;
+    border-left: 5px solid #16a34a !important;
+}
+
+.stat-card-templates {
+    background: linear-gradient(180deg, #fffaf2 0%, #fff2da 100%) !important;
+    border-left: 5px solid #f59e0b !important;
+}
+
+.stat-card-campaigns {
+    background: linear-gradient(180deg, #fff5f5 0%, #ffe7e7 100%) !important;
+    border-left: 5px solid #ef4444 !important;
+}
+
+.stat-card-emails {
+    background: linear-gradient(180deg, #f3fbff 0%, #e1f5ff 100%) !important;
+    border-left: 5px solid #06b6d4 !important;
+}
+
+.stat-icon-contacts {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-icon-messages {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.stat-icon-templates {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.stat-icon-campaigns {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.stat-icon-emails {
+    background: #d9f4ff;
+    color: #06b6d4;
+}
+
+/* RECENT PANELS COLORS */
+.panel-messages {
+    background: linear-gradient(180deg, #f6fbff 0%, #edf4ff 100%) !important;
+    border-top: 4px solid #2563eb !important;
+}
+
+.panel-emails {
+    background: linear-gradient(180deg, #f2fcff 0%, #e7f8ff 100%) !important;
+    border-top: 4px solid #06b6d4 !important;
+}
+
+.panel-campaigns {
+    background: linear-gradient(180deg, #fff8f4 0%, #fff0e7 100%) !important;
+    border-top: 4px solid #f97316 !important;
+}
+
+.panel-actions {
+    background: linear-gradient(180deg, #f8f9ff 0%, #eef2ff 100%) !important;
+    border-top: 4px solid #4f46e5 !important;
+}
+
+.panel-tasks {
+    background: linear-gradient(180deg, #f4fcf6 0%, #eaf8ef 100%) !important;
+    border-top: 4px solid #16a34a !important;
+}
+
+[data-theme="dark"] .dashboard-card,
+[data-theme="dark"] .crm-card,
+[data-theme="dark"] .email-history-card,
+[data-theme="dark"] .email-compose-card {
+    background: rgba(15, 23, 42, 0.92) !important;
+    border: 1px solid rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 18px 45px rgba(2, 6, 23, 0.45) !important;
+}
+
+[data-theme="dark"] .dashboard-stat-label,
+[data-theme="dark"] .page-subtitle,
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] small,
+[data-theme="dark"] .contact-phone {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .dashboard-stat-value,
+[data-theme="dark"] .card-header-clean,
+[data-theme="dark"] .fw-semibold,
+[data-theme="dark"] .page-title,
+[data-theme="dark"] .list-group-item,
+[data-theme="dark"] .crm-card,
+[data-theme="dark"] .dashboard-card {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .list-group-item {
+    background: transparent !important;
+    border-color: rgba(51, 65, 85, 0.9) !important;
+}
+
+[data-theme="dark"] .list-group-item:hover {
+    background: rgba(30, 41, 59, 0.75) !important;
+}
+
+[data-theme="dark"] .card-header-clean {
+    border-bottom: 1px solid rgba(51, 65, 85, 0.9) !important;
+}
+
+[data-theme="dark"] .stat-card-contacts {
+    background: linear-gradient(180deg, #172554 0%, #1e3a8a 100%) !important;
+    border-left: 5px solid #60a5fa !important;
+}
+
+[data-theme="dark"] .stat-card-messages {
+    background: linear-gradient(180deg, #052e16 0%, #166534 100%) !important;
+    border-left: 5px solid #4ade80 !important;
+}
+
+[data-theme="dark"] .stat-card-templates {
+    background: linear-gradient(180deg, #451a03 0%, #92400e 100%) !important;
+    border-left: 5px solid #fbbf24 !important;
+}
+
+[data-theme="dark"] .stat-card-campaigns {
+    background: linear-gradient(180deg, #450a0a 0%, #991b1b 100%) !important;
+    border-left: 5px solid #f87171 !important;
+}
+
+[data-theme="dark"] .stat-card-emails {
+    background: linear-gradient(180deg, #083344 0%, #155e75 100%) !important;
+    border-left: 5px solid #22d3ee !important;
+}
+
+[data-theme="dark"] .stat-icon-contacts {
+    background: rgba(96, 165, 250, 0.18);
+    color: #93c5fd;
+}
+
+[data-theme="dark"] .stat-icon-messages {
+    background: rgba(74, 222, 128, 0.18);
+    color: #86efac;
+}
+
+[data-theme="dark"] .stat-icon-templates {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fcd34d;
+}
+
+[data-theme="dark"] .stat-icon-campaigns {
+    background: rgba(248, 113, 113, 0.18);
+    color: #fca5a5;
+}
+
+[data-theme="dark"] .stat-icon-emails {
+    background: rgba(34, 211, 238, 0.18);
+    color: #67e8f9;
+}
+
+[data-theme="dark"] .panel-messages {
+    background: linear-gradient(180deg, #0f172a 0%, #172554 100%) !important;
+    border-top: 4px solid #60a5fa !important;
+}
+
+[data-theme="dark"] .panel-emails {
+    background: linear-gradient(180deg, #082f49 0%, #0f3b5f 100%) !important;
+    border-top: 4px solid #22d3ee !important;
+}
+
+[data-theme="dark"] .panel-campaigns {
+    background: linear-gradient(180deg, #1f2937 0%, #3f2f1f 100%) !important;
+    border-top: 4px solid #fb923c !important;
+}
+
+[data-theme="dark"] .panel-actions {
+    background: linear-gradient(180deg, #111827 0%, #1e3a8a 100%) !important;
+    border-top: 4px solid #818cf8 !important;
+}
+
+[data-theme="dark"] .panel-tasks {
+    background: linear-gradient(180deg, #0f172a 0%, #14532d 100%) !important;
+    border-top: 4px solid #4ade80 !important;
+}
+
+[data-theme="dark"] .crm-card,
+[data-theme="dark"] .dashboard-card,
+[data-theme="dark"] .email-history-card,
+[data-theme="dark"] .email-compose-card {
+    background: rgba(15, 23, 42, 0.96) !important;
+    border: 1px solid rgba(51, 65, 85, 0.95) !important;
+    box-shadow: 0 18px 45px rgba(2, 6, 23, 0.45) !important;
+}
+
+[data-theme="dark"] .card-header-clean {
+    color: #f8fafc !important;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.95) !important;
+    background: rgba(30, 41, 59, 0.45) !important;
+}
+
+[data-theme="dark"] .list-group-item {
+    background: rgba(15, 23, 42, 0.88) !important;
+    color: #e5e7eb !important;
+    border-color: rgba(51, 65, 85, 0.85) !important;
+}
+
+[data-theme="dark"] .list-group-item small,
+[data-theme="dark"] .list-group-item .text-muted {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .fw-semibold,
+[data-theme="dark"] .dashboard-stat-value,
+[data-theme="dark"] .page-title {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .dashboard-stat-label,
+[data-theme="dark"] .page-subtitle,
+[data-theme="dark"] .contact-phone,
+[data-theme="dark"] small,
+[data-theme="dark"] .text-muted {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .contact-list .list-group-item:hover {
+    background: rgba(30, 41, 59, 0.82) !important;
+}
+
+[data-theme="dark"] .contact-list .list-group-item.active {
+    background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+    color: white !important;
+}
+
+.template-form-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 251, 255, 0.96) 100%) !important;
+}
+
+.template-list-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(250, 252, 255, 0.96) 100%) !important;
+}
+
+.template-list-body {
+    padding: 1.25rem;
+}
+
+.template-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.template-item-card {
+    border: 1px solid var(--border-light) !important;
+    border-radius: 18px !important;
+    background: var(--bg-card) !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all 0.2s ease;
+}
+
+.template-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md) !important;
+}
+
+.template-item-title {
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 1rem;
+}
+
+.template-item-body {
+    color: var(--text-soft);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+}
+
+.template-empty-state {
+    color: var(--text-soft);
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+[data-theme="dark"] .template-form-card,
+[data-theme="dark"] .template-list-card {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(17, 24, 39, 0.98) 100%) !important;
+}
+
+[data-theme="dark"] .template-item-card {
+    background: rgba(30, 41, 59, 0.92) !important;
+    border: 1px solid rgba(71, 85, 105, 0.85) !important;
+}
+
+[data-theme="dark"] .template-item-title {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .template-item-body {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .template-empty-state {
+    color: #94a3b8;
+}
+
+.page-panel-contacts {
+    background: linear-gradient(180deg, #f6fbff 0%, #edf4ff 100%) !important;
+    border-top: 4px solid #2563eb !important;
+}
+
+.page-panel-contacts-secondary {
+    background: linear-gradient(180deg, #f3fcf7 0%, #eaf8ef 100%) !important;
+    border-top: 4px solid #16a34a !important;
+}
+
+.page-panel-emails {
+    background: linear-gradient(180deg, #f2fcff 0%, #e7f8ff 100%) !important;
+    border-top: 4px solid #06b6d4 !important;
+}
+
+.page-panel-emails-secondary {
+    background: linear-gradient(180deg, #f4fdfb 0%, #e9faf5 100%) !important;
+    border-top: 4px solid #0f766e !important;
+}
+
+.page-panel-templates {
+    background: linear-gradient(180deg, #fffaf2 0%, #fff2da 100%) !important;
+    border-top: 4px solid #f59e0b !important;
+}
+
+.page-panel-templates-secondary {
+    background: linear-gradient(180deg, #fff8ee 0%, #ffefd3 100%) !important;
+    border-top: 4px solid #f97316 !important;
+}
+
+.page-panel-campaigns {
+    background: linear-gradient(180deg, #fff7f4 0%, #ffece5 100%) !important;
+    border-top: 4px solid #f97316 !important;
+}
+
+.page-panel-campaigns-secondary {
+    background: linear-gradient(180deg, #fff5f5 0%, #ffe7e7 100%) !important;
+    border-top: 4px solid #ef4444 !important;
+}
+
+[data-theme="dark"] .page-panel-contacts {
+    background: linear-gradient(180deg, #0f172a 0%, #172554 100%) !important;
+    border-top: 4px solid #60a5fa !important;
+}
+
+[data-theme="dark"] .page-panel-contacts-secondary {
+    background: linear-gradient(180deg, #0f172a 0%, #14532d 100%) !important;
+    border-top: 4px solid #4ade80 !important;
+}
+
+[data-theme="dark"] .page-panel-emails {
+    background: linear-gradient(180deg, #082f49 0%, #0f3b5f 100%) !important;
+    border-top: 4px solid #22d3ee !important;
+}
+
+[data-theme="dark"] .page-panel-emails-secondary {
+    background: linear-gradient(180deg, #052e2b 0%, #134e4a 100%) !important;
+    border-top: 4px solid #2dd4bf !important;
+}
+
+[data-theme="dark"] .page-panel-templates {
+    background: linear-gradient(180deg, #451a03 0%, #78350f 100%) !important;
+    border-top: 4px solid #fbbf24 !important;
+}
+
+[data-theme="dark"] .page-panel-templates-secondary {
+    background: linear-gradient(180deg, #431407 0%, #7c2d12 100%) !important;
+    border-top: 4px solid #fb923c !important;
+}
+
+[data-theme="dark"] .page-panel-campaigns {
+    background: linear-gradient(180deg, #3f1d0d 0%, #7c2d12 100%) !important;
+    border-top: 4px solid #fb923c !important;
+}
+
+[data-theme="dark"] .page-panel-campaigns-secondary {
+    background: linear-gradient(180deg, #450a0a 0%, #991b1b 100%) !important;
+    border-top: 4px solid #f87171 !important;
+}
+
+[data-theme="dark"] .page-panel-templates {
+    background: linear-gradient(180deg, #451a03 0%, #78350f 100%) !important;
+    border-top: 4px solid #fbbf24 !important;
+}
+
+[data-theme="dark"] .page-panel-templates-secondary {
+    background: linear-gradient(180deg, #3b1f0a 0%, #5b2a0a 100%) !important;
+    border-top: 4px solid #fb923c !important;
+}
+
+[data-theme="dark"] .template-item-card {
+    background: rgba(30, 41, 59, 0.95) !important;
+    border: 1px solid rgba(71, 85, 105, 0.9) !important;
+}
+
+[data-theme="dark"] .template-item-title {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .template-item-body {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .template-list-body {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .template-empty-state {
+    color: #94a3b8 !important;
+}

@@ -1,0 +1,114 @@
+.conversation-body {
+    min-height: 540px;
+    max-height: 540px;
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, #f5f9ff 100%);
+    padding: 1.25rem;
+}
+
+.conversation-empty {
+    color: var(--text-soft);
+    font-size: 0.97rem;
+}
+
+.message-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.message-row {
+    display: flex;
+}
+
+.message-row.outbound {
+    justify-content: flex-end;
+}
+
+.message-row.inbound {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 78%;
+    padding: 0.95rem 1rem;
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.message-bubble.outbound {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: white;
+    border-bottom-right-radius: 6px;
+}
+
+.message-bubble.inbound {
+    background: white;
+    color: var(--text-main);
+    border: 1px solid var(--border-light);
+    border-bottom-left-radius: 6px;
+}
+
+.message-text {
+    font-size: 0.98rem;
+    line-height: 1.55;
+    margin-bottom: 0.35rem;
+}
+
+.message-meta {
+    font-size: 0.79rem;
+    opacity: 0.86;
+}
+
+.message-bubble.outbound .message-meta {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.message-bubble.inbound .message-meta {
+    color: #667085;
+}
+
+[data-theme="dark"] .conversation-body,
+[data-theme="dark"] .email-thread-body {
+    background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+}
+
+[data-theme="dark"] .message-bubble.inbound,
+[data-theme="dark"] .email-bubble {
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid rgba(71, 85, 105, 0.9);
+}
+
+[data-theme="dark"] .message-meta,
+[data-theme="dark"] .email-meta {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .email-subject,
+[data-theme="dark"] .email-body-text,
+[data-theme="dark"] .message-text {
+    color: #f8fafc;
+}
+
+.message-delete-btn {
+    color: inherit !important;
+    text-decoration: none !important;
+    padding: 0 !important;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.message-delete-btn:hover {
+    opacity: 1;
+}
+
+.conversation-footer {
+    background: transparent !important;
+    border-top: 1px solid var(--border-light) !important;
+}
+
+[data-theme="dark"] .conversation-footer {
+    background: rgba(15, 23, 42, 0.96) !important;
+    border-top: 1px solid rgba(51, 65, 85, 0.9) !important;
+}
