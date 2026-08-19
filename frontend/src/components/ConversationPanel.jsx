@@ -13,7 +13,7 @@ function ConversationPanel({
     onDeleteConversation,
 }) {
     return (
-        <Card className="crm-card border-0 h-100">
+        <Card className="crm-card border-0">
             <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                 <div>
                     Conversation

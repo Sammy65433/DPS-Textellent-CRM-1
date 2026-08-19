@@ -6,7 +6,9 @@ import {
     FaFileAlt,
     FaBullhorn,
     FaEnvelope,
+    FaChartBar,
 } from "react-icons/fa";
+
 import ThemeToggle from "./ThemeToggle";
 
 function AppLayout({ children, theme, onToggleTheme }) {
@@ -35,6 +37,10 @@ function AppLayout({ children, theme, onToggleTheme }) {
                         <Nav.Link as={NavLink} to="/emails" className="nav-router-link">
                             <FaEnvelope className="me-2" />
                             Emails
+                        </Nav.Link>
+                        <Nav.Link as={NavLink} to="/analytics" className="nav-router-link">
+                            <FaChartBar className="me-2" />
+                            Analytics
                         </Nav.Link>
 
                         <div className="ms-3">

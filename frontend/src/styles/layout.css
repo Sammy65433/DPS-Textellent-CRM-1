@@ -83,3 +83,15 @@
 [data-theme="dark"] .dashboard-shell {
     background: linear-gradient(180deg, #020617 0%, #0b1220 100%);
 }
+.contacts-column-compact .crm-card {
+  max-height: 620px;
+}
+
+.contacts-column-compact .contact-list {
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.contacts-column-compact .card-body {
+  padding-bottom: 0.5rem !important;
+}

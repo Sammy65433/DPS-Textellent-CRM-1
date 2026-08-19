@@ -10,6 +10,17 @@ import {
     FaFileAlt,
 } from "react-icons/fa";
 
+import {
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    Tooltip,
+    CartesianGrid,
+} from "recharts";
+
+
 function DashboardPage({
     theme,
     onToggleTheme,
@@ -35,6 +46,19 @@ function DashboardPage({
     const contactsMissingEmail = contacts.filter(contact => !contact.email).length;
     const draftCampaigns = campaigns.filter(campaign => campaign.status === "draft").length;
 
+    const activityByDay = {};
+    [...messages, ...emails].forEach(item => {
+        const day = new Date(item.createdAt).toLocaleDateString();
+        activityByDay[day] = (activityByDay[day] || 0) + 1;
+    });
+
+    const activityRows = Object.entries(activityByDay)
+        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+        .map(([day, count]) => ({
+            day,
+            count,
+        }));
+
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <PageHeader
@@ -54,86 +78,38 @@ function DashboardPage({
 
             <Row className="g-4 section-spacer">
                 <Col lg={8}>
-                    <Row className="g-4">
-                        <Col md={6}>
-                            <Card className="crm-card panel-messages border-0">
-                                <Card.Header className="card-header-clean">
-                                    Recent Messages
-                                </Card.Header>
-                                <ListGroup variant="flush">
-                                    {recentMessages.length === 0 ? (
-                                        <ListGroup.Item>No recent messages yet.</ListGroup.Item>
-                                    ) : (
-                                        recentMessages.map(msg => (
-                                            <ListGroup.Item key={msg._id}>
-                                                <div className="fw-semibold">
-                                                    {msg.contactId?.firstName
-                                                        ? `${msg.contactId.firstName} ${msg.contactId.lastName || ""}`
-                                                        : msg.toPhone || msg.fromPhone}
-                                                </div>
-                                                <div>{msg.body}</div>
-                                                <small className="text-muted">
-                                                    {msg.direction} • {new Date(msg.createdAt).toLocaleString()}
-                                                </small>
-                                            </ListGroup.Item>
-                                        ))
-                                    )}
-                                </ListGroup>
-                            </Card>
-                        </Col>
+                    <Card className="crm-card analytics-mini-panel border-0">
+                        <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                            <span>Analytics Snapshot</span>
+                            <Button as={Link} to="/analytics" size="sm" variant="outline-primary">
+                                View Full Analytics
+                            </Button>
+                        </Card.Header>
 
-                        <Col md={6}>
-                            <Card className="crm-card panel-emails border-0">
-                                <Card.Header className="card-header-clean">
-                                    Recent Emails
-                                </Card.Header>
-                                <ListGroup variant="flush">
-                                    {recentEmails.length === 0 ? (
-                                        <ListGroup.Item>No recent emails yet.</ListGroup.Item>
-                                    ) : (
-                                        recentEmails.map(email => (
-                                            <ListGroup.Item key={email._id}>
-                                                <div className="fw-semibold">{email.toEmail}</div>
-                                                <div>{email.subject}</div>
-                                                <small className="text-muted">
-                                                    email • {new Date(email.createdAt).toLocaleString()}
-                                                </small>
-                                            </ListGroup.Item>
-                                        ))
-                                    )}
-                                </ListGroup>
-                            </Card>
-                        </Col>
-
-                        <Col md={12}>
-                            <Card className="crm-card panel-campaigns border-0">
-                                <Card.Header className="card-header-clean">
-                                    Recent Campaigns
-                                </Card.Header>
-                                <ListGroup variant="flush">
-                                    {recentCampaigns.length === 0 ? (
-                                        <ListGroup.Item>No campaigns yet.</ListGroup.Item>
-                                    ) : (
-                                        recentCampaigns.map(campaign => (
-                                            <ListGroup.Item key={campaign._id}>
-                                                <div className="d-flex justify-content-between align-items-center">
-                                                    <div className="fw-semibold">{campaign.name}</div>
-                                                    <Badge
-                                                        bg={campaign.status === "sent" ? "success" : "secondary"}
-                                                    >
-                                                        {campaign.status}
-                                                    </Badge>
-                                                </div>
-                                                <small className="text-muted">
-                                                    {new Date(campaign.createdAt).toLocaleString()}
-                                                </small>
-                                            </ListGroup.Item>
-                                        ))
-                                    )}
-                                </ListGroup>
-                            </Card>
-                        </Col>
-                    </Row>
+                        <Card.Body style={{ height: "300px" }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={activityRows}>
+                                    <defs>
+                                        <linearGradient id="dashboardActivityFill" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.35} />
+                                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0.03} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="day" />
+                                    <YAxis allowDecimals={false} />
+                                    <Tooltip />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="count"
+                                        stroke="#2563eb"
+                                        fill="url(#dashboardActivityFill)"
+                                        strokeWidth={3}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </Card.Body>
+                    </Card>
                 </Col>
 
                 <Col lg={4}>
@@ -185,6 +161,59 @@ function DashboardPage({
                     </Row>
                 </Col>
             </Row>
+
+            <Row className="g-4 section-spacer">
+                <Col md={6}>
+                    <Card className="crm-card panel-messages border-0">
+                        <Card.Header className="card-header-clean">
+                            Recent Messages
+                        </Card.Header>
+                        <ListGroup variant="flush">
+                            {recentMessages.length === 0 ? (
+                                <ListGroup.Item>No recent messages yet.</ListGroup.Item>
+                            ) : (
+                                recentMessages.map(msg => (
+                                    <ListGroup.Item key={msg._id}>
+                                        <div className="fw-semibold">
+                                            {msg.contactId?.firstName
+                                                ? `${msg.contactId.firstName} ${msg.contactId.lastName || ""}`
+                                                : msg.toPhone || msg.fromPhone}
+                                        </div>
+                                        <div>{msg.body}</div>
+                                        <small className="text-muted">
+                                            {msg.direction} • {new Date(msg.createdAt).toLocaleString()}
+                                        </small>
+                                    </ListGroup.Item>
+                                ))
+                            )}
+                        </ListGroup>
+                    </Card>
+                </Col>
+
+                <Col md={6}>
+                    <Card className="crm-card panel-emails border-0">
+                        <Card.Header className="card-header-clean">
+                            Recent Emails
+                        </Card.Header>
+                        <ListGroup variant="flush">
+                            {recentEmails.length === 0 ? (
+                                <ListGroup.Item>No recent emails yet.</ListGroup.Item>
+                            ) : (
+                                recentEmails.map(email => (
+                                    <ListGroup.Item key={email._id}>
+                                        <div className="fw-semibold">{email.toEmail}</div>
+                                        <div>{email.subject}</div>
+                                        <small className="text-muted">
+                                            email • {new Date(email.createdAt).toLocaleString()}
+                                        </small>
+                                    </ListGroup.Item>
+                                ))
+                            )}
+                        </ListGroup>
+                    </Card>
+                </Col>
+            </Row>
+
         </AppLayout>
     );
 }

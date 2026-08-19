@@ -20,6 +20,7 @@ import {
     deleteConversationByContact,
     deleteEmailById,
     deleteEmailsByContact,
+    updateCampaign,
 } from "../api/api";
 
 export function useAppHandlers({
@@ -48,6 +49,56 @@ export function useAppHandlers({
         setTimeout(() => setAlert(null), 2500);
     };
 
+    const resetTemplateForm = () => {
+        setTemplateForm({
+            userId: "user123",
+            name: "",
+            category: "general",
+            body: "",
+        });
+    };
+
+    const resetContactForm = () => {
+        setContactForm({
+            userId: "user123",
+            firstName: "",
+            lastName: "",
+            phone: "",
+            email: "",
+            tags: "",
+            notes: "",
+        });
+    };
+
+    const resetCampaignForm = () => {
+        setCampaignForm({
+            userId: "user123",
+            name: "",
+            subject: "",
+            type: "sms",
+            templateId: "",
+            contactIds: [],
+            scheduledAt: "",
+        });
+    };
+
+    const resetMessageForm = () => {
+        setMessageForm(prev => ({
+            ...prev,
+            body: "",
+            templateId: "",
+        }));
+    };
+
+    const resetEmailForm = () => {
+        setEmailForm(prev => ({
+            ...prev,
+            subject: "",
+            body: "",
+            templateId: "",
+        }));
+    };
+
     const loadData = async () => {
         const [contactsData, messagesData, templatesData, campaignsData, emailsData] =
             await Promise.all([
@@ -65,6 +116,18 @@ export function useAppHandlers({
         setEmails(emailsData);
     };
 
+    const refreshSelectedConversation = async contactId => {
+        if (!contactId) return;
+        const data = await fetchConversation(contactId);
+        setConversation(data);
+    };
+
+    const refreshSelectedEmails = async contactId => {
+        if (!contactId) return;
+        const emailData = await fetchEmailsByContact(contactId);
+        setEmailMessages(emailData);
+    };
+
     const handleSelectContact = async contact => {
         setSelectedContact(contact);
 
@@ -80,31 +143,22 @@ export function useAppHandlers({
         }));
 
         setLoadingConversation(true);
-        const messageData = await fetchConversation(contact._id);
-        setConversation(messageData);
+        await refreshSelectedConversation(contact._id);
         setLoadingConversation(false);
 
         setLoadingEmails(true);
-        const emailData = await fetchEmailsByContact(contact._id);
-        setEmailMessages(emailData);
+        await refreshSelectedEmails(contact._id);
         setLoadingEmails(false);
     };
 
     const handleSendMessage = async (e, messageForm) => {
         e.preventDefault();
         await sendMessage(messageForm);
-
-        setMessageForm(prev => ({
-            ...prev,
-            body: "",
-            templateId: "",
-        }));
-
+        resetMessageForm();
         await loadData();
 
         if (selectedContact) {
-            const data = await fetchConversation(selectedContact._id);
-            setConversation(data);
+            await refreshSelectedConversation(selectedContact._id);
         }
 
         showAlert("success", "Message sent successfully");
@@ -113,17 +167,10 @@ export function useAppHandlers({
     const handleSendEmail = async (e, emailForm) => {
         e.preventDefault();
         await sendEmail(emailForm);
-
-        setEmailForm(prev => ({
-            ...prev,
-            subject: "",
-            body: "",
-            templateId: "",
-        }));
+        resetEmailForm();
 
         if (selectedContact) {
-            const emailData = await fetchEmailsByContact(selectedContact._id);
-            setEmailMessages(emailData);
+            await refreshSelectedEmails(selectedContact._id);
         }
 
         await loadData();
@@ -133,13 +180,7 @@ export function useAppHandlers({
     const handleCreateTemplate = async (e, templateForm) => {
         e.preventDefault();
         await createTemplate(templateForm);
-
-        setTemplateForm({
-            userId: "user123",
-            name: "",
-            body: "",
-        });
-
+        resetTemplateForm();
         await loadData();
         showAlert("success", "Template created");
     };
@@ -156,15 +197,7 @@ export function useAppHandlers({
             showAlert("success", "Contact added");
         }
 
-        setContactForm({
-            userId: "user123",
-            firstName: "",
-            lastName: "",
-            phone: "",
-            email: "",
-            tags: "",
-        });
-
+        resetContactForm();
         await loadData();
     };
 
@@ -178,20 +211,13 @@ export function useAppHandlers({
             phone: contact.phone || "",
             email: contact.email || "",
             tags: contact.tags || "",
+            notes: contact.notes || "",
         });
     };
 
     const handleCancelEditContact = () => {
         setEditingContact(null);
-
-        setContactForm({
-            userId: "user123",
-            firstName: "",
-            lastName: "",
-            phone: "",
-            email: "",
-            tags: "",
-        });
+        resetContactForm();
     };
 
     const handleDeleteContact = async contactId => {
@@ -219,18 +245,15 @@ export function useAppHandlers({
     const handleCreateCampaign = async (e, campaignForm) => {
         e.preventDefault();
         await createCampaign(campaignForm);
-
-        setCampaignForm({
-            userId: "user123",
-            name: "",
-            subject: "",
-            type: "sms",
-            templateId: "",
-            contactIds: [],
-        });
-
+        resetCampaignForm();
         await loadData();
         showAlert("success", "Campaign created");
+    };
+
+    const handleUpdateCampaign = async (campaignId, payload) => {
+        await updateCampaign(campaignId, payload);
+        await loadData();
+        showAlert("success", "Campaign updated");
     };
 
     const handleSendCampaign = async campaignId => {
@@ -255,8 +278,7 @@ export function useAppHandlers({
         await deleteMessageById(messageId);
 
         if (selectedContact) {
-            const data = await fetchConversation(selectedContact._id);
-            setConversation(data);
+            await refreshSelectedConversation(selectedContact._id);
         }
 
         await loadData();
@@ -278,8 +300,7 @@ export function useAppHandlers({
         await deleteEmailById(emailId);
 
         if (selectedContact) {
-            const emailData = await fetchEmailsByContact(selectedContact._id);
-            setEmailMessages(emailData);
+            await refreshSelectedEmails(selectedContact._id);
         }
 
         await loadData();
@@ -309,6 +330,7 @@ export function useAppHandlers({
         handleDeleteContact,
         handleToggleContact,
         handleCreateCampaign,
+        handleUpdateCampaign,
         handleSendCampaign,
         handleDeleteTemplate,
         handleDeleteCampaign,

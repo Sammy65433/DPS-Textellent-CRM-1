@@ -2,7 +2,7 @@ import Contact from "../models/Contact.js";
 
 export const createContact = async (req, res) => {
     try {
-        const { userId, firstName, lastName, phone, email, tags } = req.body;
+        const { userId, firstName, lastName, phone, email, tags, notes } = req.body;
 
         if (!userId || !phone) {
             return res.status(400).json({ error: "userId and phone are required" });
@@ -54,6 +54,7 @@ export const updateContact = async (req, res) => {
                 phone,
                 email,
                 tags,
+                notes,
             },
             { returnDocument: "after" }
         );

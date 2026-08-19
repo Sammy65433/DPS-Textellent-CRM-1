@@ -1,3 +1,5 @@
+
+
 const API = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 export async function fetchContacts() {
@@ -147,6 +149,14 @@ export async function deleteEmailById(emailId) {
 export async function deleteEmailsByContact(contactId) {
     const res = await fetch(`${API}/api/emails/contact/${contactId}`, {
         method: "DELETE",
+    });
+    return res.json();
+}
+export async function updateCampaign(campaignId, payload) {
+    const res = await fetch(`${API}/api/campaigns/${campaignId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
     });
     return res.json();
 }

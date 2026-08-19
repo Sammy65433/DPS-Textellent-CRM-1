@@ -1,10 +1,11 @@
 .conversation-body {
-    min-height: 540px;
-    max-height: 540px;
-    overflow-y: auto;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, #f5f9ff 100%);
-    padding: 1.25rem;
+  min-height: 340px;
+  max-height: 380px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, #f5f9ff 100%);
+  padding: 1.25rem;
 }
+
 
 .conversation-empty {
     color: var(--text-soft);

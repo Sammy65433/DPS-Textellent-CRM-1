@@ -206,3 +206,79 @@ Development Notes
   - Templates
   - Campaigns
   - Emails
+
+
+
+Best next Textellent-style features to add:
+
+- **Scheduled sends** for SMS/email
+- **Opt-out / STOP handling**
+- **Tag-based campaigns** like `vip`, `tax`, `real-estate`
+- **Search + filters** for contacts/messages
+- **Conversation notes** per contact
+- **Delivery status tracking** for SMS/email
+- **Template categories**
+- **CSV import/export**
+- **Campaign analytics**:
+  - sent
+  - failed
+  - replied
+  - opened for email
+- **User auth / multi-user accounts**
+- **Contact activity timeline**
+- **Reminders / follow-up tasks**
+- **Pipeline/stages** like:
+  - lead
+  - contacted
+  - follow-up
+  - client
+- **File attachments / document links**
+- **Segmented campaigns**:
+  - by tags
+  - by missing docs
+  - by appointment status
+
+Most aligned with what your dad described:
+1. **mass texting**
+2. **scheduling**
+3. **reply handling**
+4. **analytics/reporting**
+5. **contact segmentation**
+6. **templates**
+7. **campaign management**
+
+Best next 3 to build:
+- **scheduled campaigns**
+- **opt-out / STOP support**
+- **analytics dashboard**
+
+If you want the smartest next feature from a real CRM perspective:
+- build **tags + segment filters + send to tag group**
+because that makes campaigns much more powerful fast.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

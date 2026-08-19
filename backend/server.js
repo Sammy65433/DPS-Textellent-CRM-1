@@ -7,6 +7,7 @@ import { connectDB } from "./config/db.js";
 import templateRoutes from "./routes/templates.js";
 import campaignRoutes from "./routes/campaigns.js";
 import emailRoutes from "./routes/emails.js";
+import { startCampaignScheduler } from "./services/campaignScheduler.js";
 
 
 dotenv.config();
@@ -14,6 +15,7 @@ dotenv.config();
 const app = express();
 
 connectDB();
+startCampaignScheduler();
 
 app.use(cors());
 app.use(express.json());

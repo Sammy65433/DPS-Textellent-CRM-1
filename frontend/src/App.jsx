@@ -8,6 +8,8 @@ import EmailsPage from "./pages/EmailsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { useAppHandlers } from "./handlers/useAppHandlers";
 import "./styles/app.css";
+import AnalyticsPage from "./pages/AnalyticsPage";
+
 
 function App() {
   const [contacts, setContacts] = useState([]);
@@ -44,20 +46,21 @@ function App() {
   });
 
   const [templateForm, setTemplateForm] = useState({
-    userId: "user123",
-    name: "",
-    body: "",
-  });
-
-  const [campaignForm, setCampaignForm] = useState({
   userId: "user123",
   name: "",
-  subject: "",
-  type: "sms",
-  templateId: "",
-  contactIds: [],
+  category: "general",
+  body: "",
 });
 
+  const [campaignForm, setCampaignForm] = useState({
+    userId: "user123",
+    name: "",
+    subject: "",
+    type: "sms",
+    templateId: "",
+    contactIds: [],
+    scheduledAt: "",
+  });
 
   const [contactForm, setContactForm] = useState({
     userId: "user123",
@@ -66,6 +69,7 @@ function App() {
     phone: "",
     email: "",
     tags: "",
+    notes: "",
   });
 
   const [emailForm, setEmailForm] = useState({
@@ -89,6 +93,7 @@ function App() {
     handleDeleteContact,
     handleToggleContact,
     handleCreateCampaign,
+    handleUpdateCampaign,
     handleSendCampaign,
     handleDeleteTemplate,
     handleDeleteCampaign,
@@ -151,6 +156,7 @@ function App() {
               contacts={contacts}
               selectedContact={selectedContact}
               conversation={conversation}
+              emailMessages={emailMessages}
               loadingConversation={loadingConversation}
               messageForm={messageForm}
               setMessageForm={setMessageForm}
@@ -207,6 +213,7 @@ function App() {
               }
               onSendCampaign={handleSendCampaign}
               onDeleteCampaign={handleDeleteCampaign}
+              onUpdateCampaign={handleUpdateCampaign}
             />
           }
         />
@@ -239,7 +246,21 @@ function App() {
             />
           }
         />
-
+        <Route
+  path="/analytics"
+  element={
+    <AnalyticsPage
+      theme={theme}
+      onToggleTheme={toggleTheme}
+      alert={alert}
+      contacts={contacts}
+      messages={messages}
+      emails={emails}
+      templates={templates}
+      campaigns={campaigns}
+    />
+  }
+/>
         <Route
           path="*"
           element={

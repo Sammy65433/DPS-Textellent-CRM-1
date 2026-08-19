@@ -39,8 +39,12 @@ const campaignSchema = new mongoose.Schema(
         ],
         status: {
             type: String,
-            enum: ["draft", "sent"],
+            enum: ["draft", "scheduled", "sent"],
             default: "draft",
+        },
+        scheduledAt: {
+            type: Date,
+            default: null,
         },
     },
     { timestamps: true }

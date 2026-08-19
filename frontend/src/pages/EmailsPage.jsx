@@ -1,10 +1,12 @@
 import { Row, Col, Alert, Card, Spinner, Button } from "react-bootstrap";
+import { useMemo, useState } from "react";
 import { FaTrash } from "react-icons/fa";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import ContactsList from "../components/ContactsList";
 import AddContactForm from "../components/AddContactForm";
 import EmailComposer from "../components/EmailComposer";
+import EmailContactSummaryCard from "../components/EmailContactSummaryCard";
 
 function EmailsPage({
     theme,
@@ -29,6 +31,27 @@ function EmailsPage({
     onDeleteEmail,
     onDeleteEmailConversation,
 }) {
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredContacts = useMemo(() => {
+        return contacts.filter(contact => {
+            const fullName =
+                `${contact.firstName || ""} ${contact.lastName || ""}`.toLowerCase();
+            const phone = (contact.phone || "").toLowerCase();
+            const email = (contact.email || "").toLowerCase();
+            const tags = (contact.tags || "").toLowerCase();
+            const notes = (contact.notes || "").toLowerCase();
+
+            return (
+                fullName.includes(searchTerm.toLowerCase()) ||
+                phone.includes(searchTerm.toLowerCase()) ||
+                email.includes(searchTerm.toLowerCase()) ||
+                tags.includes(searchTerm.toLowerCase()) ||
+                notes.includes(searchTerm.toLowerCase())
+            );
+        });
+    }, [contacts, searchTerm]);
+
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <div className="email-page-theme">
@@ -40,19 +63,24 @@ function EmailsPage({
                 {alert && <Alert variant={alert.variant}>{alert.message}</Alert>}
 
                 <Row className="g-4">
-                    <Col md={3}>
-                        <div className="crm-card page-panel-emails border-0">
-                            <ContactsList
-                                contacts={contacts}
-                                selectedContact={selectedContact}
-                                onSelectContact={onSelectContact}
-                                onEditContact={onEditContact}
-                                onDeleteContact={onDeleteContact}
-                            />
-                        </div>
+                    <Col md={3} className="contacts-column-compact">
+                        <ContactsList
+                            contacts={filteredContacts}
+                            selectedContact={selectedContact}
+                            onSelectContact={onSelectContact}
+                            onEditContact={onEditContact}
+                            onDeleteContact={onDeleteContact}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                        />
                     </Col>
 
                     <Col md={5} className="panel-column">
+                        <EmailContactSummaryCard
+                            selectedContact={selectedContact}
+                            emailMessages={emailMessages}
+                        />
+
                         <Card className="email-history-card page-panel-emails border-0">
                             <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                                 <span>Email History</span>
@@ -89,7 +117,8 @@ function EmailsPage({
                                                             <div className="email-subject">{email.subject}</div>
                                                             <div className="email-body-text">{email.body}</div>
                                                             <div className="email-meta">
-                                                                email • {new Date(email.createdAt).toLocaleString()}
+                                                                email •{" "}
+                                                                {new Date(email.createdAt).toLocaleString()}
                                                             </div>
                                                         </div>
 

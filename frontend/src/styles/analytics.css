@@ -1,0 +1,54 @@
+.analytics-panel {
+    border-radius: 22px !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.analytics-trend-panel {
+    background: linear-gradient(180deg, #f7fbff 0%, #eef5ff 100%) !important;
+    border-top: 4px solid #2563eb !important;
+}
+
+.analytics-status-panel {
+    background: linear-gradient(180deg, #f4fcf7 0%, #e9f9ef 100%) !important;
+    border-top: 4px solid #16a34a !important;
+}
+
+.analytics-email-panel {
+    background: linear-gradient(180deg, #f2fcff 0%, #e6f9ff 100%) !important;
+    border-top: 4px solid #06b6d4 !important;
+}
+
+.analytics-tags-panel {
+    background: linear-gradient(180deg, #fffaf2 0%, #fff2dc 100%) !important;
+    border-top: 4px solid #f59e0b !important;
+}
+
+[data-theme="dark"] .analytics-trend-panel {
+    background: linear-gradient(180deg, #0f172a 0%, #172554 100%) !important;
+    border-top: 4px solid #60a5fa !important;
+}
+
+[data-theme="dark"] .analytics-status-panel {
+    background: linear-gradient(180deg, #0f172a 0%, #14532d 100%) !important;
+    border-top: 4px solid #4ade80 !important;
+}
+
+[data-theme="dark"] .analytics-email-panel {
+    background: linear-gradient(180deg, #082f49 0%, #0f3b5f 100%) !important;
+    border-top: 4px solid #22d3ee !important;
+}
+
+[data-theme="dark"] .analytics-tags-panel {
+    background: linear-gradient(180deg, #451a03 0%, #78350f 100%) !important;
+    border-top: 4px solid #fbbf24 !important;
+}
+
+.analytics-mini-panel {
+    background: linear-gradient(180deg, #f7fbff 0%, #eef5ff 100%) !important;
+    border-top: 4px solid #2563eb !important;
+}
+
+[data-theme="dark"] .analytics-mini-panel {
+    background: linear-gradient(180deg, #0f172a 0%, #172554 100%) !important;
+    border-top: 4px solid #60a5fa !important;
+}

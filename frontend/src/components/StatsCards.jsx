@@ -55,7 +55,7 @@ function StatsCards({ contacts, messages, templates, campaigns, emails = [] }) {
     return (
         <Row className="g-4 mb-4">
             {cards.map(card => (
-                <Col md={6} lg={card.title === "Emails" ? 12 : 3} key={card.title}>
+                <Col md={6} lg={4} xl key={card.title}>
                     <Link to={card.to} className="stats-card-link">
                         <Card className={`dashboard-card border-0 ${card.colorClass}`}>
                             <Card.Body>

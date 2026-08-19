@@ -8,7 +8,7 @@ function AddContactForm({
     onCancelEdit,
 }) {
     return (
-        <Card className="crm-card border-0 shadow-sm mb-4">
+        <Card className="crm-card page-panel-contacts border-0 shadow-sm mb-4">
             <Card.Header className="card-header-clean">
                 {isEditing ? "Edit Contact" : "Add Contact"}
             </Card.Header>
@@ -52,11 +52,22 @@ function AddContactForm({
                     />
 
                     <Form.Control
-                        className="mb-3"
-                        placeholder="Tags"
+                        className="mb-2"
+                        placeholder="Tags (comma separated)"
                         value={contactForm.tags}
                         onChange={e =>
                             setContactForm(prev => ({ ...prev, tags: e.target.value }))
+                        }
+                    />
+
+                    <Form.Control
+                        as="textarea"
+                        rows={4}
+                        className="mb-3"
+                        placeholder="Notes"
+                        value={contactForm.notes}
+                        onChange={e =>
+                            setContactForm(prev => ({ ...prev, notes: e.target.value }))
                         }
                     />
 

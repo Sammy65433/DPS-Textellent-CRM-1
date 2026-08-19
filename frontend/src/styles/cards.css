@@ -492,3 +492,285 @@
 [data-theme="dark"] .template-empty-state {
     color: #94a3b8 !important;
 }
+
+.scheduled-time {
+    color: #b45309 !important;
+    font-weight: 600;
+}
+
+[data-theme="dark"] .scheduled-time {
+    color: #fbbf24 !important;
+}
+
+.template-preview-card {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.template-preview-name {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.template-preview-body {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-soft);
+    white-space: pre-wrap;
+}
+
+[data-theme="dark"] .template-preview-card {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1px solid rgba(71, 85, 105, 0.85) !important;
+}
+
+[data-theme="dark"] .template-preview-name {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .template-preview-body {
+    color: #cbd5e1;
+}
+
+.campaign-modal-header {
+    border-bottom: 1px solid var(--border-light) !important;
+}
+
+.campaign-modal-body {
+    padding: 1.25rem 1.25rem 0.75rem !important;
+}
+
+.campaign-modal-footer {
+    border-top: 1px solid var(--border-light) !important;
+    padding: 1rem 1.25rem !important;
+}
+
+[data-theme="dark"] .modal-content {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(71, 85, 105, 0.9) !important;
+}
+
+[data-theme="dark"] .campaign-modal-header,
+[data-theme="dark"] .campaign-modal-footer {
+    border-color: rgba(71, 85, 105, 0.9) !important;
+}
+
+.live-preview-card {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.live-preview-subject {
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.live-preview-body {
+    color: var(--text-soft);
+    line-height: 1.65;
+    font-size: 0.96rem;
+    white-space: pre-wrap;
+}
+
+.live-preview-footer {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+}
+
+[data-theme="dark"] .live-preview-card {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1px solid rgba(71, 85, 105, 0.85) !important;
+}
+
+[data-theme="dark"] .live-preview-subject {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .live-preview-body {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .live-preview-footer {
+    color: #94a3b8 !important;
+}
+.contact-tag-badge {
+  font-size: 0.75rem;
+  border-radius: 999px !important;
+  padding: 0.35rem 0.55rem !important;
+}
+
+.contact-item {
+  transition: all 0.2s ease;
+}
+
+.contact-item:hover {
+  transform: translateY(-1px);
+}
+.contacts-column-compact .crm-card {
+  max-height: 620px;
+}
+
+.contacts-column-compact .contact-list {
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.contacts-column-compact .card-body {
+  padding-bottom: 0.5rem !important;
+}
+.contact-list .list-group-item {
+  padding: 0.8rem 1rem !important;
+}
+.tag-filter-pill {
+  padding: 0.45rem 0.75rem !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.tag-filter-pill:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.contact-activity-box {
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+}
+
+[data-theme="dark"] .contact-activity-box {
+  background: rgba(15, 23, 42, 0.45);
+  border-color: rgba(71, 85, 105, 0.9);
+}
+.contact-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.contact-metrics {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.contact-metric-box {
+  min-width: 72px;
+  padding: 0.55rem 0.8rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid var(--border-light);
+  text-align: center;
+}
+
+.contact-metric-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.contact-metric-label {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.contact-tag-badge {
+  font-size: 0.75rem;
+  border-radius: 999px !important;
+  padding: 0.35rem 0.55rem !important;
+}
+
+.contact-notes-box {
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+}
+
+.contact-notes-text {
+  color: var(--text-soft);
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.contact-activity-box {
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+}
+
+.activity-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.activity-item {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+[data-theme="dark"] .contact-metric-box,
+[data-theme="dark"] .contact-notes-box,
+[data-theme="dark"] .contact-activity-box {
+  background: rgba(15, 23, 42, 0.45);
+  border-color: rgba(71, 85, 105, 0.9);
+}
+
+[data-theme="dark"] .contact-metric-value {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .contact-metric-label,
+[data-theme="dark"] .contact-notes-text,
+[data-theme="dark"] .activity-item .text-muted {
+  color: #cbd5e1 !important;
+}
+.email-avatar {
+  background: linear-gradient(135deg, #0891b2, #06b6d4);
+}
+.template-helper-box {
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+}
+
+.template-helper-box code {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--text-main);
+  padding: 0.25rem 0.45rem;
+  border-radius: 8px;
+  margin-right: 0.45rem;
+  font-size: 0.82rem;
+}
+
+[data-theme="dark"] .template-helper-box {
+  background: rgba(15, 23, 42, 0.45);
+  border-color: rgba(71, 85, 105, 0.9);
+}
+
+[data-theme="dark"] .template-helper-box code {
+  background: rgba(96, 165, 250, 0.12);
+  color: #f8fafc;
+}
