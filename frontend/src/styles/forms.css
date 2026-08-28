@@ -6,6 +6,12 @@
     box-shadow: none !important;
     background: rgba(255, 255, 255, 0.95) !important;
 }
+.campaign-contacts {
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
 
 .form-control:focus,
 .form-select:focus {

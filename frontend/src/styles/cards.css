@@ -26,6 +26,14 @@
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg) !important;
 }
+.dashboard-card {
+  border-radius: 16px;
+}
+
+.dashboard-icon {
+  font-size: 2rem;
+}
+
 
 .dashboard-icon {
     width: 58px;

@@ -5,6 +5,36 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, #f5f9ff 100%);
   padding: 1.25rem;
 }
+.conversation-body {
+  min-height: 500px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: #f9fbfd;
+  padding: 1rem;
+}
+
+.message-bubble {
+  max-width: 75%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-bubble.outbound {
+  background: #0d6efd;
+  color: white;
+  margin-left: auto;
+  text-align: left;
+}
+
+.message-bubble.inbound {
+  background: #e9ecef;
+  color: #212529;
+  margin-right: auto;
+  text-align: left;
+}
 
 
 .conversation-empty {

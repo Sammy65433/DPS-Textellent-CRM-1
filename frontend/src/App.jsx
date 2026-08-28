@@ -1,15 +1,16 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import DashboardPage from "./pages/DashboardPage";
 import ContactsPage from "./pages/ContactsPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import CampaignsPage from "./pages/CampaignsPage";
 import EmailsPage from "./pages/EmailsPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { useAppHandlers } from "./handlers/useAppHandlers";
 import "./styles/app.css";
-import AnalyticsPage from "./pages/AnalyticsPage";
-
 
 function App() {
   const [contacts, setContacts] = useState([]);
@@ -35,7 +36,7 @@ function App() {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === "light" ? "dark" : "light"));
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
   const [messageForm, setMessageForm] = useState({
@@ -46,11 +47,11 @@ function App() {
   });
 
   const [templateForm, setTemplateForm] = useState({
-  userId: "user123",
-  name: "",
-  category: "general",
-  body: "",
-});
+    userId: "user123",
+    name: "",
+    category: "general",
+    body: "",
+  });
 
   const [campaignForm, setCampaignForm] = useState({
     userId: "user123",
@@ -124,143 +125,167 @@ function App() {
   });
 
   useEffect(() => {
-    loadData();
+    const token = localStorage.getItem("token");
+    if (token) {
+      loadData();
+    }
   }, []);
 
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         <Route
-          path="/"
+          path="/login"
+          element={<LoginPage />}
+        />
+
+        <Route
+          path="/dashboard"
           element={
-            <DashboardPage
-              theme={theme}
-              onToggleTheme={toggleTheme}
-              alert={alert}
-              contacts={contacts}
-              messages={messages}
-              templates={templates}
-              campaigns={campaigns}
-              emails={emails}
-            />
+            <ProtectedRoute>
+              <DashboardPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                contacts={contacts}
+                messages={messages}
+                templates={templates}
+                campaigns={campaigns}
+                emails={emails}
+              />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/contacts"
           element={
-            <ContactsPage
-              theme={theme}
-              onToggleTheme={toggleTheme}
-              alert={alert}
-              contacts={contacts}
-              selectedContact={selectedContact}
-              conversation={conversation}
-              emailMessages={emailMessages}
-              loadingConversation={loadingConversation}
-              messageForm={messageForm}
-              setMessageForm={setMessageForm}
-              contactForm={contactForm}
-              setContactForm={setContactForm}
-              templates={templates}
-              editingContact={editingContact}
-              emailForm={emailForm}
-              setEmailForm={setEmailForm}
-              onSelectContact={handleSelectContact}
-              onSendMessage={e => handleSendMessage(e, messageForm)}
-              onSendEmail={e => handleSendEmail(e, emailForm)}
-              onCreateContact={e => handleCreateContact(e, contactForm)}
-              onEditContact={handleEditContact}
-              onDeleteContact={handleDeleteContact}
-              onCancelEditContact={handleCancelEditContact}
-              onDeleteMessage={handleDeleteMessage}
-              onDeleteConversation={handleDeleteConversation}
-            />
+            <ProtectedRoute>
+              <ContactsPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                contacts={contacts}
+                selectedContact={selectedContact}
+                conversation={conversation}
+                emailMessages={emailMessages}
+                loadingConversation={loadingConversation}
+                messageForm={messageForm}
+                setMessageForm={setMessageForm}
+                contactForm={contactForm}
+                setContactForm={setContactForm}
+                templates={templates}
+                editingContact={editingContact}
+                emailForm={emailForm}
+                setEmailForm={setEmailForm}
+                onSelectContact={handleSelectContact}
+                onSendMessage={(e) => handleSendMessage(e, messageForm)}
+                onSendEmail={(e) => handleSendEmail(e, emailForm)}
+                onCreateContact={(e) => handleCreateContact(e, contactForm)}
+                onEditContact={handleEditContact}
+                onDeleteContact={handleDeleteContact}
+                onCancelEditContact={handleCancelEditContact}
+                onDeleteMessage={handleDeleteMessage}
+                onDeleteConversation={handleDeleteConversation}
+              />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/templates"
           element={
-            <TemplatesPage
-              theme={theme}
-              onToggleTheme={toggleTheme}
-              alert={alert}
-              templates={templates}
-              templateForm={templateForm}
-              setTemplateForm={setTemplateForm}
-              onCreateTemplate={e => handleCreateTemplate(e, templateForm)}
-              onDeleteTemplate={handleDeleteTemplate}
-            />
+            <ProtectedRoute>
+              <TemplatesPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                templates={templates}
+                templateForm={templateForm}
+                setTemplateForm={setTemplateForm}
+                onCreateTemplate={(e) => handleCreateTemplate(e, templateForm)}
+                onDeleteTemplate={handleDeleteTemplate}
+              />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/campaigns"
           element={
-            <CampaignsPage
-              theme={theme}
-              onToggleTheme={toggleTheme}
-              alert={alert}
-              campaigns={campaigns}
-              campaignForm={campaignForm}
-              setCampaignForm={setCampaignForm}
-              templates={templates}
-              contacts={contacts}
-              onCreateCampaign={e => handleCreateCampaign(e, campaignForm)}
-              onToggleContact={contactId =>
-                handleToggleContact(contactId, campaignForm)
-              }
-              onSendCampaign={handleSendCampaign}
-              onDeleteCampaign={handleDeleteCampaign}
-              onUpdateCampaign={handleUpdateCampaign}
-            />
+            <ProtectedRoute>
+              <CampaignsPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                campaigns={campaigns}
+                campaignForm={campaignForm}
+                setCampaignForm={setCampaignForm}
+                templates={templates}
+                contacts={contacts}
+                onCreateCampaign={(e) => handleCreateCampaign(e, campaignForm)}
+                onToggleContact={(contactId) =>
+                  handleToggleContact(contactId, campaignForm)
+                }
+                onSendCampaign={handleSendCampaign}
+                onDeleteCampaign={handleDeleteCampaign}
+                onUpdateCampaign={handleUpdateCampaign}
+              />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/emails"
           element={
-            <EmailsPage
-              theme={theme}
-              onToggleTheme={toggleTheme}
-              alert={alert}
-              contacts={contacts}
-              selectedContact={selectedContact}
-              emailMessages={emailMessages}
-              loadingEmails={loadingEmails}
-              emailForm={emailForm}
-              setEmailForm={setEmailForm}
-              contactForm={contactForm}
-              setContactForm={setContactForm}
-              templates={templates}
-              editingContact={editingContact}
-              onSelectContact={handleSelectContact}
-              onSendEmail={e => handleSendEmail(e, emailForm)}
-              onCreateContact={e => handleCreateContact(e, contactForm)}
-              onEditContact={handleEditContact}
-              onDeleteContact={handleDeleteContact}
-              onCancelEditContact={handleCancelEditContact}
-              onDeleteEmail={handleDeleteEmail}
-              onDeleteEmailConversation={handleDeleteEmailConversation}
-            />
+            <ProtectedRoute>
+              <EmailsPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                contacts={contacts}
+                selectedContact={selectedContact}
+                emailMessages={emailMessages}
+                loadingEmails={loadingEmails}
+                emailForm={emailForm}
+                setEmailForm={setEmailForm}
+                contactForm={contactForm}
+                setContactForm={setContactForm}
+                templates={templates}
+                editingContact={editingContact}
+                onSelectContact={handleSelectContact}
+                onSendEmail={(e) => handleSendEmail(e, emailForm)}
+                onCreateContact={(e) => handleCreateContact(e, contactForm)}
+                onEditContact={handleEditContact}
+                onDeleteContact={handleDeleteContact}
+                onCancelEditContact={handleCancelEditContact}
+                onDeleteEmail={handleDeleteEmail}
+                onDeleteEmailConversation={handleDeleteEmailConversation}
+              />
+            </ProtectedRoute>
           }
         />
+
         <Route
-  path="/analytics"
-  element={
-    <AnalyticsPage
-      theme={theme}
-      onToggleTheme={toggleTheme}
-      alert={alert}
-      contacts={contacts}
-      messages={messages}
-      emails={emails}
-      templates={templates}
-      campaigns={campaigns}
-    />
-  }
-/>
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <AnalyticsPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                contacts={contacts}
+                messages={messages}
+                emails={emails}
+                templates={templates}
+                campaigns={campaigns}
+              />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="*"
           element={
