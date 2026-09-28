@@ -247,18 +247,11 @@ Most aligned with what your dad described:
 6. **templates**
 7. **campaign management**
 
-Best next 3 to build:
-- **scheduled campaigns**
-- **opt-out / STOP support**
-- **analytics dashboard**
-
-If you want the smartest next feature from a real CRM perspective:
-- build **tags + segment filters + send to tag group**
-because that makes campaigns much more powerful fast.
 
 
 
 
+      
 
 
 

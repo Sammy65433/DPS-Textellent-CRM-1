@@ -1,88 +1,164 @@
 .crm-navbar {
-    background: linear-gradient(90deg,
-            var(--nav-bg) 0%,
-            var(--nav-bg-2) 35%,
-            var(--nav-bg-3) 65%,
-            var(--nav-bg-4) 100%) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  background: linear-gradient(
+    90deg,
+    var(--nav-bg) 0%,
+    var(--nav-bg-2) 35%,
+    var(--nav-bg-3) 65%,
+    var(--nav-bg-4) 100%
+  ) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
 }
 
 .crm-navbar .navbar-brand {
-    font-size: 1.08rem;
-    font-weight: 800 !important;
-    letter-spacing: 0.2px;
-    color: #ffffff !important;
+  font-size: 1.08rem;
+  font-weight: 800 !important;
+  letter-spacing: 0.2px;
+  color: #ffffff !important;
 }
 
 .dashboard-shell {
-    padding: 0 1.4rem 2.2rem;
+  padding: 0 1.4rem 2.2rem;
 }
 
 .section-spacer {
-    margin-top: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .panel-column {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .nav-router-link {
-    color: rgba(255, 255, 255, 0.84) !important;
-    font-weight: 600;
-    border-radius: 12px;
-    padding: 0.55rem 0.95rem !important;
-    transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.84) !important;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 0.55rem 0.95rem !important;
+  transition: all 0.2s ease;
 }
 
 .nav-router-link:hover {
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.12);
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .nav-router-link.active {
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.crm-user-meta {
+  display: flex;
+  align-items: center;
+}
+
+.crm-user-meta small {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 500;
 }
 
 .page-header {
-    margin-bottom: 1.6rem;
+  margin-bottom: 1.6rem;
 }
 
 .page-title {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--text-main);
-    margin-bottom: 0.35rem;
-    letter-spacing: -0.03em;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.03em;
 }
 
-
 .page-subtitle {
-    color: var(--text-soft);
-    font-size: 1rem;
+  color: var(--text-soft);
+  font-size: 1rem;
 }
 
 .page-header-action {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
-.theme-toggle-btn {
-    border-radius: 12px !important;
-    border: none !important;
-    box-shadow: var(--shadow-sm);
-    min-width: 44px;
-    min-height: 44px;
+.theme-toggle-btn,
+.theme-toggle-btn.btn,
+button.theme-toggle-btn {
+  border-radius: 12px !important;
+  border: none !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  min-height: 38px;
+  padding: 0.48rem 0.9rem !important;
+  font-weight: 700 !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.theme-toggle-btn:hover,
+.theme-toggle-btn:focus,
+.theme-toggle-btn:active {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
+}
+
+.theme-toggle-btn svg,
+.theme-toggle-btn span {
+  color: #0f172a !important;
+}
+
+.logout-btn,
+.logout-btn.btn,
+button.logout-btn {
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  padding: 0.48rem 0.9rem !important;
+  border: none !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.logout-btn *,
+.logout-btn span,
+.logout-btn svg {
+  color: #0f172a !important;
+  fill: #0f172a !important;
+}
+
+.logout-btn:hover,
+.logout-btn:focus,
+.logout-btn:active {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
+}
+
+.logout-btn:hover *,
+.logout-btn:focus *,
+.logout-btn:active * {
+  color: #0f172a !important;
+  fill: #0f172a !important;
+}
+
+.logout-btn svg {
+  font-size: 0.9rem;
 }
 
 [data-theme="dark"] .dashboard-shell {
-    background: linear-gradient(180deg, #020617 0%, #0b1220 100%);
+  background: linear-gradient(180deg, #020617 0%, #0b1220 100%);
 }
+
 .contacts-column-compact .crm-card {
   max-height: 620px;
 }
@@ -94,4 +170,74 @@
 
 .contacts-column-compact .card-body {
   padding-bottom: 0.5rem !important;
+}
+
+@media (max-width: 991px) {
+  .crm-navbar .navbar-brand {
+    font-size: 1rem;
+  }
+
+  .nav-router-link {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.92rem;
+  }
+
+  .crm-user-meta {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-shell {
+    padding: 0 1rem 1.6rem;
+  }
+
+  .crm-navbar {
+    margin-bottom: 1rem !important;
+  }
+
+  .crm-navbar .container-fluid {
+    gap: 0.75rem;
+  }
+
+  .crm-navbar .navbar-brand {
+    font-size: 0.95rem;
+  }
+
+  .crm-navbar .navbar-nav {
+    width: 100%;
+    gap: 0.45rem;
+    align-items: stretch !important;
+  }
+
+  .nav-router-link {
+    width: 100%;
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem !important;
+    font-size: 0.9rem;
+  }
+
+  .crm-user-meta {
+    width: 100%;
+    justify-content: center;
+    margin: 0.35rem 0 0;
+    text-align: center;
+  }
+
+  .logout-btn,
+  .theme-toggle-btn {
+    width: 100%;
+    justify-content: center;
+    margin: 0.35rem 0 0 !important;
+  }
+
+  .page-title {
+    font-size: 1.55rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.95rem;
+  }
 }

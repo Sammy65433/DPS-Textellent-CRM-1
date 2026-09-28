@@ -11,6 +11,9 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAppHandlers } from "./handlers/useAppHandlers";
 import "./styles/app.css";
+import Booking from "./components/Booking";
+
+
 
 function App() {
   const [contacts, setContacts] = useState([]);
@@ -158,6 +161,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+{/* // Add inside <Routes>: */}
+<Route
+  path="/booking"
+  element={
+    <ProtectedRoute>
+      <Booking theme={theme} onToggleTheme={toggleTheme} />
+    </ProtectedRoute>
+  }
+/>
+
 
         <Route
           path="/contacts"
@@ -296,6 +309,7 @@ function App() {
           }
         />
       </Routes>
+
     </BrowserRouter>
   );
 }
