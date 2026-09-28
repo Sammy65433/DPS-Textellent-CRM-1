@@ -27,6 +27,15 @@ function AppLayout({ children, theme, onToggleTheme }) {
       <Navbar bg="dark" variant="dark" className="crm-navbar shadow-sm mb-4">
         <Container fluid>
           <Navbar.Brand className="fw-bold">DPS CRM</Navbar.Brand>
+          {JSON.parse(localStorage.getItem("user") || "null")?.role === "staff" && (
+            <span
+              className="ms-2 px-3 py-1 rounded-pill fw-bold"
+              style={{ backgroundColor: "#fbbf24", color: "#111827", fontSize: "0.8rem" }}
+            >
+              Staff
+            </span>
+
+          )}
 
           <Nav className="ms-auto align-items-center flex-wrap">
             <Nav.Link as={NavLink} to="/dashboard" end className="nav-router-link">
@@ -58,7 +67,7 @@ function AppLayout({ children, theme, onToggleTheme }) {
               <FaChartBar className="me-2" />
               Analytics
             </Nav.Link>
-            
+
             <Nav.Link as={NavLink} to="/booking" className="nav-router-link">
               <FaCalendarCheck className="me-2" /> Booking
             </Nav.Link>
