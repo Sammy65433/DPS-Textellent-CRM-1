@@ -9,7 +9,12 @@ import emailRoutes from "./routes/emails.js";
 import authRoutes from "./routes/authRoutes.js";
 import { connectDB } from "./config/db.js";
 import { startCampaignScheduler } from "./services/campaignScheduler.js";
-import { requireAuth, requireStaff } from "./middleware/authMiddleware.js";
+import { inviteStaff } from "./controllers/staffController.js";
+import {
+  requireAuth,
+  requireStaff,
+  requireAdmin,
+} from "./middleware/authMiddleware.js";
 
 dotenv.config();
 
@@ -22,6 +27,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.post("/api/admin/staff", requireAuth, requireAdmin, inviteStaff);
 app.use("/api/templates", templateRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/emails", emailRoutes);

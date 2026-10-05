@@ -37,20 +37,23 @@ function AppLayout({ children, theme, onToggleTheme }) {
       >
         <Container fluid>
           <Navbar.Brand className="fw-bold">DPS CRM</Navbar.Brand>
+{["staff", "admin"].includes(
+  JSON.parse(localStorage.getItem("user") || "null")?.role
+) && (
+  <span
+    className="ms-2 px-3 py-1 rounded-pill fw-bold"
+    style={{
+      backgroundColor: "#fbbf24",
+      color: "#111827",
+      fontSize: "0.8rem",
+    }}
+  >
+    {JSON.parse(localStorage.getItem("user") || "null").role === "admin"
+      ? "Admin"
+      : "Staff"}
+  </span>
+)}
 
-          {JSON.parse(localStorage.getItem("user") || "null")?.role ===
-            "staff" && (
-            <span
-              className="ms-2 px-3 py-1 rounded-pill fw-bold"
-              style={{
-                backgroundColor: "#fbbf24",
-                color: "#111827",
-                fontSize: "0.8rem",
-              }}
-            >
-              Staff
-            </span>
-          )}
 
           <Navbar.Toggle
             aria-controls="crm-navbar-menu"

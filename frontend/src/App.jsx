@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
 import DashboardPage from "./pages/DashboardPage";
 import ContactsPage from "./pages/ContactsPage";
 import TemplatesPage from "./pages/TemplatesPage";
@@ -7,13 +8,13 @@ import CampaignsPage from "./pages/CampaignsPage";
 import EmailsPage from "./pages/EmailsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import LoginPage from "./pages/LoginPage";
+import SetupPasswordPage from "./pages/SetupPasswordPage";
 import NotFoundPage from "./pages/NotFoundPage";
+
+import Booking from "./components/Booking";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAppHandlers } from "./handlers/useAppHandlers";
 import "./styles/app.css";
-import Booking from "./components/Booking";
-
-
 
 function App() {
   const [contacts, setContacts] = useState([]);
@@ -21,6 +22,7 @@ function App() {
   const [templates, setTemplates] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [emails, setEmails] = useState([]);
+
   const [selectedContact, setSelectedContact] = useState(null);
   const [conversation, setConversation] = useState([]);
   const [loadingConversation, setLoadingConversation] = useState(false);
@@ -29,9 +31,9 @@ function App() {
   const [alert, setAlert] = useState(null);
   const [editingContact, setEditingContact] = useState(null);
 
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("theme") || "light";
-  });
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -39,7 +41,7 @@ function App() {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    setTheme((current) => (current === "light" ? "dark" : "light"));
   };
 
   const [messageForm, setMessageForm] = useState({
@@ -128,21 +130,15 @@ function App() {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      loadData();
-    }
+    if (localStorage.getItem("token")) loadData();
   }, []);
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-
-        <Route
-          path="/login"
-          element={<LoginPage />}
-        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/setup-password" element={<SetupPasswordPage />} />
 
         <Route
           path="/dashboard"
@@ -161,16 +157,15 @@ function App() {
             </ProtectedRoute>
           }
         />
-{/* // Add inside <Routes>: */}
-<Route
-  path="/booking"
-  element={
-    <ProtectedRoute>
-      <Booking theme={theme} onToggleTheme={toggleTheme} />
-    </ProtectedRoute>
-  }
-/>
 
+        <Route
+          path="/booking"
+          element={
+            <ProtectedRoute>
+              <Booking theme={theme} onToggleTheme={toggleTheme} />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/contacts"
@@ -194,9 +189,15 @@ function App() {
                 emailForm={emailForm}
                 setEmailForm={setEmailForm}
                 onSelectContact={handleSelectContact}
-                onSendMessage={(e) => handleSendMessage(e, messageForm)}
-                onSendEmail={(e) => handleSendEmail(e, emailForm)}
-                onCreateContact={(e) => handleCreateContact(e, contactForm)}
+                onSendMessage={(event) =>
+                  handleSendMessage(event, messageForm)
+                }
+                onSendEmail={(event) =>
+                  handleSendEmail(event, emailForm)
+                }
+                onCreateContact={(event) =>
+                  handleCreateContact(event, contactForm)
+                }
                 onEditContact={handleEditContact}
                 onDeleteContact={handleDeleteContact}
                 onCancelEditContact={handleCancelEditContact}
@@ -218,7 +219,9 @@ function App() {
                 templates={templates}
                 templateForm={templateForm}
                 setTemplateForm={setTemplateForm}
-                onCreateTemplate={(e) => handleCreateTemplate(e, templateForm)}
+                onCreateTemplate={(event) =>
+                  handleCreateTemplate(event, templateForm)
+                }
                 onDeleteTemplate={handleDeleteTemplate}
               />
             </ProtectedRoute>
@@ -238,7 +241,9 @@ function App() {
                 setCampaignForm={setCampaignForm}
                 templates={templates}
                 contacts={contacts}
-                onCreateCampaign={(e) => handleCreateCampaign(e, campaignForm)}
+                onCreateCampaign={(event) =>
+                  handleCreateCampaign(event, campaignForm)
+                }
                 onToggleContact={(contactId) =>
                   handleToggleContact(contactId, campaignForm)
                 }
@@ -269,8 +274,12 @@ function App() {
                 templates={templates}
                 editingContact={editingContact}
                 onSelectContact={handleSelectContact}
-                onSendEmail={(e) => handleSendEmail(e, emailForm)}
-                onCreateContact={(e) => handleCreateContact(e, contactForm)}
+                onSendEmail={(event) =>
+                  handleSendEmail(event, emailForm)
+                }
+                onCreateContact={(event) =>
+                  handleCreateContact(event, contactForm)
+                }
                 onEditContact={handleEditContact}
                 onDeleteContact={handleDeleteContact}
                 onCancelEditContact={handleCancelEditContact}
@@ -309,7 +318,6 @@ function App() {
           }
         />
       </Routes>
-
     </BrowserRouter>
   );
 }
