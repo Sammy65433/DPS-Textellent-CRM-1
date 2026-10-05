@@ -4,18 +4,20 @@ import AppLayout from "./AppLayout";
 const DPS_API_URL = import.meta.env.VITE_DPS_API_URL;
 const CRM_API_URL = import.meta.env.VITE_API_URL;
 
-function dateKey(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-}
-function formatDate(value) {
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
+const SERVICES = [
+    "Tax Preparation",
+    "Copy & Fax Services",
+    "Notary Public",
+    "Translation Services",
+];
 
-  return `${date.toLocaleString("en-US", { month: "long" })} ${String(day).padStart(2, "0")} ${year}`;
-}
+const PREPARERS = [
+    "Pierre Polidor",
+    "Dalia Pierre",
+    "Severe Jacquet",
+    "Jean P Cifrant",
+    "Ricot Casimir",
+];
 
 const emptyCustomer = {
     first_name: "",
@@ -24,6 +26,24 @@ const emptyCustomer = {
     email: "",
 };
 
+function dateKey(date) {
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+    ].join("-");
+}
+
+function formatDate(value) {
+    if (!value) return "";
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    return `${date.toLocaleString("en-US", {
+        month: "long",
+    })} ${String(day).padStart(2, "0")} ${year}`;
+}
+
 export default function Booking({ theme, onToggleTheme }) {
     const [month, setMonth] = useState(new Date());
     const [day, setDay] = useState(dateKey(new Date()));
@@ -31,18 +51,22 @@ export default function Booking({ theme, onToggleTheme }) {
     const [preparer, setPreparer] = useState("");
     const [duration, setDuration] = useState(30);
     const [time, setTime] = useState("");
-
     const [slots, setSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
-    const [error, setError] = useState("");
+
     const [customer, setCustomer] = useState(emptyCustomer);
     const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [refreshKey, setRefreshKey] = useState(0);
 
     const [appointments, setAppointments] = useState([]);
     const [appointmentsError, setAppointmentsError] = useState("");
     const [showAll, setShowAll] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const [editing, setEditing] = useState(null);
+    const [editError, setEditError] = useState("");
+    const [savingEdit, setSavingEdit] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -65,7 +89,9 @@ export default function Booking({ theme, onToggleTheme }) {
                 );
 
                 if (!response.ok) {
-                    throw new Error(`Could not load appointments (${response.status}).`);
+                    throw new Error(
+                        `Could not load appointments (${response.status}).`
+                    );
                 }
 
                 const data = await response.json();
@@ -154,6 +180,17 @@ export default function Booking({ theme, onToggleTheme }) {
         ["booked", "confirmed"].includes(appointment.status)
     );
 
+    const visibleAppointments = activeAppointments
+        .filter(
+            (appointment) =>
+                showAll || appointment.appointment_date === day
+        )
+        .sort(
+            (a, b) =>
+                a.appointment_date.localeCompare(b.appointment_date) ||
+                a.appointment_time.localeCompare(b.appointment_time)
+        );
+
     async function handleBooking(event) {
         event.preventDefault();
 
@@ -164,18 +201,21 @@ export default function Booking({ theme, onToggleTheme }) {
         setSuccess("");
 
         try {
-            const response = await fetch(`${DPS_API_URL}/api/appointments`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...customer,
-                    service,
-                    tax_preparer: preparer,
-                    appointment_date: day,
-                    appointment_time: time,
-                    duration_minutes: duration,
-                }),
-            });
+            const response = await fetch(
+                `${DPS_API_URL}/api/appointments`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        ...customer,
+                        service,
+                        tax_preparer: preparer,
+                        appointment_date: day,
+                        appointment_time: time,
+                        duration_minutes: duration,
+                    }),
+                }
+            );
 
             const data = await response.json();
 
@@ -192,6 +232,51 @@ export default function Booking({ theme, onToggleTheme }) {
             setRefreshKey((current) => current + 1);
         } finally {
             setSubmitting(false);
+        }
+    }
+
+    async function saveEdit(event) {
+        event.preventDefault();
+
+        if (!editing || savingEdit) return;
+
+        setSavingEdit(true);
+        setEditError("");
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) throw new Error("CRM login required.");
+
+            const response = await fetch(
+                `${CRM_API_URL}/api/staff/appointments/${editing.id}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        service: editing.service,
+                        tax_preparer: editing.tax_preparer,
+                        appointment_date: editing.appointment_date,
+                        appointment_time: editing.appointment_time,
+                        duration_minutes: Number(editing.duration_minutes),
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Could not update appointment.");
+            }
+
+            setEditing(null);
+            setRefreshKey((current) => current + 1);
+        } catch (err) {
+            setEditError(err.message);
+        } finally {
+            setSavingEdit(false);
         }
     }
 
@@ -245,16 +330,19 @@ export default function Booking({ theme, onToggleTheme }) {
                         gap: 6,
                     }}
                 >
-                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((name) => (
-                        <strong key={name} style={{ textAlign: "center" }}>
-                            {name}
-                        </strong>
-                    ))}
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                        (name) => (
+                            <strong key={name} style={{ textAlign: "center" }}>
+                                {name}
+                            </strong>
+                        )
+                    )}
 
                     {days.map((date) => {
                         const value = dateKey(date);
                         const count = activeAppointments.filter(
-                            (appointment) => appointment.appointment_date === value
+                            (appointment) =>
+                                appointment.appointment_date === value
                         ).length;
 
                         return (
@@ -298,7 +386,6 @@ export default function Booking({ theme, onToggleTheme }) {
                 <section style={{ marginTop: 24 }}>
                     <h2>{formatDate(day)}</h2>
 
-
                     <label htmlFor="booking-service">Service: </label>
                     <select
                         id="booking-service"
@@ -306,12 +393,11 @@ export default function Booking({ theme, onToggleTheme }) {
                         onChange={(event) => setService(event.target.value)}
                     >
                         <option value="">Select a service</option>
-                        <option value="Tax Preparation">Tax Preparation</option>
-                        <option value="Copy & Fax Services">Copy & Fax Services</option>
-                        <option value="Notary Public">Notary Public</option>
-                        <option value="Translation Services">
-                            Translation Services
-                        </option>
+                        {SERVICES.map((item) => (
+                            <option key={item} value={item}>
+                                {item}
+                            </option>
+                        ))}
                     </select>
 
                     <label htmlFor="duration" style={{ marginLeft: 12 }}>
@@ -320,7 +406,9 @@ export default function Booking({ theme, onToggleTheme }) {
                     <select
                         id="duration"
                         value={duration}
-                        onChange={(event) => setDuration(Number(event.target.value))}
+                        onChange={(event) =>
+                            setDuration(Number(event.target.value))
+                        }
                     >
                         <option value={30}>30 minutes</option>
                         <option value={60}>1 hour</option>
@@ -335,14 +423,15 @@ export default function Booking({ theme, onToggleTheme }) {
                         onChange={(event) => setPreparer(event.target.value)}
                     >
                         <option value="">Choose a preparer</option>
-                        <option value="Pierre Polidor">Pierre Polidor</option>
-                        <option value="Dalia Pierre">Dalia Pierre</option>
-                        <option value="Severe Jacquet">Severe Jacquet</option>
-                        <option value="Jean P Cifrant">Jean P Cifrant</option>
-                        <option value="Ricot Casimir">Ricot Casimir</option>
+                        {PREPARERS.map((name) => (
+                            <option key={name} value={name}>
+                                {name}
+                            </option>
+                        ))}
                     </select>
 
                     {loadingSlots && <p>Loading available times...</p>}
+
                     {error && (
                         <p role="alert" style={{ color: "#b42318" }}>
                             {error}
@@ -386,7 +475,8 @@ export default function Booking({ theme, onToggleTheme }) {
 
                     {time && (
                         <p>
-                            Selected: {day} at {time} with {preparer} for {duration} minutes
+                            Selected: {formatDate(day)} at {time} with {preparer}
+                            {" "}for {duration} minutes
                         </p>
                     )}
 
@@ -395,38 +485,43 @@ export default function Booking({ theme, onToggleTheme }) {
                             onSubmit={handleBooking}
                             style={{ marginTop: 20, maxWidth: 420 }}
                         >
-                            {["first_name", "last_name", "phone", "email"].map((field) => (
-                                <label
-                                    key={field}
-                                    style={{ display: "block", marginBottom: 12 }}
-                                >
-                                    {field.replace("_", " ")}
-                                    <input
-                                        required
-                                        type={
-                                            field === "email"
-                                                ? "email"
-                                                : field === "phone"
-                                                    ? "tel"
-                                                    : "text"
-                                        }
-                                        value={customer[field]}
-                                        onChange={(event) =>
-                                            setCustomer((current) => ({
-                                                ...current,
-                                                [field]: event.target.value,
-                                            }))
-                                        }
-                                        style={{
-                                            display: "block",
-                                            width: "100%",
-                                            padding: 8,
-                                        }}
-                                    />
-                                </label>
-                            ))}
+                            {["first_name", "last_name", "phone", "email"].map(
+                                (field) => (
+                                    <label
+                                        key={field}
+                                        style={{ display: "block", marginBottom: 12 }}
+                                    >
+                                        {field.replace("_", " ")}
+                                        <input
+                                            required
+                                            type={
+                                                field === "email"
+                                                    ? "email"
+                                                    : field === "phone"
+                                                        ? "tel"
+                                                        : "text"
+                                            }
+                                            value={customer[field]}
+                                            onChange={(event) =>
+                                                setCustomer((current) => ({
+                                                    ...current,
+                                                    [field]: event.target.value,
+                                                }))
+                                            }
+                                            style={{
+                                                display: "block",
+                                                width: "100%",
+                                                padding: 8,
+                                            }}
+                                        />
+                                    </label>
+                                )
+                            )}
 
-                            <button type="submit" disabled={submitting || loadingSlots}>
+                            <button
+                                type="submit"
+                                disabled={submitting || loadingSlots}
+                            >
                                 {submitting ? "Booking..." : "Book Appointment"}
                             </button>
                         </form>
@@ -443,8 +538,9 @@ export default function Booking({ theme, onToggleTheme }) {
                         }}
                     >
                         <h3 style={{ margin: 0 }}>
-                            {showAll ? "All Appointments" : `Appointments on ${formatDate(day)}`}
-
+                            {showAll
+                                ? "All Appointments"
+                                : `Appointments on ${formatDate(day)}`}
                         </h3>
 
                         <button
@@ -459,30 +555,154 @@ export default function Booking({ theme, onToggleTheme }) {
                         <p role="alert">{appointmentsError}</p>
                     )}
 
-                    {activeAppointments
-                        .filter(
-                            (appointment) =>
-                                showAll || appointment.appointment_date === day
-                        )
-                        .sort(
-                            (a, b) =>
-                                a.appointment_date.localeCompare(b.appointment_date) ||
-                                a.appointment_time.localeCompare(b.appointment_time)
-                        )
-                        .map((appointment) => (
-                            <div
-                                key={appointment.id}
-                                style={{ padding: "8px 0" }}
+                    {visibleAppointments.map((appointment) => (
+                        <div
+                            key={appointment.id}
+                            style={{ padding: "8px 0" }}
+                        >
+                            <strong>
+                                {formatDate(appointment.appointment_date)} at{" "}
+                                {appointment.appointment_time}
+                            </strong>{" "}
+                            {appointment.first_name} {appointment.last_name} ·{" "}
+                            {appointment.service} · {appointment.tax_preparer} ·{" "}
+                            {appointment.duration_minutes ?? 30} minutes{" "}
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEditing({ ...appointment });
+                                    setEditError("");
+                                }}
                             >
-                                <strong>
-                                    {formatDate(appointment.appointment_date)} at{" "}
-                                    {appointment.appointment_time}
-                                </strong>{" "}
-                                {appointment.first_name} {appointment.last_name} ·{" "}
-                                {appointment.service} · {appointment.tax_preparer} ·{" "}
-                                {appointment.duration_minutes ?? 30} minutes
-                            </div>
-                        ))}
+                                Edit
+                            </button>
+                        </div>
+                    ))}
+
+                    {editing && (
+                        <form
+                            onSubmit={saveEdit}
+                            style={{
+                                maxWidth: 480,
+                                marginTop: 24,
+                                padding: 20,
+                                border: "1px solid #ccc",
+                                borderRadius: 10,
+                            }}
+                        >
+                            <h3>
+                                Edit {editing.first_name} {editing.last_name}
+                            </h3>
+
+                            <label style={{ display: "block", marginBottom: 12 }}>
+                                Service
+                                <select
+                                    value={editing.service}
+                                    onChange={(event) =>
+                                        setEditing({
+                                            ...editing,
+                                            service: event.target.value,
+                                        })
+                                    }
+                                    style={{ display: "block", width: "100%" }}
+                                >
+                                    {SERVICES.map((item) => (
+                                        <option key={item} value={item}>
+                                            {item}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label style={{ display: "block", marginBottom: 12 }}>
+                                Preparer
+                                <select
+                                    value={editing.tax_preparer}
+                                    onChange={(event) =>
+                                        setEditing({
+                                            ...editing,
+                                            tax_preparer: event.target.value,
+                                        })
+                                    }
+                                    style={{ display: "block", width: "100%" }}
+                                >
+                                    {PREPARERS.map((name) => (
+                                        <option key={name} value={name}>
+                                            {name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label style={{ display: "block", marginBottom: 12 }}>
+                                Date
+                                <input
+                                    required
+                                    type="date"
+                                    value={editing.appointment_date}
+                                    onChange={(event) =>
+                                        setEditing({
+                                            ...editing,
+                                            appointment_date: event.target.value,
+                                        })
+                                    }
+                                    style={{ display: "block", width: "100%" }}
+                                />
+                            </label>
+
+                            <label style={{ display: "block", marginBottom: 12 }}>
+                                Time, for example 9:30 AM
+                                <input
+                                    required
+                                    type="text"
+                                    value={editing.appointment_time}
+                                    onChange={(event) =>
+                                        setEditing({
+                                            ...editing,
+                                            appointment_time: event.target.value,
+                                        })
+                                    }
+                                    style={{ display: "block", width: "100%" }}
+                                />
+                            </label>
+
+                            <label style={{ display: "block", marginBottom: 12 }}>
+                                Appointment length
+                                <select
+                                    value={editing.duration_minutes ?? 30}
+                                    onChange={(event) =>
+                                        setEditing({
+                                            ...editing,
+                                            duration_minutes: Number(event.target.value),
+                                        })
+                                    }
+                                    style={{ display: "block", width: "100%" }}
+                                >
+                                    <option value={15}>15 minutes</option>
+                                    <option value={30}>30 minutes</option>
+                                    <option value={60}>1 hour</option>
+                                </select>
+                            </label>
+
+                            {editError && (
+                                <p role="alert" style={{ color: "#b42318" }}>
+                                    {editError}
+                                </p>
+                            )}
+
+                            <button type="submit" disabled={savingEdit}>
+                                {savingEdit ? "Saving..." : "Save Changes"}
+                            </button>{" "}
+                            <button
+                                type="button"
+                                disabled={savingEdit}
+                                onClick={() => setEditing(null)}
+                            >
+                                Close
+                            </button>
+                        </form>
+                    )}
                 </section>
             </main>
         </AppLayout>
