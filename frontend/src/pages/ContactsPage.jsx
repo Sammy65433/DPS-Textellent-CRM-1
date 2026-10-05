@@ -6,6 +6,7 @@ import ContactsList from "../components/ContactsList";
 import ContactSummaryCard from "../components/ContactSummaryCard";
 import ConversationPanel from "../components/ConversationPanel";
 import AddContactForm from "../components/AddContactForm";
+import { useNavigate } from "react-router-dom";
 
 function ContactsPage({
     theme,
@@ -34,6 +35,8 @@ function ContactsPage({
 
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTag, setActiveTag] = useState("");
+    const navigate = useNavigate();
+
 
     const uniqueTags = useMemo(() => {
         const tags = contacts
@@ -122,6 +125,27 @@ function ContactsPage({
                         conversation={conversation}
                         emailMessages={emailMessages}
                     />
+                    {selectedContact && (
+                        <Button
+                            variant="success"
+                            className="mb-3"
+                            onClick={() =>
+                                navigate("/booking", {
+                                    state: {
+                                        customer: {
+                                            first_name: selectedContact.firstName || "",
+                                            last_name: selectedContact.lastName || "",
+                                            phone: selectedContact.phone || "",
+                                            email: selectedContact.email || "",
+                                        },
+                                    },
+                                })
+                            }
+                        >
+                            Book Appointment for {selectedContact.firstName}
+                        </Button>
+                    )}
+
 
                     <ConversationPanel
                         selectedContact={selectedContact}
