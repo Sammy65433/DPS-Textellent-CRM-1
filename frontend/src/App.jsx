@@ -14,7 +14,8 @@ import NotFoundPage from "./pages/NotFoundPage";
 import Booking from "./components/Booking";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAppHandlers } from "./handlers/useAppHandlers";
-import "./styles/app.css";
+import "./styles/App.css";
+
 
 function App() {
   const [contacts, setContacts] = useState([]);
