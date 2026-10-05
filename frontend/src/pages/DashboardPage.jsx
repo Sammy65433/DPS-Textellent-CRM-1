@@ -47,23 +47,32 @@ function DashboardPage({
 
     const contactsMissingEmail = contacts.filter(contact => !contact.email).length;
     const draftCampaigns = campaigns.filter(campaign => campaign.status === "draft").length;
-
-    const activityByDay = {};
-    [...messages, ...emails].forEach(item => {
-        const day = new Date(item.createdAt).toLocaleDateString();
-        activityByDay[day] = (activityByDay[day] || 0) + 1;
-    });
-
-    const activityRows = Object.entries(activityByDay)
-        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-        .map(([day, count]) => ({
-            day,
-            count,
-        }));
-
-    const [appointments, setAppointments] = useState([]);
+const [appointments, setAppointments] = useState([]);
     const [bookingError, setBookingError] = useState("");
 
+    const activityByDay = {};
+
+[...messages, ...emails].forEach((item) => {
+  if (!item.createdAt) return;
+  const day = new Date(item.createdAt).toLocaleDateString("en-CA");
+  activityByDay[day] ??= { day, outreach: 0, bookings: 0 };
+  activityByDay[day].outreach += 1;
+});
+
+appointments
+  .filter((item) => ["booked", "confirmed"].includes(item.status))
+  .forEach((item) => {
+    const day = item.appointment_date;
+    activityByDay[day] ??= { day, outreach: 0, bookings: 0 };
+    activityByDay[day].bookings += 1;
+  });
+
+const activityRows = Object.values(activityByDay).sort((a, b) =>
+  a.day.localeCompare(b.day)
+);
+
+
+    
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) return;
@@ -130,7 +139,7 @@ function DashboardPage({
                 <Col lg={8}>
                     <Card className="crm-card analytics-mini-panel border-0">
                         <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
-                            <span>Analytics Snapshot</span>
+                            <span>Communications &amp; Scheduled Appointments</span>
                             <Button as={Link} to="/analytics" size="sm" variant="outline-primary">
                                 View Full Analytics
                             </Button>
@@ -150,12 +159,22 @@ function DashboardPage({
                                     <YAxis allowDecimals={false} />
                                     <Tooltip />
                                     <Area
-                                        type="monotone"
-                                        dataKey="count"
-                                        stroke="#2563eb"
-                                        fill="url(#dashboardActivityFill)"
-                                        strokeWidth={3}
-                                    />
+  type="monotone"
+  dataKey="outreach"
+  name="SMS & Email"
+  stroke="#2563eb"
+  fill="#bfdbfe"
+  strokeWidth={3}
+/>
+<Area
+  type="monotone"
+  dataKey="bookings"
+  name="Scheduled Appointments"
+  stroke="#0f766e"
+  fill="#99f6e4"
+  strokeWidth={3}
+/>
+
                                 </AreaChart>
                             </ResponsiveContainer>
                         </Card.Body>

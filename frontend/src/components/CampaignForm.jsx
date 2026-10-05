@@ -144,9 +144,10 @@ function CampaignForm({
                             }))
                         }
                     >
+                        <option value="both">SMS + Email Campaign</option>
                         <option value="sms">SMS Campaign</option>
                         <option value="email">Email Campaign</option>
-                        <option value="both">SMS + Email Campaign</option>
+                        
                     </Form.Select>
 
                     {(campaignForm.type === "email" || campaignForm.type === "both") && (

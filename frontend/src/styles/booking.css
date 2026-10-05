@@ -309,3 +309,57 @@
   background: #e4f8eb;
   color: #176746;
 }
+[data-theme="dark"] .booking-page {
+  background: linear-gradient(135deg, #0f172a, #111f2d);
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .booking-panel,
+[data-theme="dark"] .booking-appointment,
+[data-theme="dark"] .booking-edit-form {
+  background: #172638;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .booking-day,
+[data-theme="dark"] .booking-time,
+[data-theme="dark"] .booking-page button:not(.booking-submit) {
+  background: #203247;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .booking-day.outside {
+  background: #162331;
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .booking-day.selected,
+[data-theme="dark"] .booking-time.selected {
+  background: #0f766e;
+  border-color: #5eead4;
+  color: #fff;
+}
+
+[data-theme="dark"] .booking-filter select,
+[data-theme="dark"] .booking-field input,
+[data-theme="dark"] .booking-edit-form input,
+[data-theme="dark"] .booking-edit-form select {
+  background: #203247;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+[data-theme="dark"] .booking-count {
+  background: #795812;
+  color: #fff4cc;
+}
+
+[data-theme="dark"] .booking-appointment strong {
+  color: #5eead4;
+}
+
+[data-theme="dark"] .booking-page button:hover:not(:disabled) {
+  background: #2b4557;
+}

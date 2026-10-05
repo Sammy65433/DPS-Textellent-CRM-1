@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import AppLayout from "./AppLayout";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 
 const DPS_API_URL = import.meta.env.VITE_DPS_API_URL;
 const CRM_API_URL = import.meta.env.VITE_API_URL;
@@ -60,6 +63,11 @@ function inputToTime(value) {
 }
 
 export default function Booking({ theme, onToggleTheme }) {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [selectedAppointmentIds, setSelectedAppointmentIds] = useState([]);
+
+
     const [month, setMonth] = useState(new Date());
     const [day, setDay] = useState(dateKey(new Date()));
     const [service, setService] = useState("");
@@ -69,7 +77,11 @@ export default function Booking({ theme, onToggleTheme }) {
     const [slots, setSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
 
-    const [customer, setCustomer] = useState(EMPTY_CUSTOMER);
+    const [customer, setCustomer] = useState(() => ({
+        ...EMPTY_CUSTOMER,
+        ...(location.state?.customer || {}),
+    }));
+
     const [submitting, setSubmitting] = useState(false);
     const [bookingError, setBookingError] = useState("");
     const [bookingSuccess, setBookingSuccess] = useState("");
@@ -92,6 +104,8 @@ export default function Booking({ theme, onToggleTheme }) {
     const [importingId, setImportingId] = useState(null);
     const [contactMessage, setContactMessage] = useState("");
     const [contactError, setContactError] = useState("");
+
+
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -374,6 +388,12 @@ export default function Booking({ theme, onToggleTheme }) {
             setImportingId(null);
         }
     }
+    function openCampaignDraft(appointmentIds) {
+        navigate("/campaigns", {
+            state: { appointmentIds },
+        });
+    }
+
 
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
@@ -593,10 +613,34 @@ export default function Booking({ theme, onToggleTheme }) {
                     {visibleAppointments.length === 0 && !appointmentsError && (
                         <p>No active appointments shown.</p>
                     )}
+                    <div className="booking-actions">
+                        <button
+                            type="button"
+                            disabled={selectedAppointmentIds.length === 0}
+                            onClick={() => openCampaignDraft(selectedAppointmentIds)}
+                        >
+                            Create Group Campaign ({selectedAppointmentIds.length})
+                        </button>
+                    </div>
 
                     {visibleAppointments.map((appointment) => (
                         <article className="booking-appointment" key={appointment.id}>
                             <div>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedAppointmentIds.includes(appointment.id)}
+                                        onChange={(event) =>
+                                            setSelectedAppointmentIds((current) =>
+                                                event.target.checked
+                                                    ? [...current, appointment.id]
+                                                    : current.filter((id) => id !== appointment.id)
+                                            )
+                                        }
+                                        aria-label={`Select appointment for ${appointment.first_name} ${appointment.last_name}`}
+                                    />
+                                </label>
+
                                 <strong>
                                     {formatDate(appointment.appointment_date)} at{" "}
                                     {appointment.appointment_time}
@@ -633,6 +677,14 @@ export default function Booking({ theme, onToggleTheme }) {
                                 >
                                     {importingId === appointment.id ? "Adding..." : "Add to Contacts"}
                                 </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => openCampaignDraft([appointment.id])}
+                                >
+                                    Create Personal Campaign
+                                </button>
+
                             </div>
                         </article>
                     ))}
