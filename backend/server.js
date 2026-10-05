@@ -34,6 +34,7 @@ app.get("/api/staff/appointments", requireAuth, requireStaff, async (_req, res) 
 
   try {
     const response = await fetch(
+      
       `${process.env.DPS_API_URL}/api/appointments`,
       {
         headers: {
@@ -42,6 +43,8 @@ app.get("/api/staff/appointments", requireAuth, requireStaff, async (_req, res) 
         signal: AbortSignal.timeout(15000),
       }
     );
+    console.log("DPS appointments upstream status:", response.status);
+
 
     if (!response.ok) {
       return res.status(502).json({ message: "Could not load DPS appointments." });

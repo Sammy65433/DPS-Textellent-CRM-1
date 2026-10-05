@@ -1,46 +1,88 @@
 import { useEffect, useState } from "react";
 import AppLayout from "./AppLayout";
 
-const API_URL = import.meta.env.VITE_DPS_API_URL;
+const DPS_API_URL = import.meta.env.VITE_DPS_API_URL;
+const CRM_API_URL = import.meta.env.VITE_API_URL;
 
-const dateKey = (date) =>
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+function dateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+function formatDate(value) {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return `${date.toLocaleString("en-US", { month: "long" })} ${String(day).padStart(2, "0")} ${year}`;
+}
+
+const emptyCustomer = {
+    first_name: "",
+    last_name: "",
+    phone: "",
+    email: "",
+};
 
 export default function Booking({ theme, onToggleTheme }) {
     const [month, setMonth] = useState(new Date());
     const [day, setDay] = useState(dateKey(new Date()));
-    const [preparer, setPreparer] = useState("");
-    const [time, setTime] = useState("");
-    const [slots, setSlots] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
     const [service, setService] = useState("");
+    const [preparer, setPreparer] = useState("");
     const [duration, setDuration] = useState(30);
-    const [customer, setCustomer] = useState({
-        first_name: "",
-        last_name: "",
-        phone: "",
-        email: "",
-    });
+    const [time, setTime] = useState("");
+
+    const [slots, setSlots] = useState([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [error, setError] = useState("");
+    const [customer, setCustomer] = useState(emptyCustomer);
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState("");
     const [refreshKey, setRefreshKey] = useState(0);
+
     const [appointments, setAppointments] = useState([]);
     const [appointmentsError, setAppointmentsError] = useState("");
+    const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        if (!token) return;
 
-        fetch(`${import.meta.env.VITE_API_URL}/api/staff/appointments`, {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then(async (response) => {
-                if (!response.ok) throw new Error(`Could not load appointments (${response.status}).`);
-                return response.json();
-            })
-            .then((data) => setAppointments(Array.isArray(data) ? data : []))
-            .catch((error) => setAppointmentsError(error.message));
+        if (!token || !CRM_API_URL) {
+            setAppointmentsError("CRM login or API URL is missing.");
+            return;
+        }
+
+        const controller = new AbortController();
+
+        async function loadAppointments() {
+            try {
+                const response = await fetch(
+                    `${CRM_API_URL}/api/staff/appointments`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                        signal: controller.signal,
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Could not load appointments (${response.status}).`);
+                }
+
+                const data = await response.json();
+
+                if (!controller.signal.aborted) {
+                    setAppointments(Array.isArray(data) ? data : []);
+                    setAppointmentsError("");
+                }
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    setAppointmentsError(err.message);
+                }
+            }
+        }
+
+        loadAppointments();
+        return () => controller.abort();
     }, [refreshKey]);
 
     useEffect(() => {
@@ -49,7 +91,8 @@ export default function Booking({ theme, onToggleTheme }) {
         setError("");
 
         if (!day || !service || !preparer) return;
-        if (!API_URL) {
+
+        if (!DPS_API_URL) {
             setError("VITE_DPS_API_URL is missing.");
             return;
         }
@@ -57,7 +100,7 @@ export default function Booking({ theme, onToggleTheme }) {
         const controller = new AbortController();
 
         async function loadSlots() {
-            setLoading(true);
+            setLoadingSlots(true);
 
             try {
                 const params = new URLSearchParams({
@@ -67,37 +110,35 @@ export default function Booking({ theme, onToggleTheme }) {
                 });
 
                 const response = await fetch(
-                    `${API_URL}/api/appointments/availability?${params}`,
+                    `${DPS_API_URL}/api/appointments/availability?${params}`,
                     { signal: controller.signal }
                 );
 
-
                 if (!response.ok) {
-                    throw new Error(`Availability request failed (${response.status}).`);
+                    throw new Error(
+                        `Availability request failed (${response.status}).`
+                    );
                 }
 
                 const data = await response.json();
 
-
-
                 if (!Array.isArray(data.availableTimes)) {
                     throw new Error("Invalid availability response.");
                 }
-                setSlots(data.availableTimes);
 
-
-
+                if (!controller.signal.aborted) {
+                    setSlots(data.availableTimes);
+                }
             } catch (err) {
                 if (err.name !== "AbortError") setError(err.message);
             } finally {
-                if (!controller.signal.aborted) setLoading(false);
+                if (!controller.signal.aborted) setLoadingSlots(false);
             }
         }
 
         loadSlots();
         return () => controller.abort();
     }, [day, service, preparer, duration, refreshKey]);
-
 
     const first = new Date(month.getFullYear(), month.getMonth(), 1);
     const start = new Date(first);
@@ -109,8 +150,13 @@ export default function Booking({ theme, onToggleTheme }) {
         return date;
     });
 
+    const activeAppointments = appointments.filter((appointment) =>
+        ["booked", "confirmed"].includes(appointment.status)
+    );
+
     async function handleBooking(event) {
         event.preventDefault();
+
         if (!time || !service || !preparer || submitting) return;
 
         setSubmitting(true);
@@ -118,7 +164,7 @@ export default function Booking({ theme, onToggleTheme }) {
         setSuccess("");
 
         try {
-            const response = await fetch(`${API_URL}/api/appointments`, {
+            const response = await fetch(`${DPS_API_URL}/api/appointments`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -138,7 +184,7 @@ export default function Booking({ theme, onToggleTheme }) {
             }
 
             setSuccess("Appointment booked successfully.");
-            setCustomer({ first_name: "", last_name: "", phone: "", email: "" });
+            setCustomer(emptyCustomer);
             setTime("");
             setRefreshKey((current) => current + 1);
         } catch (err) {
@@ -149,31 +195,43 @@ export default function Booking({ theme, onToggleTheme }) {
         }
     }
 
-
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <main style={{ width: "100%", padding: 16 }}>
                 <h1>Booking Calendar</h1>
 
-                <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: 12,
+                        alignItems: "center",
+                        marginBottom: 16,
+                    }}
+                >
                     <button
                         type="button"
                         onClick={() =>
-                            setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
+                            setMonth(
+                                new Date(month.getFullYear(), month.getMonth() - 1, 1)
+                            )
                         }
                     >
                         Previous
                     </button>
+
                     <strong>
                         {month.toLocaleDateString("en-US", {
                             month: "long",
                             year: "numeric",
                         })}
                     </strong>
+
                     <button
                         type="button"
                         onClick={() =>
-                            setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
+                            setMonth(
+                                new Date(month.getFullYear(), month.getMonth() + 1, 1)
+                            )
                         }
                     >
                         Next
@@ -195,17 +253,27 @@ export default function Booking({ theme, onToggleTheme }) {
 
                     {days.map((date) => {
                         const value = dateKey(date);
+                        const count = activeAppointments.filter(
+                            (appointment) => appointment.appointment_date === value
+                        ).length;
 
                         return (
                             <button
                                 key={value}
                                 type="button"
-                                onClick={() => setDay(value)}
+                                onClick={() => {
+                                    setDay(value);
+                                    setShowAll(false);
+                                    setSuccess("");
+                                }}
                                 style={{
                                     minHeight: 95,
                                     textAlign: "left",
                                     padding: 10,
-                                    border: value === day ? "2px solid #175cd3" : "1px solid #ccc",
+                                    border:
+                                        value === day
+                                            ? "2px solid #175cd3"
+                                            : "1px solid #ccc",
                                     borderRadius: 8,
                                     background:
                                         value === day
@@ -215,14 +283,22 @@ export default function Booking({ theme, onToggleTheme }) {
                                                 : "#f3f4f6",
                                 }}
                             >
-                                {date.getDate()}
+                                <strong>{date.getDate()}</strong>
+
+                                {count > 0 && (
+                                    <small style={{ display: "block", marginTop: 8 }}>
+                                        {count} booked
+                                    </small>
+                                )}
                             </button>
                         );
                     })}
                 </div>
 
                 <section style={{ marginTop: 24 }}>
-                    <h2>{day}</h2>
+                    <h2>{formatDate(day)}</h2>
+
+
                     <label htmlFor="booking-service">Service: </label>
                     <select
                         id="booking-service"
@@ -233,32 +309,26 @@ export default function Booking({ theme, onToggleTheme }) {
                         <option value="Tax Preparation">Tax Preparation</option>
                         <option value="Copy & Fax Services">Copy & Fax Services</option>
                         <option value="Notary Public">Notary Public</option>
-                        <option value="Translation Services">Translation Services</option>
+                        <option value="Translation Services">
+                            Translation Services
+                        </option>
                     </select>
+
                     <label htmlFor="duration" style={{ marginLeft: 12 }}>
                         Appointment length:{" "}
                     </label>
                     <select
                         id="duration"
                         value={duration}
-                        onChange={(event) => {
-                            setDuration(Number(event.target.value));
-                            setTime("");
-                        }}
+                        onChange={(event) => setDuration(Number(event.target.value))}
                     >
                         <option value={30}>30 minutes</option>
                         <option value={60}>1 hour</option>
                     </select>
 
-                    {duration === 60 && (
-                        <p role="note">
-                            One-hour availability is not verified yet. Please confirm with the office
-                            before booking.
-                        </p>
-                    )}
-
-                    <label htmlFor="preparer">Preparer: </label>
-
+                    <label htmlFor="preparer" style={{ marginLeft: 12 }}>
+                        Preparer:{" "}
+                    </label>
                     <select
                         id="preparer"
                         value={preparer}
@@ -272,14 +342,29 @@ export default function Booking({ theme, onToggleTheme }) {
                         <option value="Ricot Casimir">Ricot Casimir</option>
                     </select>
 
-                    {loading && <p>Loading available times...</p>}
-                    {error && <p role="alert" style={{ color: "#b42318" }}>{error}</p>}
-
-                    {!loading && !error && service && preparer && slots.length === 0 && (
-                        <p>No available times for this date.</p>
+                    {loadingSlots && <p>Loading available times...</p>}
+                    {error && (
+                        <p role="alert" style={{ color: "#b42318" }}>
+                            {error}
+                        </p>
                     )}
 
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {!loadingSlots &&
+                        !error &&
+                        service &&
+                        preparer &&
+                        slots.length === 0 && (
+                            <p>No available times for this date.</p>
+                        )}
+
+                    <div
+                        style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: 8,
+                            marginTop: 12,
+                        }}
+                    >
                         {slots.map((slot) => (
                             <button
                                 key={slot}
@@ -288,7 +373,9 @@ export default function Booking({ theme, onToggleTheme }) {
                                 style={{
                                     padding: "8px 12px",
                                     border:
-                                        time === slot ? "2px solid #175cd3" : "1px solid #ccc",
+                                        time === slot
+                                            ? "2px solid #175cd3"
+                                            : "1px solid #ccc",
                                     borderRadius: 6,
                                 }}
                             >
@@ -296,17 +383,23 @@ export default function Booking({ theme, onToggleTheme }) {
                             </button>
                         ))}
                     </div>
+
                     {time && (
                         <p>
                             Selected: {day} at {time} with {preparer} for {duration} minutes
                         </p>
                     )}
 
-
                     {time && (
-                        <form onSubmit={handleBooking} style={{ marginTop: 20, maxWidth: 420 }}>
+                        <form
+                            onSubmit={handleBooking}
+                            style={{ marginTop: 20, maxWidth: 420 }}
+                        >
                             {["first_name", "last_name", "phone", "email"].map((field) => (
-                                <label key={field} style={{ display: "block", marginBottom: 12 }}>
+                                <label
+                                    key={field}
+                                    style={{ display: "block", marginBottom: 12 }}
+                                >
                                     {field.replace("_", " ")}
                                     <input
                                         required
@@ -324,35 +417,73 @@ export default function Booking({ theme, onToggleTheme }) {
                                                 [field]: event.target.value,
                                             }))
                                         }
-                                        style={{ display: "block", width: "100%", padding: 8 }}
+                                        style={{
+                                            display: "block",
+                                            width: "100%",
+                                            padding: 8,
+                                        }}
                                     />
                                 </label>
                             ))}
-                            <button type="submit" disabled={submitting || loading}>
+
+                            <button type="submit" disabled={submitting || loadingSlots}>
                                 {submitting ? "Booking..." : "Book Appointment"}
                             </button>
                         </form>
                     )}
 
                     {success && <p role="status">{success}</p>}
-                    
 
-                    <h3>Appointments on {day}</h3>
-                    {appointmentsError && <p role="alert">{appointmentsError}</p>}
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: 12,
+                            alignItems: "center",
+                            marginTop: 24,
+                        }}
+                    >
+                        <h3 style={{ margin: 0 }}>
+                            {showAll ? "All Appointments" : `Appointments on ${formatDate(day)}`}
 
-                    {appointments
-                        .filter((appointment) => appointment.appointment_date === day)
+                        </h3>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowAll((current) => !current)}
+                        >
+                            {showAll ? "Selected Day" : "All Appointments"}
+                        </button>
+                    </div>
+
+                    {appointmentsError && (
+                        <p role="alert">{appointmentsError}</p>
+                    )}
+
+                    {activeAppointments
+                        .filter(
+                            (appointment) =>
+                                showAll || appointment.appointment_date === day
+                        )
+                        .sort(
+                            (a, b) =>
+                                a.appointment_date.localeCompare(b.appointment_date) ||
+                                a.appointment_time.localeCompare(b.appointment_time)
+                        )
                         .map((appointment) => (
-                            <div key={appointment.id}>
-                                <strong>{appointment.appointment_time}</strong>{" "}
+                            <div
+                                key={appointment.id}
+                                style={{ padding: "8px 0" }}
+                            >
+                                <strong>
+                                    {formatDate(appointment.appointment_date)} at{" "}
+                                    {appointment.appointment_time}
+                                </strong>{" "}
                                 {appointment.first_name} {appointment.last_name} ·{" "}
                                 {appointment.service} · {appointment.tax_preparer} ·{" "}
                                 {appointment.duration_minutes ?? 30} minutes
                             </div>
                         ))}
-
                 </section>
-
             </main>
         </AppLayout>
     );
