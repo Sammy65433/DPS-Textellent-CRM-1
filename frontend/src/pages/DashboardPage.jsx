@@ -19,6 +19,8 @@ import {
     Tooltip,
     CartesianGrid,
 } from "recharts";
+import { useEffect, useState } from "react";
+import { FaCalendarCheck } from "react-icons/fa";
 
 
 function DashboardPage({
@@ -59,12 +61,60 @@ function DashboardPage({
             count,
         }));
 
+    const [appointments, setAppointments] = useState([]);
+    const [bookingError, setBookingError] = useState("");
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        fetch(`${import.meta.env.VITE_API_URL}/api/staff/appointments`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(async (response) => {
+                if (!response.ok) throw new Error("Could not load appointments.");
+                return response.json();
+            })
+            .then((data) => setAppointments(Array.isArray(data) ? data : []))
+            .catch((error) => setBookingError(error.message));
+    }, []);
+
+    const today = new Date();
+    const todayKey = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    const todaysAppointments = appointments.filter(
+        (appointment) =>
+            appointment.appointment_date === todayKey &&
+            ["booked", "confirmed"].includes(appointment.status)
+    );
+
+
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <PageHeader
                 title="Dashboard"
                 subtitle="Overview of contacts, templates, messages, campaigns, and emails."
             />
+            <Card className="crm-card border-0 mb-4">
+                <Card.Body className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h3 className="mb-1">
+                            <FaCalendarCheck className="me-2" />
+                            Today’s Appointments
+                        </h3>
+                        <p className="mb-0">
+                            {bookingError || `${todaysAppointments.length} scheduled today`}
+                        </p>
+                    </div>
+                    <Button as={Link} to="/booking" variant="success">
+                        View Calendar
+                    </Button>
+                </Card.Body>
+            </Card>
 
             {alert && <Alert variant={alert.variant}>{alert.message}</Alert>}
 

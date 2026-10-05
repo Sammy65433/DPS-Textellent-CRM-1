@@ -93,7 +93,18 @@ function ContactsList({
                                 <Button
                                     size="sm"
                                     variant="outline-danger"
-                                    onClick={() => onDeleteContact(contact._id)}
+                                    onClick={() => {
+                                        const name = `${contact.firstName || ""} ${contact.lastName || ""}`.trim();
+
+                                        if (
+                                            window.confirm(
+                                                `Are you sure you want to delete ${name || "this contact"}?`
+                                            )
+                                        ) {
+                                            onDeleteContact(contact._id);
+                                        }
+                                    }}
+
                                 >
                                     Delete
                                 </Button>

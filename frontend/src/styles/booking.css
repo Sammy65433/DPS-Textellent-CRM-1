@@ -257,3 +257,55 @@
         flex-direction: column;
     }
 }
+.booking-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.booking-side-panel {
+  position: sticky;
+  top: 20px;
+}
+
+@media (max-width: 900px) {
+  .booking-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-side-panel {
+    position: static;
+  }
+}
+.booking-page {
+  background: linear-gradient(135deg, #eef7ff, #f0faf5 65%, #fff7e8);
+  border-radius: 18px;
+}
+
+.booking-day.selected,
+.booking-time.selected {
+  background: #087f72;
+  color: #fff;
+  border-color: #087f72;
+}
+
+.booking-count {
+  background: #ffe3a3;
+  color: #513600;
+}
+
+.booking-appointment {
+  border-left: 5px solid #087f72;
+  background: #f5fbff;
+}
+
+.booking-actions .cancel-button {
+  background: #fff0ee;
+  color: #a12626;
+}
+
+.booking-status:not(.error) {
+  background: #e4f8eb;
+  color: #176746;
+}
