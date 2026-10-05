@@ -109,6 +109,44 @@ app.patch(
     }
   }
 );
+app.patch(
+  "/api/staff/appointments/:id/cancel",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    const { id } = req.params;
+
+    if (!/^\d+$/.test(id)) {
+      return res.status(400).json({ message: "Invalid appointment ID." });
+    }
+
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({ message: "DPS connection is not configured." });
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.DPS_API_URL}/api/appointments/${id}/cancel`,
+        {
+          method: "PATCH",
+          headers: {
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      const data = await response.json();
+      return res.status(response.status).json(data);
+    } catch (error) {
+      console.error("Staff cancellation failed:", error);
+      return res.status(502).json({
+        message: "DPS appointment service unavailable.",
+      });
+    }
+  }
+);
+
 
 
 app.get("/", (req, res) => {

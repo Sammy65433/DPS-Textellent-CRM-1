@@ -6,6 +6,8 @@
 @import "./email.css";
 @import "./analytics.css";
 @import "./login.css";
+@import "./booking.css";
+
 
 * {
   margin: 0;
