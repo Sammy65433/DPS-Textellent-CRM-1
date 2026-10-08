@@ -1,4 +1,6 @@
 
+https://dps-textellent-frontend.onrender.com
+
 ````md
 # DPS Textellent CRM
 
@@ -185,3 +187,16 @@ Current next priority: secure and scope CRM contact/campaign/message/email route
 
 Relevant CRM files include frontend/src/App.jsx, components/AppLayout.jsx, components/Booking.jsx, pages/StaffManagementPage.jsx, pages/SetupPasswordPage.jsx, backend/controllers/authController.js, staffController.js, contactsController.js, backend/middleware/authMiddleware.js, backend/server.js, and backend/models/User.js. Preserve working routes and test one stage at a time.
 ```
+
+
+
+
+The clearest new requirements from that review are:
+
+- **CRM calendar:** Add **Day, Week, and Month** views. Day view should show each appointment’s client name and time; clicking a day in Month view should open its daily schedule. Keep this staff-only.
+- **Appointment length:** Staff want short visits as well as 30 minutes and 1 hour. Confirm the exact options before coding; the discussion mentions **10, 15, 30, 45, and 60 minutes**. The public customer form can keep different options if that is what the office wants.
+- **Visit format:** Add a required choice to both DPS booking and CRM staff booking: **In person, Over the phone, or Virtual/online**. Show the saved choice in the CRM and customer emails. Confirm whether phone and virtual are separate options before naming them.
+
+The mortgage/property discussion does not establish a clear website change, so don’t add rates, down-payment claims, or property values from it.
+
+**Start with visit format:** agree on the three labels, then add a database field and backend validation before changing either booking form. After that, build Day and Week views using the appointments the CRM already loads.
