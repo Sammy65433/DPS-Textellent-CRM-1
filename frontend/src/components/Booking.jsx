@@ -73,6 +73,7 @@ export default function Booking({ theme, onToggleTheme }) {
     const [service, setService] = useState("");
     const [preparer, setPreparer] = useState("");
     const [duration, setDuration] = useState(30);
+    const [visitFormat, setVisitFormat] = useState("");
     const [time, setTime] = useState("");
     const [slots, setSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
@@ -233,7 +234,13 @@ export default function Booking({ theme, onToggleTheme }) {
 
     async function handleBooking(event) {
         event.preventDefault();
-        if (!time || !service || !preparer || submitting) return;
+        if (submitting) return;
+
+        if (!service || !preparer || !time || !visitFormat) {
+            setBookingError("Select a service, preparer, time, and visit format.");
+            return;
+        }
+
 
         setSubmitting(true);
         setBookingError("");
@@ -250,6 +257,8 @@ export default function Booking({ theme, onToggleTheme }) {
                     appointment_date: day,
                     appointment_time: time,
                     duration_minutes: duration,
+                    visit_format: visitFormat,
+
                 }),
             });
 
@@ -263,6 +272,8 @@ export default function Booking({ theme, onToggleTheme }) {
             setCustomer(EMPTY_CUSTOMER);
             setTime("");
             setRefreshKey((current) => current + 1);
+            setVisitFormat("");
+
         } catch (err) {
             setBookingError(err.message);
             setRefreshKey((current) => current + 1);
@@ -511,6 +522,20 @@ export default function Booking({ theme, onToggleTheme }) {
                                     ))}
                                 </select>
                             </label>
+                            <label className="booking-filter" htmlFor="booking-visit-format">
+                                How would you like to meet?
+                                <select
+                                    id="booking-visit-format"
+                                    value={visitFormat}
+                                    onChange={(event) => setVisitFormat(event.target.value)}
+                                >
+                                    <option value="">Select a visit format</option>
+                                    <option value="in_person">In person</option>
+                                    <option value="phone">Over the phone</option>
+                                    <option value="virtual">Virtual/online</option>
+                                </select>
+                            </label>
+
                         </div>
 
                         {loadingSlots && <p>Loading available times...</p>}
@@ -650,6 +675,17 @@ export default function Booking({ theme, onToggleTheme }) {
                                     {appointment.service} · {appointment.tax_preparer} ·{" "}
                                     {appointment.duration_minutes ?? 30} minutes
                                 </p>
+                                <p>
+                                    Visit:{" "}
+                                    {appointment.visit_format === "in_person"
+                                        ? "In person"
+                                        : appointment.visit_format === "phone"
+                                            ? "Over the phone"
+                                            : appointment.visit_format === "virtual"
+                                                ? "Virtual/online"
+                                                : "Not specified"}
+                                </p>
+
                             </div>
                             <div className="booking-actions">
                                 <button
