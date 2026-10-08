@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "./AppLayout";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-
-
 
 const CRM_API_URL = import.meta.env.VITE_API_URL;
 
@@ -37,15 +34,47 @@ function dateKey(date) {
     ].join("-");
 }
 
+function dateFromKey(value) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day);
+}
+
 function formatDate(value) {
     if (!value) return "";
-
-    const [year, month, day] = value.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
-
-    return `${date.toLocaleString("en-US", {
+    return dateFromKey(value).toLocaleDateString("en-US", {
         month: "long",
-    })} ${String(day).padStart(2, "0")} ${year}`;
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+function addDays(value, amount) {
+    const date = dateFromKey(value);
+    date.setDate(date.getDate() + amount);
+    return dateKey(date);
+}
+
+function startOfWeek(value) {
+    const date = dateFromKey(value);
+    date.setDate(date.getDate() - date.getDay());
+    return dateKey(date);
+}
+
+function shiftMonth(value, amount) {
+    const date = dateFromKey(value);
+    const lastDay = new Date(
+        date.getFullYear(),
+        date.getMonth() + amount + 1,
+        0
+    ).getDate();
+
+    return dateKey(
+        new Date(
+            date.getFullYear(),
+            date.getMonth() + amount,
+            Math.min(date.getDate(), lastDay)
+        )
+    );
 }
 
 function timeToInput(value) {
@@ -62,14 +91,27 @@ function inputToTime(value) {
     return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${period}`;
 }
 
+function appointmentTimestamp(appointment) {
+    return `${appointment.appointment_date}T${timeToInput(appointment.appointment_time) || "00:00"
+        }`;
+}
+
+function visitLabel(value) {
+    if (value === "in_person") return "In person";
+    if (value === "phone") return "Over the phone";
+    if (value === "virtual") return "Virtual/online";
+    return "Not specified";
+}
+
 export default function Booking({ theme, onToggleTheme }) {
     const location = useLocation();
     const navigate = useNavigate();
+
+    const [view, setView] = useState("month");
+    const [day, setDay] = useState(() => dateKey(new Date()));
+    const [openedAppointmentId, setOpenedAppointmentId] = useState(null);
     const [selectedAppointmentIds, setSelectedAppointmentIds] = useState([]);
 
-
-    const [month, setMonth] = useState(new Date());
-    const [day, setDay] = useState(dateKey(new Date()));
     const [service, setService] = useState("");
     const [preparer, setPreparer] = useState("");
     const [duration, setDuration] = useState(30);
@@ -106,10 +148,9 @@ export default function Booking({ theme, onToggleTheme }) {
     const [contactMessage, setContactMessage] = useState("");
     const [contactError, setContactError] = useState("");
 
-
-
     useEffect(() => {
         const token = localStorage.getItem("token");
+
         if (!token || !CRM_API_URL) {
             setAppointmentsError("CRM login or API URL is missing.");
             return;
@@ -138,7 +179,9 @@ export default function Booking({ theme, onToggleTheme }) {
                     setAppointmentsError("");
                 }
             } catch (err) {
-                if (err.name !== "AbortError") setAppointmentsError(err.message);
+                if (err.name !== "AbortError") {
+                    setAppointmentsError(err.message);
+                }
             }
         }
 
@@ -151,13 +194,12 @@ export default function Booking({ theme, onToggleTheme }) {
         setSlots([]);
         setBookingError("");
 
-        if (!day || !service || !preparer) return;
+        if (!day || !service || !preparer || day < dateKey(new Date())) return;
 
         if (!CRM_API_URL) {
             setBookingError("VITE_API_URL is missing.");
             return;
         }
-
 
         const controller = new AbortController();
 
@@ -182,19 +224,32 @@ export default function Booking({ theme, onToggleTheme }) {
                 );
 
                 if (!response.ok) {
-                    throw new Error(
-                        `Availability request failed (${response.status}).`
-                    );
+                    throw new Error(`Availability request failed (${response.status}).`);
                 }
 
                 const data = await response.json();
+
                 if (!Array.isArray(data.availableTimes)) {
                     throw new Error("Invalid availability response.");
                 }
 
-                if (!controller.signal.aborted) setSlots(data.availableTimes);
+                if (!controller.signal.aborted) {
+                    setSlots(
+                        data.availableTimes.filter((slot) => {
+                            if (day !== dateKey(new Date())) return true;
+
+                            const inputTime = timeToInput(slot);
+                            return (
+                                inputTime &&
+                                new Date(`${day}T${inputTime}`).getTime() > Date.now()
+                            );
+                        })
+                    );
+                }
             } catch (err) {
-                if (err.name !== "AbortError") setBookingError(err.message);
+                if (err.name !== "AbortError") {
+                    setBookingError(err.message);
+                }
             } finally {
                 if (!controller.signal.aborted) setLoadingSlots(false);
             }
@@ -213,30 +268,90 @@ export default function Booking({ theme, onToggleTheme }) {
         }
     }, [editing?.id]);
 
-    const first = new Date(month.getFullYear(), month.getMonth(), 1);
-    const start = new Date(first);
-    start.setDate(1 - first.getDay());
+    const activeAppointments = appointments
+        .filter((appointment) =>
+            ["booked", "confirmed"].includes(appointment.status)
+        )
+        .sort((a, b) =>
+            appointmentTimestamp(a).localeCompare(appointmentTimestamp(b))
+        );
 
-    const days = Array.from({ length: 42 }, (_, index) => {
-        const date = new Date(start);
-        date.setDate(start.getDate() + index);
+    const appointmentsForDate = (value) =>
+        activeAppointments.filter(
+            (appointment) => appointment.appointment_date === value
+        );
+
+    const selectedDate = dateFromKey(day);
+    const monthStart = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        1
+    );
+    const calendarStart = new Date(monthStart);
+    calendarStart.setDate(1 - monthStart.getDay());
+
+    const monthDays = Array.from({ length: 42 }, (_, index) => {
+        const date = new Date(calendarStart);
+        date.setDate(calendarStart.getDate() + index);
         return date;
     });
 
-    const activeAppointments = appointments.filter((appointment) =>
-        ["booked", "confirmed"].includes(appointment.status)
+    const weekStart = startOfWeek(day);
+    const weekDays = Array.from({ length: 7 }, (_, index) =>
+        addDays(weekStart, index)
     );
 
-    const visibleAppointments = activeAppointments
-        .filter(
-            (appointment) =>
-                showAll || appointment.appointment_date === day
-        )
-        .sort(
-            (a, b) =>
-                a.appointment_date.localeCompare(b.appointment_date) ||
-                a.appointment_time.localeCompare(b.appointment_time)
+    const dailyAppointments = appointmentsForDate(day);
+    const visibleAppointments = showAll
+        ? activeAppointments
+        : dailyAppointments;
+
+    const openedAppointment = dailyAppointments.find(
+        (appointment) => String(appointment.id) === String(openedAppointmentId)
+    );
+
+    function selectDay(value) {
+        setDay(value);
+        setShowAll(false);
+        setOpenedAppointmentId(null);
+        setBookingSuccess("");
+    }
+
+    function moveCalendar(direction) {
+        if (view === "day") {
+            selectDay(addDays(day, direction));
+        } else if (view === "week") {
+            selectDay(addDays(day, direction * 7));
+        } else {
+            selectDay(shiftMonth(day, direction));
+        }
+    }
+
+    function moveYear(direction) {
+        const date = dateFromKey(day);
+        const targetYear = date.getFullYear() + direction;
+        const lastDay = new Date(
+            targetYear,
+            date.getMonth() + 1,
+            0
+        ).getDate();
+
+        selectDay(
+            dateKey(
+                new Date(
+                    targetYear,
+                    date.getMonth(),
+                    Math.min(date.getDate(), lastDay)
+                )
+            )
         );
+    }
+
+    function openAppointment(appointment) {
+        setDay(appointment.appointment_date);
+        setOpenedAppointmentId(appointment.id);
+        setShowAll(false);
+    }
 
     async function handleBooking(event) {
         event.preventDefault();
@@ -247,28 +362,46 @@ export default function Booking({ theme, onToggleTheme }) {
             return;
         }
 
+        if (day < dateKey(new Date())) {
+            setBookingError("Choose today or a future date.");
+            return;
+        }
+
+        const chosenTime = timeToInput(time);
+
+        if (
+            day === dateKey(new Date()) &&
+            (!chosenTime ||
+                new Date(`${day}T${chosenTime}`).getTime() <= Date.now())
+        ) {
+            setBookingError("Choose a future time.");
+            return;
+        }
 
         setSubmitting(true);
         setBookingError("");
         setBookingSuccess("");
 
         try {
-            const response = await fetch(`${CRM_API_URL}/api/staff/appointments`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-                body: JSON.stringify({
-                    ...customer,
-                    service,
-                    tax_preparer: preparer,
-                    appointment_date: day,
-                    appointment_time: time,
-                    duration_minutes: duration,
-                    visit_format: visitFormat,
-                }),
-            });
+            const response = await fetch(
+                `${CRM_API_URL}/api/staff/appointments`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: JSON.stringify({
+                        ...customer,
+                        service,
+                        tax_preparer: preparer,
+                        appointment_date: day,
+                        appointment_time: time,
+                        duration_minutes: duration,
+                        visit_format: visitFormat,
+                    }),
+                }
+            );
 
             const data = await response.json();
 
@@ -277,11 +410,10 @@ export default function Booking({ theme, onToggleTheme }) {
             }
 
             setBookingSuccess("Appointment booked successfully.");
-            setCustomer(EMPTY_CUSTOMER);
+            setCustomer({ ...EMPTY_CUSTOMER });
             setTime("");
-            setRefreshKey((current) => current + 1);
             setVisitFormat("");
-
+            setRefreshKey((current) => current + 1);
         } catch (err) {
             setBookingError(err.message);
             setRefreshKey((current) => current + 1);
@@ -338,12 +470,14 @@ export default function Booking({ theme, onToggleTheme }) {
 
     async function cancelBooking(appointment) {
         const name = `${appointment.first_name} ${appointment.last_name}`;
+
         if (
             !window.confirm(
                 `Are you sure you want to cancel ${name}'s appointment? This will notify the customer.`
             )
-        ) return;
-
+        ) {
+            return;
+        }
 
         setCancellingId(appointment.id);
         setCancelMessage("");
@@ -368,6 +502,7 @@ export default function Booking({ theme, onToggleTheme }) {
 
             setCancelMessage("Appointment cancelled successfully.");
             setEditing(null);
+            setOpenedAppointmentId(null);
             setRefreshKey((current) => current + 1);
         } catch (err) {
             setCancelError(err.message);
@@ -407,12 +542,68 @@ export default function Booking({ theme, onToggleTheme }) {
             setImportingId(null);
         }
     }
+
     function openCampaignDraft(appointmentIds) {
-        navigate("/campaigns", {
-            state: { appointmentIds },
-        });
+        navigate("/campaigns", { state: { appointmentIds } });
     }
 
+    function renderAppointmentActions(appointment) {
+        return (
+            <div className="booking-actions">
+                <button
+                    type="button"
+                    onClick={() => {
+                        setEditing({ ...appointment });
+                        setEditError("");
+                        setEditSuccess("");
+                    }}
+                >
+                    Edit
+                </button>
+
+                <button
+                    className="cancel-button"
+                    type="button"
+                    disabled={cancellingId === appointment.id}
+                    onClick={() => cancelBooking(appointment)}
+                >
+                    {cancellingId === appointment.id ? "Cancelling..." : "Cancel"}
+                </button>
+
+                <button
+                    type="button"
+                    disabled={importingId === appointment.id}
+                    onClick={() => addToContacts(appointment)}
+                >
+                    {importingId === appointment.id ? "Adding..." : "Add to Contacts"}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => openCampaignDraft([appointment.id])}
+                >
+                    Create Personal Campaign
+                </button>
+            </div>
+        );
+    }
+
+    function renderCalendarAppointment(appointment) {
+        return (
+            <button
+                key={appointment.id}
+                type="button"
+                className="booking-calendar-event"
+                onClick={() => openAppointment(appointment)}
+                title={`${appointment.appointment_time} - ${appointment.first_name} ${appointment.last_name}`}
+            >
+                <span>{appointment.appointment_time}</span>
+                <span>
+                    {appointment.first_name} {appointment.last_name}
+                </span>
+            </button>
+        );
+    }
 
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
@@ -425,334 +616,544 @@ export default function Booking({ theme, onToggleTheme }) {
                 </div>
 
                 <div className="booking-workspace">
-                    <section className="booking-panel" aria-label="Appointment calendar">
-                        <div className="booking-month-controls">
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
-                                }
-                            >
-                                Previous
-                            </button>
-                            <strong>
-                                {month.toLocaleDateString("en-US", {
-                                    month: "long",
-                                    year: "numeric",
-                                })}
-                            </strong>
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
-                                }
-                            >
-                                Next
-                            </button>
-                        </div>
+                    <section
+                        className="booking-panel booking-calendar-panel"
+                        aria-label="Appointment calendar"
+                    >
+                        <div className="booking-calendar-header">
+                            <div className="booking-month-controls">
+                                <button type="button" onClick={() => moveYear(-1)}>
+                                    « Year
+                                </button>
 
-                        <div className="booking-calendar">
-                            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((name) => (
-                                <strong className="booking-weekday" key={name}>
-                                    {name}
+                                <button type="button" onClick={() => moveCalendar(-1)}>
+                                    Previous
+                                </button>
+
+                                <strong>
+                                    {view === "month"
+                                        ? selectedDate.toLocaleDateString("en-US", {
+                                            month: "long",
+                                            year: "numeric",
+                                        })
+                                        : view === "week"
+                                            ? `${formatDate(weekStart)} - ${formatDate(
+                                                addDays(weekStart, 6)
+                                            )}`
+                                            : formatDate(day)}
                                 </strong>
-                            ))}
-                            {days.map((date) => {
-                                const value = dateKey(date);
-                                const count = activeAppointments.filter(
-                                    (appointment) => appointment.appointment_date === value
-                                ).length;
 
-                                return (
-                                    <button
-                                        key={value}
-                                        type="button"
-                                        className={`booking-day ${value === day ? "selected" : ""} ${date.getMonth() !== month.getMonth() ? "outside" : ""
-                                            }`}
-                                        onClick={() => {
-                                            setDay(value);
-                                            setShowAll(false);
-                                            setBookingSuccess("");
-                                        }}
-                                        aria-label={`${formatDate(value)}, ${count} appointments`}
-                                        aria-pressed={value === day}
-                                    >
-                                        <strong>{date.getDate()}</strong>
-                                        {count > 0 && (
-                                            <span className="booking-count">{count} booked</span>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </section>
-
-                    <section className="booking-panel booking-side-panel">
-                        <h2>{formatDate(day)}</h2>
-
-                        <div className="booking-filters">
-                            <label className="booking-filter" htmlFor="booking-service">
-                                Service
-                                <select
-                                    id="booking-service"
-                                    value={service}
-                                    onChange={(event) => setService(event.target.value)}
+                                <button
+                                    type="button"
+                                    onClick={() => selectDay(dateKey(new Date()))}
                                 >
-                                    <option value="">Select a service</option>
-                                    {SERVICES.map((item) => (
-                                        <option key={item} value={item}>{item}</option>
-                                    ))}
-                                </select>
-                            </label>
+                                    Today
+                                </button>
 
-                            <label className="booking-filter" htmlFor="booking-duration">
-                                Appointment length
-                                <select
-                                    id="booking-duration"
-                                    value={duration}
-                                    onChange={(event) => setDuration(Number(event.target.value))}
-                                >
-                                    <option value={10}>10 minutes</option>
-                                    <option value={15}>15 minutes</option>
-                                    <option value={30}>30 minutes</option>
-                                    <option value={60}>1 hour</option>
+                                <button type="button" onClick={() => moveCalendar(1)}>
+                                    Next
+                                </button>
 
-                                </select>
-                            </label>
+                                <button type="button" onClick={() => moveYear(1)}>
+                                    Year »
+                                </button>
+                            </div>
 
-                            <label className="booking-filter" htmlFor="booking-preparer">
-                                Preparer
-                                <select
-                                    id="booking-preparer"
-                                    value={preparer}
-                                    onChange={(event) => setPreparer(event.target.value)}
-                                >
-                                    <option value="">Choose a preparer</option>
-                                    {PREPARERS.map((name) => (
-                                        <option key={name} value={name}>{name}</option>
-                                    ))}
-                                </select>
-                            </label>
-                            <label className="booking-filter" htmlFor="booking-visit-format">
-                                How would you like to meet?
-                                <select
-                                    id="booking-visit-format"
-                                    value={visitFormat}
-                                    onChange={(event) => setVisitFormat(event.target.value)}
-                                >
-                                    <option value="">Select a visit format</option>
-                                    <option value="in_person">In person</option>
-                                    <option value="phone">Over the phone</option>
-                                    <option value="virtual">Virtual/online</option>
-                                </select>
-                            </label>
-
-                        </div>
-
-                        {loadingSlots && <p>Loading available times...</p>}
-                        {bookingError && (
-                            <p className="booking-status error" role="alert">{bookingError}</p>
-                        )}
-                        {!loadingSlots &&
-                            !bookingError &&
-                            service &&
-                            preparer &&
-                            slots.length === 0 && <p>No available times for this date.</p>}
-
-                        <label className="booking-filter" htmlFor="booking-time">
-                            Select a time
-                            <select
-                                id="booking-time"
-                                value={time}
-                                onChange={(event) => setTime(event.target.value)}
-                                disabled={loadingSlots || slots.length === 0}
+                            <div
+                                className="booking-view-switch"
+                                role="group"
+                                aria-label="Calendar view"
                             >
-                                <option value="">Choose an available time</option>
-                                {slots.map((slot) => (
-                                    <option key={slot} value={slot}>
-                                        {slot}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        {time && (
-
-                            <>
-                                <p>
-                                    Selected: {formatDate(day)} at {time} with {preparer} for{" "}
-                                    {duration} minutes
-                                </p>
-                                <form className="booking-customer-form" onSubmit={handleBooking}>
-                                    {[
-                                        ["first_name", "First name", "text"],
-                                        ["last_name", "Last name", "text"],
-                                        ["phone", "Phone", "tel"],
-                                        ["email", "Email", "email"],
-                                    ].map(([field, label, type]) => (
-                                        <label className="booking-field" key={field}>
-                                            {label}
-                                            <input
-                                                required
-                                                type={type}
-                                                value={customer[field]}
-                                                onChange={(event) =>
-                                                    setCustomer((current) => ({
-                                                        ...current,
-                                                        [field]: event.target.value,
-                                                    }))
-                                                }
-                                            />
-                                        </label>
-                                    ))}
+                                {["day", "week", "month"].map((option) => (
                                     <button
-                                        className="booking-submit"
-                                        type="submit"
-                                        disabled={submitting || loadingSlots}
+                                        key={option}
+                                        type="button"
+                                        onClick={() => setView(option)}
+                                        aria-pressed={view === option}
                                     >
-                                        {submitting ? "Booking..." : "Book Appointment"}
+                                        {option[0].toUpperCase() + option.slice(1)}
                                     </button>
-                                </form>
-                            </>
+                                ))}
+                            </div>
+                        </div>
+
+                        {view === "month" && (
+                            <div className="booking-calendar">
+                                {[
+                                    "Sun",
+                                    "Mon",
+                                    "Tue",
+                                    "Wed",
+                                    "Thu",
+                                    "Fri",
+                                    "Sat",
+                                ].map((name) => (
+                                    <strong className="booking-weekday" key={name}>
+                                        {name}
+                                    </strong>
+                                ))}
+
+                                {monthDays.map((date) => {
+                                    const value = dateKey(date);
+                                    const count = appointmentsForDate(value).length;
+
+                                    return (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            className={`booking-day ${value === day ? "selected" : ""
+                                                } ${date.getMonth() !== selectedDate.getMonth()
+                                                    ? "outside"
+                                                    : ""
+                                                }`}
+                                            onClick={() => selectDay(value)}
+                                            aria-label={`${formatDate(value)}, ${count} appointments`}
+                                            aria-pressed={value === day}
+                                        >
+                                            <strong>{date.getDate()}</strong>
+                                            {count > 0 && (
+                                                <span className="booking-count">
+                                                    {count} booked
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         )}
-                        {bookingSuccess && (
-                            <p className="booking-status" role="status">{bookingSuccess}</p>
+
+                        {view === "week" && (
+                            <div className="booking-week-view">
+                                {weekDays.map((value) => {
+                                    const daily = appointmentsForDate(value);
+
+                                    return (
+                                        <div
+                                            className={`booking-week-day ${value === day ? "selected" : ""
+                                                }`}
+                                            key={value}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="booking-week-date"
+                                                onClick={() => selectDay(value)}
+                                                aria-pressed={value === day}
+                                            >
+                                                {dateFromKey(value).toLocaleDateString("en-US", {
+                                                    weekday: "short",
+                                                    month: "short",
+                                                    day: "numeric",
+                                                })}
+                                                <span>{daily.length} booked</span>
+                                            </button>
+
+                                            {daily.length === 0 ? (
+                                                <p className="booking-muted">No appointments</p>
+                                            ) : (
+                                                daily.map(renderCalendarAppointment)
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {view === "day" && (
+                            <div className="booking-day-view">
+                                <h2>{formatDate(day)}</h2>
+                                {dailyAppointments.length === 0 ? (
+                                    <p>No appointments for this day.</p>
+                                ) : (
+                                    dailyAppointments.map(renderCalendarAppointment)
+                                )}
+                            </div>
                         )}
                     </section>
+
+                    <aside className="booking-panel booking-side-panel">
+                        <div className="booking-day-appointments">
+                            <h2>Appointments on {formatDate(day)}</h2>
+                            <p className="booking-muted">
+                                {dailyAppointments.length} active appointment
+                                {dailyAppointments.length === 1 ? "" : "s"}
+                            </p>
+
+                            {appointmentsError && (
+                                <p className="booking-status error" role="alert">
+                                    {appointmentsError}
+                                </p>
+                            )}
+
+                            {dailyAppointments.length === 0 && !appointmentsError ? (
+                                <p>No appointments for this day.</p>
+                            ) : (
+                                <div className="booking-day-appointment-list">
+                                    {dailyAppointments.map((appointment) => (
+                                        <button
+                                            key={appointment.id}
+                                            type="button"
+                                            className="booking-day-appointment-button"
+                                            aria-expanded={
+                                                String(openedAppointmentId) === String(appointment.id)
+                                            }
+                                            onClick={() =>
+                                                setOpenedAppointmentId((current) =>
+                                                    String(current) === String(appointment.id)
+                                                        ? null
+                                                        : appointment.id
+                                                )
+                                            }
+                                        >
+                                            <strong>{appointment.appointment_time}</strong>
+                                            <span>
+                                                {appointment.first_name} {appointment.last_name}
+                                            </span>
+                                            <small>{appointment.service}</small>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {openedAppointment && (
+                                <div className="booking-appointment booking-opened-details">
+                                    <h3>
+                                        {openedAppointment.first_name}{" "}
+                                        {openedAppointment.last_name}
+                                    </h3>
+                                    <p>
+                                        {formatDate(openedAppointment.appointment_date)} at{" "}
+                                        {openedAppointment.appointment_time}
+                                    </p>
+                                    <p>
+                                        {openedAppointment.service} ·{" "}
+                                        {openedAppointment.tax_preparer} ·{" "}
+                                        {openedAppointment.duration_minutes ?? 30} minutes
+                                    </p>
+                                    <p>
+                                        Visit: {visitLabel(openedAppointment.visit_format)}
+                                    </p>
+                                    <p>
+                                        Phone: {openedAppointment.phone || "Not provided"}
+                                    </p>
+                                    <p>
+                                        Email: {openedAppointment.email || "Not provided"}
+                                    </p>
+
+                                    {renderAppointmentActions(openedAppointment)}
+
+                                    <button
+                                        type="button"
+                                        className="booking-close-details"
+                                        onClick={() => setOpenedAppointmentId(null)}
+                                    >
+                                        Close details
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="booking-form-section">
+                            <h2>Book for {formatDate(day)}</h2>
+
+                            {day < dateKey(new Date()) ? (
+                                <p>
+                                    Past appointments can be viewed, but new appointments
+                                    must be booked for today or later.
+                                </p>
+                            ) : (
+                                <>
+                                    <div className="booking-filters">
+                                        <label className="booking-filter">
+                                            Service
+                                            <select
+                                                value={service}
+                                                onChange={(event) =>
+                                                    setService(event.target.value)
+                                                }
+                                            >
+                                                <option value="">Select a service</option>
+                                                {SERVICES.map((item) => (
+                                                    <option key={item} value={item}>
+                                                        {item}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </label>
+
+                                        <label className="booking-filter">
+                                            Appointment length
+                                            <select
+                                                value={duration}
+                                                onChange={(event) =>
+                                                    setDuration(Number(event.target.value))
+                                                }
+                                            >
+                                                <option value={10}>10 minutes</option>
+                                                <option value={15}>15 minutes</option>
+                                                <option value={30}>30 minutes</option>
+                                                <option value={60}>1 hour</option>
+                                            </select>
+                                        </label>
+
+                                        <label className="booking-filter">
+                                            Preparer
+                                            <select
+                                                value={preparer}
+                                                onChange={(event) =>
+                                                    setPreparer(event.target.value)
+                                                }
+                                            >
+                                                <option value="">Choose a preparer</option>
+                                                {PREPARERS.map((name) => (
+                                                    <option key={name} value={name}>
+                                                        {name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </label>
+
+                                        <label className="booking-filter">
+                                            How would you like to meet?
+                                            <select
+                                                value={visitFormat}
+                                                onChange={(event) =>
+                                                    setVisitFormat(event.target.value)
+                                                }
+                                            >
+                                                <option value="">Select a visit format</option>
+                                                <option value="in_person">In person</option>
+                                                <option value="phone">Over the phone</option>
+                                                <option value="virtual">Virtual/online</option>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                    {loadingSlots && <p>Loading available times...</p>}
+
+                                    {bookingError && (
+                                        <p className="booking-status error" role="alert">
+                                            {bookingError}
+                                        </p>
+                                    )}
+
+                                    {!loadingSlots &&
+                                        !bookingError &&
+                                        service &&
+                                        preparer &&
+                                        slots.length === 0 && (
+                                            <p>No available times for this date.</p>
+                                        )}
+
+                                    <label className="booking-filter">
+                                        Select a time
+                                        <select
+                                            value={time}
+                                            onChange={(event) =>
+                                                setTime(event.target.value)
+                                            }
+                                            disabled={loadingSlots || slots.length === 0}
+                                        >
+                                            <option value="">Choose an available time</option>
+                                            {slots.map((slot) => (
+                                                <option key={slot} value={slot}>
+                                                    {slot}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+
+                                    {time && (
+                                        <>
+                                            <p className="booking-selection-summary">
+                                                {formatDate(day)} at {time} with {preparer} for{" "}
+                                                {duration} minutes
+                                            </p>
+
+                                            <form
+                                                className="booking-customer-form"
+                                                onSubmit={handleBooking}
+                                            >
+                                                {[
+                                                    ["first_name", "First name", "text"],
+                                                    ["last_name", "Last name", "text"],
+                                                    ["phone", "Phone", "tel"],
+                                                    ["email", "Email", "email"],
+                                                ].map(([field, label, type]) => (
+                                                    <label className="booking-field" key={field}>
+                                                        {label}
+                                                        <input
+                                                            required
+                                                            type={type}
+                                                            value={customer[field]}
+                                                            onChange={(event) =>
+                                                                setCustomer((current) => ({
+                                                                    ...current,
+                                                                    [field]: event.target.value,
+                                                                }))
+                                                            }
+                                                        />
+                                                    </label>
+                                                ))}
+
+                                                <button
+                                                    className="booking-submit"
+                                                    type="submit"
+                                                    disabled={submitting || loadingSlots}
+                                                >
+                                                    {submitting
+                                                        ? "Booking..."
+                                                        : "Book Appointment"}
+                                                </button>
+                                            </form>
+                                        </>
+                                    )}
+                                </>
+                            )}
+
+                            {bookingSuccess && (
+                                <p className="booking-status" role="status">
+                                    {bookingSuccess}
+                                </p>
+                            )}
+                        </div>
+                    </aside>
                 </div>
 
                 <section className="booking-panel">
                     <div className="booking-list-heading">
                         <h2>
-                            {showAll ? "All Appointments" : `Appointments on ${formatDate(day)}`}
+                            {showAll
+                                ? "All Appointments"
+                                : `Appointments on ${formatDate(day)}`}
                         </h2>
-                        <button type="button" onClick={() => setShowAll((current) => !current)}>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowAll((current) => !current)}
+                        >
                             {showAll ? "Selected Day" : "All Appointments"}
                         </button>
                     </div>
 
-                    {appointmentsError && (
-                        <p className="booking-status error" role="alert">{appointmentsError}</p>
-                    )}
                     {editSuccess && (
-                        <p className="booking-status" role="status">{editSuccess}</p>
+                        <p className="booking-status" role="status">
+                            {editSuccess}
+                        </p>
                     )}
                     {cancelMessage && (
-                        <p className="booking-status" role="status">{cancelMessage}</p>
+                        <p className="booking-status" role="status">
+                            {cancelMessage}
+                        </p>
                     )}
                     {cancelError && (
-                        <p className="booking-status error" role="alert">{cancelError}</p>
+                        <p className="booking-status error" role="alert">
+                            {cancelError}
+                        </p>
                     )}
                     {contactMessage && (
-                        <p className="booking-status" role="status">{contactMessage}</p>
+                        <p className="booking-status" role="status">
+                            {contactMessage}
+                        </p>
                     )}
                     {contactError && (
-                        <p className="booking-status error" role="alert">{contactError}</p>
+                        <p className="booking-status error" role="alert">
+                            {contactError}
+                        </p>
                     )}
 
                     {visibleAppointments.length === 0 && !appointmentsError && (
                         <p>No active appointments shown.</p>
                     )}
+
                     <div className="booking-actions">
                         <button
                             type="button"
                             disabled={selectedAppointmentIds.length === 0}
-                            onClick={() => openCampaignDraft(selectedAppointmentIds)}
+                            onClick={() =>
+                                openCampaignDraft(selectedAppointmentIds)
+                            }
                         >
                             Create Group Campaign ({selectedAppointmentIds.length})
                         </button>
                     </div>
 
                     {visibleAppointments.map((appointment) => (
-                        <article className="booking-appointment" key={appointment.id}>
+                        <article
+                            className="booking-appointment booking-list-item"
+                            key={appointment.id}
+                        >
                             <div>
                                 <label>
                                     <input
                                         type="checkbox"
-                                        checked={selectedAppointmentIds.includes(appointment.id)}
+                                        checked={selectedAppointmentIds.includes(
+                                            appointment.id
+                                        )}
                                         onChange={(event) =>
                                             setSelectedAppointmentIds((current) =>
                                                 event.target.checked
                                                     ? [...current, appointment.id]
-                                                    : current.filter((id) => id !== appointment.id)
+                                                    : current.filter(
+                                                        (id) => id !== appointment.id
+                                                    )
                                             )
                                         }
                                         aria-label={`Select appointment for ${appointment.first_name} ${appointment.last_name}`}
                                     />
                                 </label>
 
-                                <strong>
-                                    {formatDate(appointment.appointment_date)} at{" "}
-                                    {appointment.appointment_time}
-                                </strong>
-                                <p>{appointment.first_name} {appointment.last_name}</p>
+                                <button
+                                    type="button"
+                                    className="booking-list-open"
+                                    onClick={() => openAppointment(appointment)}
+                                >
+                                    <strong>
+                                        {formatDate(appointment.appointment_date)} at{" "}
+                                        {appointment.appointment_time}
+                                    </strong>
+                                    {" · "}
+                                    {appointment.first_name} {appointment.last_name}
+                                </button>
+
                                 <p>
-                                    {appointment.service} · {appointment.tax_preparer} ·{" "}
+                                    {appointment.service} ·{" "}
+                                    {appointment.tax_preparer} ·{" "}
                                     {appointment.duration_minutes ?? 30} minutes
                                 </p>
                                 <p>
-                                    Visit:{" "}
-                                    {appointment.visit_format === "in_person"
-                                        ? "In person"
-                                        : appointment.visit_format === "phone"
-                                            ? "Over the phone"
-                                            : appointment.visit_format === "virtual"
-                                                ? "Virtual/online"
-                                                : "Not specified"}
+                                    Visit: {visitLabel(appointment.visit_format)}
                                 </p>
-
                             </div>
-                            <div className="booking-actions">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditing({ ...appointment });
-                                        setEditError("");
-                                        setEditSuccess("");
-                                    }}
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    className="cancel-button"
-                                    type="button"
-                                    disabled={cancellingId === appointment.id}
-                                    onClick={() => cancelBooking(appointment)}
-                                >
-                                    {cancellingId === appointment.id ? "Cancelling..." : "Cancel"}
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled={importingId === appointment.id}
-                                    onClick={() => addToContacts(appointment)}
-                                >
-                                    {importingId === appointment.id ? "Adding..." : "Add to Contacts"}
-                                </button>
 
-                                <button
-                                    type="button"
-                                    onClick={() => openCampaignDraft([appointment.id])}
-                                >
-                                    Create Personal Campaign
-                                </button>
-
-                            </div>
+                            {renderAppointmentActions(appointment)}
                         </article>
                     ))}
 
                     {editing && (
-                        <form className="booking-edit-form" ref={editFormRef} onSubmit={saveEdit}>
-                            <h3>Edit {editing.first_name} {editing.last_name}</h3>
+                        <form
+                            className="booking-edit-form"
+                            ref={editFormRef}
+                            onSubmit={saveEdit}
+                        >
+                            <h3>
+                                Edit {editing.first_name} {editing.last_name}
+                            </h3>
 
                             <label className="booking-field">
                                 Service
                                 <select
                                     value={editing.service}
                                     onChange={(event) =>
-                                        setEditing({ ...editing, service: event.target.value })
+                                        setEditing({
+                                            ...editing,
+                                            service: event.target.value,
+                                        })
                                     }
                                 >
                                     {SERVICES.map((item) => (
-                                        <option key={item} value={item}>{item}</option>
+                                        <option key={item} value={item}>
+                                            {item}
+                                        </option>
                                     ))}
                                 </select>
                             </label>
@@ -762,11 +1163,16 @@ export default function Booking({ theme, onToggleTheme }) {
                                 <select
                                     value={editing.tax_preparer}
                                     onChange={(event) =>
-                                        setEditing({ ...editing, tax_preparer: event.target.value })
+                                        setEditing({
+                                            ...editing,
+                                            tax_preparer: event.target.value,
+                                        })
                                     }
                                 >
                                     {PREPARERS.map((name) => (
-                                        <option key={name} value={name}>{name}</option>
+                                        <option key={name} value={name}>
+                                            {name}
+                                        </option>
                                     ))}
                                 </select>
                             </label>
@@ -778,7 +1184,8 @@ export default function Booking({ theme, onToggleTheme }) {
                                     type="datetime-local"
                                     step="60"
                                     value={
-                                        editing.appointment_date && editing.appointment_time
+                                        editing.appointment_date &&
+                                            editing.appointment_time
                                             ? `${editing.appointment_date}T${timeToInput(
                                                 editing.appointment_time
                                             )}`
@@ -786,7 +1193,10 @@ export default function Booking({ theme, onToggleTheme }) {
                                     }
                                     onChange={(event) => {
                                         if (!event.target.value) return;
-                                        const [newDate, newTime] = event.target.value.split("T");
+
+                                        const [newDate, newTime] =
+                                            event.target.value.split("T");
+
                                         setEditing({
                                             ...editing,
                                             appointment_date: newDate,
@@ -803,7 +1213,9 @@ export default function Booking({ theme, onToggleTheme }) {
                                     onChange={(event) =>
                                         setEditing({
                                             ...editing,
-                                            duration_minutes: Number(event.target.value),
+                                            duration_minutes: Number(
+                                                event.target.value
+                                            ),
                                         })
                                     }
                                 >
@@ -811,18 +1223,29 @@ export default function Booking({ theme, onToggleTheme }) {
                                     <option value={15}>15 minutes</option>
                                     <option value={30}>30 minutes</option>
                                     <option value={60}>1 hour</option>
-
                                 </select>
                             </label>
 
                             {editError && (
-                                <p className="booking-status error" role="alert">{editError}</p>
+                                <p className="booking-status error" role="alert">
+                                    {editError}
+                                </p>
                             )}
+
                             <div className="booking-actions">
-                                <button className="booking-submit" type="submit" disabled={savingEdit}>
+                                <button
+                                    className="booking-submit"
+                                    type="submit"
+                                    disabled={savingEdit}
+                                >
                                     {savingEdit ? "Saving..." : "Save Changes"}
                                 </button>
-                                <button type="button" disabled={savingEdit} onClick={() => setEditing(null)}>
+
+                                <button
+                                    type="button"
+                                    disabled={savingEdit}
+                                    onClick={() => setEditing(null)}
+                                >
                                     Close
                                 </button>
                             </div>
