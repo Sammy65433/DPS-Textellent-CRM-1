@@ -313,10 +313,13 @@ function App() {
   path="/staff"
   element={
     <ProtectedRoute>
-      <StaffManagementPage theme={theme} onToggleTheme={toggleTheme} />
+      {JSON.parse(localStorage.getItem("user") || "null")?.role === "admin"
+        ? <StaffManagementPage theme={theme} onToggleTheme={toggleTheme} />
+        : <Navigate to="/dashboard" replace />}
     </ProtectedRoute>
   }
 />
+
 
         <Route
           path="*"
