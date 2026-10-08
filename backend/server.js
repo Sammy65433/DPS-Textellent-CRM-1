@@ -92,7 +92,10 @@ app.patch(
       appointment_date,
       appointment_time,
       duration_minutes,
+      visit_format,
+      message,
     } = req.body;
+
 
     if (
       !service ||
@@ -121,6 +124,9 @@ app.patch(
             appointment_date,
             appointment_time,
             duration_minutes: Number(duration_minutes),
+            visit_format,
+            message,
+
           }),
           signal: AbortSignal.timeout(60000),
         }

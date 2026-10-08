@@ -448,6 +448,9 @@ export default function Booking({ theme, onToggleTheme }) {
                         appointment_date: editing.appointment_date,
                         appointment_time: editing.appointment_time,
                         duration_minutes: Number(editing.duration_minutes),
+                        visit_format: editing.visit_format || null,
+                        message: editing.message || "",
+
                     }),
                 }
             );
@@ -1205,6 +1208,35 @@ export default function Booking({ theme, onToggleTheme }) {
                                     }}
                                 />
                             </label>
+                            <label className="booking-field">
+                                Visit format
+                                <select
+                                    value={editing.visit_format || ""}
+                                    onChange={(event) =>
+                                        setEditing({
+                                            ...editing,
+                                            visit_format: event.target.value,
+                                        })
+                                    }
+                                >
+                                    <option value="">Not specified</option>
+                                    <option value="in_person">In person</option>
+                                    <option value="phone">Over the phone</option>
+                                    <option value="virtual">Virtual/online</option>
+                                </select>
+                            </label>
+
+                            <label className="booking-field">
+                                Appointment details
+                                <textarea
+                                    value={editing.message || ""}
+                                    onChange={(event) =>
+                                        setEditing({ ...editing, message: event.target.value })
+                                    }
+                                    rows={3}
+                                />
+                            </label>
+
 
                             <label className="booking-field">
                                 Appointment length
