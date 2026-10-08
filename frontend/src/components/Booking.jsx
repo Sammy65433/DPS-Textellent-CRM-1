@@ -793,9 +793,11 @@ export default function Booking({ theme, onToggleTheme }) {
                                         })
                                     }
                                 >
+                                    <option value={10}>10 minutes</option>
                                     <option value={15}>15 minutes</option>
                                     <option value={30}>30 minutes</option>
                                     <option value={60}>1 hour</option>
+
                                 </select>
                             </label>
 
