@@ -559,21 +559,24 @@ export default function Booking({ theme, onToggleTheme }) {
                             preparer &&
                             slots.length === 0 && <p>No available times for this date.</p>}
 
-                        <div className="booking-times">
-                            {slots.map((slot) => (
-                                <button
-                                    key={slot}
-                                    type="button"
-                                    className={`booking-time ${time === slot ? "selected" : ""}`}
-                                    onClick={() => setTime(slot)}
-                                    aria-pressed={time === slot}
-                                >
-                                    {slot}
-                                </button>
-                            ))}
-                        </div>
-
+                        <label className="booking-filter" htmlFor="booking-time">
+                            Select a time
+                            <select
+                                id="booking-time"
+                                value={time}
+                                onChange={(event) => setTime(event.target.value)}
+                                disabled={loadingSlots || slots.length === 0}
+                            >
+                                <option value="">Choose an available time</option>
+                                {slots.map((slot) => (
+                                    <option key={slot} value={slot}>
+                                        {slot}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                         {time && (
+
                             <>
                                 <p>
                                     Selected: {formatDate(day)} at {time} with {preparer} for{" "}
