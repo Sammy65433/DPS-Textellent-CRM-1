@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 
-const DPS_API_URL = import.meta.env.VITE_DPS_API_URL;
+
 const CRM_API_URL = import.meta.env.VITE_API_URL;
 
 const SERVICES = [
@@ -153,10 +153,11 @@ export default function Booking({ theme, onToggleTheme }) {
 
         if (!day || !service || !preparer) return;
 
-        if (!DPS_API_URL) {
-            setBookingError("VITE_DPS_API_URL is missing.");
+        if (!CRM_API_URL) {
+            setBookingError("VITE_API_URL is missing.");
             return;
         }
+
 
         const controller = new AbortController();
 
@@ -171,8 +172,13 @@ export default function Booking({ theme, onToggleTheme }) {
                 });
 
                 const response = await fetch(
-                    `${DPS_API_URL}/api/appointments/availability?${params}`,
-                    { signal: controller.signal }
+                    `${CRM_API_URL}/api/staff/appointments/availability?${params}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                        signal: controller.signal,
+                    }
                 );
 
                 if (!response.ok) {
@@ -247,9 +253,12 @@ export default function Booking({ theme, onToggleTheme }) {
         setBookingSuccess("");
 
         try {
-            const response = await fetch(`${DPS_API_URL}/api/appointments`, {
+            const response = await fetch(`${CRM_API_URL}/api/staff/appointments`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
                 body: JSON.stringify({
                     ...customer,
                     service,
@@ -258,7 +267,6 @@ export default function Booking({ theme, onToggleTheme }) {
                     appointment_time: time,
                     duration_minutes: duration,
                     visit_format: visitFormat,
-
                 }),
             });
 

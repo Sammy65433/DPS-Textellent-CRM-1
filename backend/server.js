@@ -152,6 +152,60 @@ app.patch(
     }
   }
 );
+app.get(
+  "/api/staff/appointments/availability",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    try {
+      const params = new URLSearchParams({
+        date: String(req.query.date || ""),
+        preparer: String(req.query.preparer || ""),
+        duration_minutes: String(req.query.duration_minutes || ""),
+      });
+
+      const upstream = await fetch(
+        `${process.env.DPS_API_URL}/api/appointments/staff/availability?${params}`,
+        {
+          headers: { "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY },
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      return res.status(upstream.status).json(await upstream.json());
+    } catch (error) {
+      console.error("Staff availability proxy failed:", error);
+      return res.status(502).json({ message: "Availability service unavailable." });
+    }
+  }
+);
+
+app.post(
+  "/api/staff/appointments",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    try {
+      const upstream = await fetch(
+        `${process.env.DPS_API_URL}/api/appointments/staff`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      return res.status(upstream.status).json(await upstream.json());
+    } catch (error) {
+      console.error("Staff booking proxy failed:", error);
+      return res.status(502).json({ message: "Booking service unavailable." });
+    }
+  }
+);
 
 
 
