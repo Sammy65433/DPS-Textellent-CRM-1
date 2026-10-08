@@ -15,6 +15,7 @@ import Booking from "./components/Booking";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAppHandlers } from "./handlers/useAppHandlers";
 import "./styles/App.css";
+import StaffManagementPage from "./pages/StaffManagementPage";
 
 
 function App() {
@@ -308,6 +309,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+<Route
+  path="/staff"
+  element={
+    <ProtectedRoute>
+      <StaffManagementPage theme={theme} onToggleTheme={toggleTheme} />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="*"

@@ -10,6 +10,7 @@ import {
   FaEnvelope,
   FaChartBar,
   FaSignOutAlt,
+  FaUserShield,
 } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
 
@@ -17,14 +18,21 @@ function AppLayout({ children, theme, onToggleTheme }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  let role = null;
+  try {
+    role = JSON.parse(localStorage.getItem("user") || "null")?.role;
+  } catch {
+    role = null;
+  }
+
+  const closeMenu = () => setMenuOpen(false);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setMenuOpen(false);
+    closeMenu();
     navigate("/login");
   };
-
-  const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
@@ -37,23 +45,19 @@ function AppLayout({ children, theme, onToggleTheme }) {
       >
         <Container fluid>
           <Navbar.Brand className="fw-bold">DPS CRM</Navbar.Brand>
-{["staff", "admin"].includes(
-  JSON.parse(localStorage.getItem("user") || "null")?.role
-) && (
-  <span
-    className="ms-2 px-3 py-1 rounded-pill fw-bold"
-    style={{
-      backgroundColor: "#fbbf24",
-      color: "#111827",
-      fontSize: "0.8rem",
-    }}
-  >
-    {JSON.parse(localStorage.getItem("user") || "null").role === "admin"
-      ? "Admin"
-      : "Staff"}
-  </span>
-)}
 
+          {["staff", "admin"].includes(role) && (
+            <span
+              className="ms-2 px-3 py-1 rounded-pill fw-bold"
+              style={{
+                backgroundColor: "#fbbf24",
+                color: "#111827",
+                fontSize: "0.8rem",
+              }}
+            >
+              {role === "admin" ? "Admin" : "Staff"}
+            </span>
+          )}
 
           <Navbar.Toggle
             aria-controls="crm-navbar-menu"
@@ -69,7 +73,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
                 className="nav-router-link"
                 onClick={closeMenu}
               >
-                <FaColumns className="me-2" /> Dashboard
+                <FaColumns className="me-2" />
+                Dashboard
               </Nav.Link>
 
               <Nav.Link
@@ -78,7 +83,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
                 className="nav-router-link"
                 onClick={closeMenu}
               >
-                <FaUsers className="me-2" /> Contacts
+                <FaUsers className="me-2" />
+                Contacts
               </Nav.Link>
 
               <Nav.Link
@@ -87,7 +93,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
                 className="nav-router-link"
                 onClick={closeMenu}
               >
-                <FaFileAlt className="me-2" /> Templates
+                <FaFileAlt className="me-2" />
+                Templates
               </Nav.Link>
 
               <Nav.Link
@@ -96,7 +103,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
                 className="nav-router-link"
                 onClick={closeMenu}
               >
-                <FaBullhorn className="me-2" /> Campaigns
+                <FaBullhorn className="me-2" />
+                Campaigns
               </Nav.Link>
 
               <Nav.Link
@@ -105,7 +113,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
                 className="nav-router-link"
                 onClick={closeMenu}
               >
-                <FaEnvelope className="me-2" /> Emails
+                <FaEnvelope className="me-2" />
+                Emails
               </Nav.Link>
 
               <Nav.Link
@@ -114,7 +123,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
                 className="nav-router-link"
                 onClick={closeMenu}
               >
-                <FaChartBar className="me-2" /> Analytics
+                <FaChartBar className="me-2" />
+                Analytics
               </Nav.Link>
 
               <Nav.Link
@@ -123,8 +133,21 @@ function AppLayout({ children, theme, onToggleTheme }) {
                 className="nav-router-link"
                 onClick={closeMenu}
               >
-                <FaCalendarCheck className="me-2" /> Booking
+                <FaCalendarCheck className="me-2" />
+                Booking
               </Nav.Link>
+
+              {role === "admin" && (
+                <Nav.Link
+                  as={NavLink}
+                  to="/staff"
+                  className="nav-router-link"
+                  onClick={closeMenu}
+                >
+                  <FaUserShield className="me-2" />
+                  Staff Management
+                </Nav.Link>
+              )}
 
               <Button
                 variant="light"
@@ -132,7 +155,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
                 className="logout-btn ms-lg-3 me-2"
                 onClick={handleLogout}
               >
-                <FaSignOutAlt className="me-2" /> Logout
+                <FaSignOutAlt className="me-2" />
+                Logout
               </Button>
 
               <div className="ms-lg-1">
