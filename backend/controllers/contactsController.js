@@ -1,120 +1,138 @@
+import mongoose from "mongoose";
 import Contact from "../models/Contact.js";
 
-const cleanEmail = (value) => String(value || "").trim().toLowerCase();
-const cleanPhone = (value) => String(value || "").replace(/\D/g, "");
+const DPS_CONTACT_SCOPE = "user123";
 
-export const createContact = async (req, res) => {
+const cleanEmail = (value) =>
+    String(value ?? "").trim().toLowerCase();
+
+const cleanPhone = (value) =>
+    String(value ?? "").replace(/\D/g, "");
+
+function contactFields(body = {}) {
+    return {
+        firstName: String(body.firstName ?? "").trim(),
+        lastName: String(body.lastName ?? "").trim(),
+        phone: cleanPhone(body.phone),
+        email: cleanEmail(body.email),
+        tags: String(body.tags ?? "").trim(),
+        notes: String(body.notes ?? "").trim(),
+    };
+}
+
+export async function createContact(req, res) {
     try {
-        const { userId, firstName, lastName, phone, email, tags, notes } =
-            req.body;
+        const fields = contactFields(req.body);
 
-        if (!userId || !phone) {
-            return res.status(400).json({
-                error: "userId and phone are required",
-            });
+        if (!fields.phone) {
+            return res.status(400).json({ error: "Phone is required." });
         }
 
         const contact = await Contact.create({
-            userId,
-            firstName,
-            lastName,
-            phone,
-            email,
-            tags,
-            notes,
+            ...fields,
+            userId: DPS_CONTACT_SCOPE,
         });
 
         return res.status(201).json(contact);
     } catch (error) {
         console.error("Create contact error:", error);
-        return res.status(500).json({ error: "Failed to create contact" });
+        return res.status(500).json({ error: "Failed to create contact." });
     }
-};
+}
 
-export const getContacts = async (req, res) => {
+export async function getContacts(req, res) {
     try {
-        const { userId } = req.query;
-
-        if (!userId) {
-            return res.status(400).json({ error: "userId is required" });
-        }
-
-        const contacts = await Contact.find({ userId }).sort({
-            createdAt: -1,
-        });
+        const contacts = await Contact.find({
+            userId: DPS_CONTACT_SCOPE,
+        }).sort({ createdAt: -1 });
 
         return res.status(200).json(contacts);
     } catch (error) {
         console.error("Get contacts error:", error);
-        return res.status(500).json({ error: "Failed to fetch contacts" });
+        return res.status(500).json({ error: "Failed to fetch contacts." });
     }
-};
+}
 
-export const updateContact = async (req, res) => {
+export async function updateContact(req, res) {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({ error: "Invalid contact ID." });
+    }
+
     try {
-        const { id } = req.params;
-        const { firstName, lastName, phone, email, tags, notes } = req.body;
+        // Allowlist ordinary editable fields. Never copy req.body directly.
+        const fields = contactFields(req.body);
 
-        const updatedContact = await Contact.findByIdAndUpdate(
-            id,
-            { firstName, lastName, phone, email, tags, notes },
-            { returnDocument: "after" }
+        if (!fields.phone) {
+            return res.status(400).json({ error: "Phone is required." });
+        }
+
+        const updatedContact = await Contact.findOneAndUpdate(
+            { _id: id, userId: DPS_CONTACT_SCOPE },
+            { $set: fields },
+            { new: true, runValidators: true }
         );
 
         if (!updatedContact) {
-            return res.status(404).json({ error: "Contact not found" });
+            return res.status(404).json({ error: "Contact not found." });
         }
 
         return res.status(200).json(updatedContact);
     } catch (error) {
         console.error("Update contact error:", error);
-        return res.status(500).json({ error: "Failed to update contact" });
+        return res.status(500).json({ error: "Failed to update contact." });
     }
-};
+}
 
-export const deleteContact = async (req, res) => {
+export async function deleteContact(req, res) {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({ error: "Invalid contact ID." });
+    }
+
     try {
-        const { id } = req.params;
-
-        const deletedContact = await Contact.findByIdAndDelete(id);
+        const deletedContact = await Contact.findOneAndDelete({
+            _id: id,
+            userId: DPS_CONTACT_SCOPE,
+        });
 
         if (!deletedContact) {
-            return res.status(404).json({ error: "Contact not found" });
+            return res.status(404).json({ error: "Contact not found." });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Contact deleted successfully",
+            message: "Contact deleted successfully.",
         });
     } catch (error) {
         console.error("Delete contact error:", error);
-        return res.status(500).json({ error: "Failed to delete contact" });
+        return res.status(500).json({ error: "Failed to delete contact." });
     }
-};
+}
 
-export const importAppointmentContact = async (req, res) => {
+export async function importAppointmentContact(req, res) {
     const appointmentId = Number(req.body?.appointmentId);
 
     if (!Number.isSafeInteger(appointmentId) || appointmentId <= 0) {
         return res.status(400).json({ message: "Invalid appointment ID." });
     }
 
-    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+    const apiUrl = process.env.DPS_API_URL?.replace(/\/$/, "");
+    const staffKey = process.env.DPS_STAFF_API_KEY;
+
+    if (!apiUrl || !staffKey) {
         return res.status(503).json({
             message: "DPS connection is not configured.",
         });
     }
 
     try {
-        const response = await fetch(
-            `${process.env.DPS_API_URL}/api/appointments`,
-            {
-                headers: {
-                    "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
-                },
-                signal: AbortSignal.timeout(60000),
-            }
-        );
+        const response = await fetch(`${apiUrl}/api/appointments`, {
+            headers: { "X-DPS-Staff-Key": staffKey },
+            signal: AbortSignal.timeout(60000),
+        });
 
         if (!response.ok) {
             return res.status(502).json({
@@ -149,16 +167,11 @@ export const importAppointmentContact = async (req, res) => {
             });
         }
 
-        // Current CRM uses "user123" for its contact list.
-        // Migrate all CRM routes to authenticated user IDs before changing this.
-        const userId = "user123";
-
         const conditions = [{ phone }];
-
         if (email) conditions.push({ email });
 
         const existing = await Contact.findOne({
-            userId,
+            userId: DPS_CONTACT_SCOPE,
             $or: conditions,
         });
 
@@ -171,9 +184,9 @@ export const importAppointmentContact = async (req, res) => {
         }
 
         const contact = await Contact.create({
-            userId,
-            firstName: appointment.first_name || "",
-            lastName: appointment.last_name || "",
+            userId: DPS_CONTACT_SCOPE,
+            firstName: String(appointment.first_name ?? "").trim(),
+            lastName: String(appointment.last_name ?? "").trim(),
             phone,
             email,
             tags: "",
@@ -191,4 +204,4 @@ export const importAppointmentContact = async (req, res) => {
             message: "Could not import appointment contact.",
         });
     }
-};
+}

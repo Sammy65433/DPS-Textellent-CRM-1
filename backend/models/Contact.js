@@ -22,6 +22,7 @@ const contactSchema = new mongoose.Schema(
         email: {
             type: String,
             trim: true,
+            lowercase: true,
         },
         tags: {
             type: String,
@@ -31,6 +32,14 @@ const contactSchema = new mongoose.Schema(
             type: String,
             trim: true,
             default: "",
+        },
+
+        // Set only through a dedicated, staff-authorized linking workflow.
+        // Do not accept this value from normal contact create/edit requests.
+        supabaseCustomerId: {
+            type: String,
+            default: null,
+            select: false,
         },
     },
     { timestamps: true }
