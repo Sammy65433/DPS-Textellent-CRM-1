@@ -42,3 +42,378 @@ Open these files and share their code, with passwords, keys, and secrets removed
 - DPS backend `routes/appointmentRoutes.js`
 
 Then we can protect **only** `GET /api/appointments` with server-side staff verification and update the CRM calendar to send its login token. Leave the public availability and booking routes accessible so DPS customers can still book. Do not add a shared secret to `VITE_` or expose appointment data while wiring this up.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Save this as a **local handoff document**, such as `PROJECT-HANDOFF.md`. It covers both repositories and distinguishes tested behavior from recent work that has **not been pushed or verified in production**. Keep the resume prompt after the document for your next Cluely session.
+
+```md
+# DPS Website and Textellent CRM: Project Handoff
+
+**Developer:** Samuel Jacquet  
+**Purpose:** Record what the two applications do, what has been tested, what changed recently, and exactly where development should resume.
+
+**Status note:** This document combines previously tested features with recent local changes. Recent CRM account-linking code has **not been pushed or verified end to end**. Do not describe it as a live feature or use it to access real client tax documents.
+
+## 1. The two applications
+
+This project consists of two separate applications with different users and databases.
+
+| Application | Intended user | Frontend | Backend | Main data |
+| --- | --- | --- | --- | --- |
+| DPS Professional Tax Services website | Clients and website visitors | React/Vite | Express | Supabase appointments, customer identities, and prototype document metadata/storage |
+| DPS Textellent CRM | DPS staff and administrators | React/Vite | Express | MongoDB contacts, staff users, conversations, templates, and campaigns |
+
+The public website lets clients learn about DPS, request appointments, contact the office, and sign in to a developing customer portal. The CRM lets authenticated staff manage contacts, communications, campaigns, and appointments.
+
+**A customer account is not a CRM staff account.** Customer login uses Supabase Auth. CRM staff login uses a MongoDB user record, bcrypt password hash, and CRM-issued JWT.
+
+### Application URLs
+
+| Service | URL |
+| --- | --- |
+| Public DPS website | `https://www.dpstaxpro.com` |
+| DPS backend | `https://dps-final-tax-website.onrender.com` |
+| CRM frontend | `https://dps-textellent-frontend.onrender.com` |
+| CRM backend | `https://dps-crm-1.onrender.com`, as shown in the Render logs; verify before changing configuration |
+
+Local development commonly uses DPS backend port `5001` and CRM backend port `5002`. Either Vite frontend may start on `5173` or `5174` if a port is already occupied. **Use the URL printed by the relevant frontend terminal.**
+
+### System boundaries
+
+```text
+Public visitor/customer
+    |
+    v
+DPS React website
+    |
+    v
+DPS Express API
+    |
+    +-- Supabase appointments
+    +-- Supabase Auth customer verification
+    +-- Private Supabase Storage prototype
+    +-- Resend appointment/contact emails
+
+CRM staff member
+    |
+    v
+CRM React frontend
+    |
+    v
+CRM Express API
+    |
+    +-- MongoDB staff, contacts, communications, campaigns
+    +-- Server-to-server DPS appointment API requests
+```
+
+The CRM frontend must not call staff-protected DPS endpoints with a secret. Server-to-server credentials belong in the **two backends only**.
+
+## 2. DPS website: public-facing work
+
+The DPS website presents tax preparation and related business services through a responsive React application. Its interface has been revised around teal and purple branding, glass-style cards, photography, and dedicated pages.
+
+### Public pages and navigation
+
+The site includes:
+
+- Homepage with a hero, service previews, resources, client-feedback preview, contact form, and real estate preview
+- About, Purpose, and Moments pages
+- Tax Preparation, Notary, Form Preparation Support, Copy & Fax, Business Services, and Other Services pages
+- Pricing and payment information
+- What to Bring & FAQ
+- Official Taxpayer Resources
+- Contact and real estate booking pages
+
+The header groups related pages into dropdowns. The hero includes quick links to Services, Resources, booking, and calling the office. The logo/name and Home link were updated to scroll to the top when clicked from the bottom of the homepage.
+
+The homepage hero and Contact section also have photo slideshows. These are presentation features, not document-management features.
+
+### Tax appointment booking
+
+The public booking form sends requests to the DPS backend. Clients choose a service, preparer, date, time, and meeting format. The frontend fetches available times; the backend checks conflicts before saving an appointment in Supabase.
+
+The backend also supports staff booking, appointment updates, cancellations, and customer rescheduling. Its `appointments_no_overlap` database constraint protects against overlapping active appointments for one preparer.
+
+The booking page warns clients **not** to put Social Security numbers, banking details, or tax documents in the public form.
+
+### Customer appointment management
+
+Appointment emails can include a private, expiring **Manage My Appointment** link. This is separate from CRM login and from the new customer portal. The link is intended to show only the associated appointment and allow permitted changes or cancellation.
+
+Treat these links as credentials. Do not put them in screenshots, analytics events, public logs, or campaign templates.
+
+### Contact form
+
+The public Contact form submits to `POST /api/contact`. The DPS backend validates its fields and sends office notifications through Resend. This flow was previously tested on the deployed site. The form includes a honeypot and warns against submitting sensitive tax data.
+
+### Realty requests
+
+The real estate page introduces the independent RC Realty Group partner and includes a real estate request form. DPS is not presented as the brokerage.
+
+### Existing secure portal
+
+The website links to the existing **CCH iFirm** portal for real client tax documents. A DPS website login does **not** automatically sign a customer into CCH iFirm.
+
+CCH iFirm must remain the live option for sensitive uploads while the new DPS document prototype lacks full production controls.
+
+## 3. DPS customer portal and document prototype
+
+Customer authentication was added using Supabase Auth.
+
+### Customer sign-in: tested
+
+- A test Supabase customer was created.
+- The DPS frontend signed in with Supabase Auth.
+- The DPS backend's `requireCustomer` middleware verified the bearer token through Supabase.
+- `GET /api/customer/me` returned only the signed-in customer's ID and email.
+- Portal refresh preserved the session.
+- Sign-out worked.
+- Direct navigation to `/client-portal` while signed out redirected to `/client-login`.
+
+The DPS frontend uses the Supabase **publishable key**. Backend secret/service keys must never be placed in a `VITE_` variable.
+
+### Private document prototype: tested with dummy files
+
+A private Supabase Storage bucket named `customer-documents` was created with:
+
+- Public access off
+- A 5 MB file-size restriction
+- PDF, JPEG, and PNG MIME types
+
+A `customer_documents` metadata table was created with row-level security enabled. The DPS backend uses authenticated customer routes to upload and list files. Storage paths are assigned by the backend under the verified customer's ID; the browser does not choose another customer's folder.
+
+Tests completed:
+
+- A signed-in test customer uploaded a **non-sensitive dummy file**.
+- Its name appeared in that customer's portal list after upload.
+- The file appeared in the private bucket.
+- A second test customer could not see the first customer's document list.
+
+**What this does not prove:** production-safe downloads, malware scanning, comprehensive authorization testing, retention/deletion rules, access audit logs, or staff CRM access. Only dummy files should be used in this prototype.
+
+Relevant DPS files include:
+
+```text
+Backend/app.js
+Backend/middleware/requireCustomer.js
+Backend/routes/customerRoutes.js
+Backend/routes/customerDocumentRoutes.js
+Frontend/src/lib/supabase.js
+Frontend/src/pages/ClientLogin.jsx
+Frontend/src/pages/ClientPortal.jsx
+Frontend/src/pages/ClientLink.jsx
+Frontend/src/components/CustomerDocuments.jsx
+```
+
+### Customer-to-CRM linking: in progress, not verified
+
+The desired flow is:
+
+```text
+CRM staff selects a contact and requests an invitation
+    |
+    v
+CRM backend sends a one-time link to that contact's email
+    |
+    v
+Customer opens /client-link on the DPS website
+    |
+    v
+Customer signs in to their Supabase account and confirms
+    |
+    v
+DPS backend verifies the customer token
+    |
+    v
+DPS backend calls the CRM backend with a server-only credential
+    |
+    v
+CRM backend validates and consumes the invitation
+    |
+    v
+CRM Contact.supabaseCustomerId is set
+```
+
+Possession of the link **alone** must not link an arbitrary Supabase account. The flow was revised to require both the emailed invitation and a signed-in, email-confirmed customer account whose email matches the invitation recipient.
+
+The DPS `/client-link` page and login return path were added. A navigation-only test used `token=TESTONLY`, which is intentionally invalid. **No successful real invitation redemption has been demonstrated.**
+
+The DPS backend has a customer-authenticated `/api/customer/link` forwarding route in local work. It derives the customer ID and email from the verified Supabase user, not from browser-submitted identity fields. Its server-to-server request goes to the CRM redemption route using `CRM_LINK_REDEEM_KEY`.
+
+Do not claim the two systems are linked until a fresh dummy invitation has completed the entire flow and the resulting CRM contact record has been checked.
+
+## 4. CRM: existing staff features
+
+The CRM is a separate, staff-facing React/Vite and Express/MongoDB application.
+
+Its existing capabilities include:
+
+- Staff dashboard and booking calendar
+- CRM contacts with search, tags, notes, edit, and delete controls
+- Individual SMS and email conversations
+- Templates and campaigns
+- Analytics
+- Staff/admin login and admin-only invitations
+
+**SMS has been tested in mock mode; do not describe it as verified production Twilio delivery.** Email-only campaign testing was performed, but consent, per-recipient outcomes, retries, opt-outs, and scheduling still need work.
+
+### CRM authentication
+
+CRM users are stored in MongoDB, with bcrypt-hashed passwords and JWT sessions. Staff and admin roles are distinct. Public staff registration is disabled; the existing staff invitation flow uses an expiring password-setup email.
+
+`requireAuth` was updated to check that a staff account still has `active: true` on authenticated requests. `requireStaff` and `requireAdmin` provide role checks on applicable routes.
+
+**Password incident:** During local work, CRM sign-in failed. A local check found the staff account existed and was active, but the attempted password did not match its stored bcrypt hash. The developer subsequently recovered access with the correct CRM password. This was distinct from the DPS customer's Supabase password. Do not repeat the temporary password-check/reset workflow or change passwords merely to address DPS appointment API errors.
+
+### CRM appointment connection
+
+The CRM backend requests appointments from the DPS backend using the server-only `DPS_STAFF_API_KEY`. The frontend uses its CRM staff JWT to call the CRM backend; it must never contain the DPS staff key.
+
+Staff booking, appointment display, Add to Contacts, and customer email behavior were previously exercised. At one point CRM-to-DPS appointment requests returned upstream `401`; later local logs showed upstream `200`. **The latest reported state again showed `DPS appointments upstream status: 401` while CRM staff login worked.** Treat that as a separate environment/key mismatch until checked on the exact local or deployed pair of backends being tested. Do not interpret it as a CRM password failure.
+
+The CRM calendar's Personal/Group Campaign actions are not a completed send workflow. Appointment import into Contacts does **not** create marketing consent.
+
+## 5. CRM contact security work
+
+### MongoDB Contact model
+
+The CRM `Contact` model now includes a nullable `supabaseCustomerId` field with `select: false`. It is intended to be populated **only** through the verified account-linking flow, not through ordinary contact create/edit requests.
+
+A **partial unique index** on `supabaseCustomerId` was checked in MongoDB Compass and shown as **UNIQUE** and **PARTIAL**. This permits multiple unlinked contacts while preventing the same non-null Supabase customer ID from appearing on more than one contact.
+
+Existing test contacts remain unlinked where `supabaseCustomerId` is `null`. Matching a contact's email to a Supabase account is **not sufficient** to link them.
+
+### Contact CRUD routes
+
+CRM contact routes were updated to apply `requireAuth` and `requireStaff`. The contact controller allowlists editable fields rather than spreading `req.body` into MongoDB. It uses the existing `"user123"` contact partition internally so existing contacts remain visible while browser-supplied `userId` is no longer trusted for contact CRUD.
+
+The CRM frontend Contacts API functions were changed to send the CRM staff JWT from its existing `localStorage` key, `token`. These changes apply to **Contacts**; messages, emails, templates, and campaigns still need their own authentication and scoping review. `"user123"` is a temporary shared partition, **not** production-grade organization isolation.
+
+### CRM account-linking files
+
+Recent work added or updated:
+
+```text
+backend/models/Contact.js
+backend/models/ContactLink.js
+backend/routes/contactLinkRoutes.js
+backend/routes/internalContactLinkRoutes.js
+backend/server.js
+```
+
+The staff invitation route is mounted under `/api/contact-links` and requires CRM `requireAuth` and `requireStaff`. It creates a random token, stores its hash with an expiry and the invitation recipient's email, and uses Resend to email a DPS `/client-link` URL.
+
+The internal redemption route is mounted under `/api/internal/contact-links`. It verifies a server-only `CRM_LINK_REDEEM_KEY`. Recent code uses a MongoDB transaction to consume an unused, unexpired invitation and set `Contact.supabaseCustomerId`, while checking the invited email, the signed-in customer's verified email, and duplicate links.
+
+**Important:** Seeing route code and a unique index does not mean the complete link has been tested. Invitation sending, return from Supabase sign-in, DPS forwarding, CRM transaction, reuse rejection, wrong-email rejection, expiry, and CRM record results still need an end-to-end dummy-account test.
+
+The invitation token and complete invitation URL must not appear in public logs or screenshots.
+
+## 6. Current deployment and local-work boundary
+
+Both applications have been deployed on Render in earlier stages. **Recent code changes have not all been pushed.** A working local route is not proof that production has that route, and a live login result does not prove an unpushed local backend change works.
+
+The most recent local development involved CRM account linking and troubleshooting local CRM login. The CRM frontend shown in local testing was at a Vite URL such as `localhost:5174`; the CRM API was on `localhost:5002`. The DPS API was on `localhost:5001`. Check actual terminal output for frontend ports.
+
+A local `.env` and a Render service's environment settings are independent. Updating one does not update the other. Vite environment changes require a frontend restart locally or a rebuild for deployment.
+
+Before claiming a feature is live, confirm which repository, branch, commit, and Render service contain it.
+
+## 7. Configuration boundaries
+
+### DPS frontend
+
+Public browser configuration includes its DPS API URL, Supabase project URL, and Supabase publishable key. Supabase secret/service keys do not belong here.
+
+### DPS backend
+
+Uses server-only configuration for Supabase, email, private Storage operations, staff API checks, and the DPS-to-CRM account-link forwarding request.
+
+### CRM frontend
+
+`VITE_API_URL` must point to the **CRM backend**, not the DPS backend. When it mistakenly pointed to the DPS API, CRM `/api/auth/login`, contacts, templates, and campaign calls returned HTML/404 responses. This caused an `Unexpected token '<'` JSON parsing error.
+
+A CRM frontend may have a separate DPS public API URL for intended public calls, but it must never contain `DPS_STAFF_API_KEY` or `CRM_LINK_REDEEM_KEY`.
+
+### CRM backend
+
+Uses MongoDB and JWT configuration, Resend for appropriate email flows, `DPS_API_URL` and `DPS_STAFF_API_KEY` for CRM-to-DPS staff requests, and the server-only redemption key for DPS-to-CRM linking.
+
+**Do not put actual environment values, credentials, invitation tokens, JWTs, MongoDB URIs, or private document URLs in this handoff.** Credentials were exposed during earlier troubleshooting. Rotate affected values, confirm old values no longer work, and review Git history if any were ever committed. `.gitignore` prevents new tracking but does not remove past commits.
+
+## 8. Known security and product limitations
+
+1. **Real tax documents:** Continue using CCH iFirm. The new DPS upload/list flow is a dummy-file prototype.
+2. **CRM document visibility:** Not implemented. There is no completed staff Documents panel or verified read-only metadata proxy.
+3. **Account linking:** Code is present locally, but end-to-end redemption has not been verified.
+4. **CRM route scoping:** Messages, email, templates, and campaigns still require a consistent backend auth and data-scoping review.
+5. **Frontend admin password:** A `VITE_ADMIN_PASSWORD`, if still used by the DPS admin page, is browser-visible and is not production-grade authorization.
+6. **File safety:** Malware scanning, secure customer/staff download controls, access audit logs, and retention/deletion policy are missing.
+7. **Marketing consent:** Appointment booking or CRM contact import does not authorize SMS/email marketing.
+8. **Campaign results:** A campaign marked `sent` does not prove delivery to every recipient.
+9. **Dependency vulnerabilities:** Backend and frontend npm audit reports included high/critical findings. Review specific packages and test fixes rather than applying breaking changes blindly.
+10. **Business content:** Confirm office hours, advertised services, pricing, published tax dates, and permission to use testimonials and photos.
+11. **Private URLs:** Appointment-management and invitation tokens are credentials; avoid logging query strings containing them.
+
+## 9. Exact point where work stopped
+
+**Last confirmed:**
+
+- DPS customer sign-in and dummy document upload/list worked.
+- A second DPS customer did not see the first customer's listed dummy document.
+- CRM staff sign-in access was recovered.
+- CRM `contacts` collection showed the partial unique index for `supabaseCustomerId`.
+- CRM account-link invitation and transactional redemption code were added locally.
+- A dummy CRM contact with `supabaseCustomerId: null` was identified.
+- No successful end-to-end customer-to-CRM account link was confirmed.
+- CRM does not yet show customer documents.
+- Latest reported CRM-to-DPS appointment upstream status was `401` in a local CRM backend terminal, independent of staff login.
+- Recent changes were reported as not yet pushed; verify Git status before deployment.
+
+**Immediate next task:** stabilize the exact **local** CRM-to-DPS appointment connection without touching staff passwords. Then perform one local, dummy-account invitation and redemption test after confirming both backends point to one another correctly.
+
+A practical order:
+
+1. Check which local servers are running and which backend URLs each uses. Keep login and appointment upstream failures separate.
+2. Confirm local CRM staff login still works.
+3. Confirm CRM appointment proxy works against the intended DPS backend. Resolve any `401` using backend-only staff-key configuration; do not modify frontend credentials.
+4. Confirm both account-link backends have matching server-only redemption credentials and intended local URLs. Do not expose their values.
+5. Send a **fresh invitation only to a dummy contact/email you control**, using an authenticated CRM staff request.
+6. Sign in on the DPS site using the corresponding, email-confirmed dummy Supabase customer and explicitly confirm.
+7. Verify that the intended CRM contact receives `supabaseCustomerId`, the invitation cannot be reused, and a second customer cannot claim it.
+8. Add a staff-only, metadata-only CRM document view **after** identity linking is proven. Downloads and real documents remain out of scope until further protections are added.
+9. Run builds and targeted tests; review Git changes and deploy the repositories separately.
+
+## 10. Non-goals for the immediate next session
+
+- Do not reset CRM staff passwords to fix DPS appointment API errors.
+- Do not send real customer invitations.
+- Do not upload real tax documents to the prototype.
+- Do not expose server keys or customer IDs as authorization shortcuts in React.
+- Do not auto-link contacts to Supabase accounts by email alone.
+- Do not claim a local implementation is live until its commit and deployment are verified.
+```
+
+
+```

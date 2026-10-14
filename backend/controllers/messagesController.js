@@ -1,70 +1,69 @@
+import mongoose from "mongoose";
 import { sendSms } from "../services/twilioService.js";
 import Message from "../models/Message.js";
 import Contact from "../models/Contact.js";
 import Template from "../models/Template.js";
 
-export const sendMessage = async (req, res) => {
+const DPS_SCOPE = "user123";
+
+function validId(value) {
+  return mongoose.isValidObjectId(value);
+}
+
+export async function sendMessage(req, res) {
+  const { contactId, body, templateId } = req.body ?? {};
+
+  if (!validId(contactId)) {
+    return res.status(400).json({ error: "Choose a valid contact." });
+  }
+
   try {
-    const { userId, contactId, to, body, templateId } = req.body;
+    const contact = await Contact.findOne({
+      _id: contactId,
+      userId: DPS_SCOPE,
+    });
 
-    if (!userId) {
-      return res.status(400).json({
-        error: "userId is required",
-      });
+    if (!contact) {
+      return res.status(404).json({ error: "Contact not found." });
     }
 
-    let toPhone = to;
-    let finalBody = body;
-    let contact = null;
-
-    if (contactId) {
-      contact = await Contact.findById(contactId);
-
-      if (!contact) {
-        return res.status(404).json({ error: "Contact not found" });
-      }
-
-      if (!toPhone) {
-        toPhone = contact.phone;
-      }
-    }
+    let finalBody = String(body ?? "").trim();
 
     if (templateId) {
-      const template = await Template.findById(templateId);
+      if (!validId(templateId)) {
+        return res.status(400).json({ error: "Invalid template ID." });
+      }
+
+      const template = await Template.findOne({
+        _id: templateId,
+        userId: DPS_SCOPE,
+      });
 
       if (!template) {
-        return res.status(404).json({ error: "Template not found" });
+        return res.status(404).json({ error: "Template not found." });
       }
 
-      if (!finalBody) {
-        finalBody = template.body;
-      }
-
-      if (contact) {
-        finalBody = finalBody
-          .replace(/{{firstName}}/g, contact.firstName || "")
-          .replace(/{{lastName}}/g, contact.lastName || "");
-      }
+      if (!finalBody) finalBody = template.body;
     }
 
-    if (!toPhone) {
-      return res.status(400).json({
-        error: "Recipient phone or contactId is required",
-      });
+    finalBody = finalBody
+      .replace(/{{firstName}}/g, contact.firstName || "")
+      .replace(/{{lastName}}/g, contact.lastName || "");
+
+    if (!finalBody || finalBody.length > 1600) {
+      return res.status(400).json({ error: "Enter a valid message." });
     }
 
-    if (!finalBody) {
-      return res.status(400).json({
-        error: "Message body or templateId is required",
-      });
+    if (!contact.phone) {
+      return res.status(400).json({ error: "Contact has no phone number." });
     }
 
-    const twilioMessage = await sendSms(toPhone, finalBody);
+    const twilioMessage = await sendSms(contact.phone, finalBody);
 
     const savedMessage = await Message.create({
-      userId,
-      contactId: contactId || null,
-      toPhone,
+      userId: DPS_SCOPE,
+      contactId: contact._id,
+      toPhone: contact.phone,
       fromPhone: process.env.TWILIO_PHONE_NUMBER,
       body: finalBody,
       direction: "outbound",
@@ -72,111 +71,114 @@ export const sendMessage = async (req, res) => {
       twilioSid: twilioMessage.sid,
     });
 
-    res.status(200).json({
+    return res.json({
       success: true,
-      message: "SMS sent and logged successfully",
+      message: "SMS sent and logged.",
       twilioSid: twilioMessage.sid,
       dbMessage: savedMessage,
     });
   } catch (error) {
-    console.error("Error sending SMS:", error.message);
-    res.status(500).json({ error: "Failed to send SMS" });
+    console.error("Send SMS failed:", error);
+    return res.status(500).json({ error: "Failed to send SMS." });
   }
-};
+}
 
-export const getMessages = async (req, res) => {
+export async function getMessages(_req, res) {
   try {
-    const { userId } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({ error: "userId is required" });
-    }
-
-    const messages = await Message.find({ userId })
+    const messages = await Message.find({
+      userId: DPS_SCOPE,
+    })
       .sort({ createdAt: -1 })
       .populate("contactId");
 
-    res.status(200).json(messages);
+    return res.json(messages);
   } catch (error) {
-    console.error("Error fetching messages:", error.message);
-    res.status(500).json({ error: "Failed to fetch messages" });
+    console.error("Get messages failed:", error);
+    return res.status(500).json({ error: "Failed to fetch messages." });
   }
-};
+}
 
-export const receiveMessage = async (req, res) => {
+export async function getMessagesByContact(req, res) {
+  if (!validId(req.params.contactId)) {
+    return res.status(400).json({ error: "Invalid contact ID." });
+  }
+
   try {
-    const fromPhone = req.body.From;
-    const toPhone = req.body.To;
-    const body = req.body.Body;
-
-    const matchedContact = await Contact.findOne({ phone: fromPhone });
-
-    await Message.create({
-      userId: matchedContact?.userId || "unknown",
-      contactId: matchedContact?._id || null,
-      toPhone,
-      fromPhone,
-      body,
-      direction: "inbound",
-      status: "received",
-      twilioSid: req.body.MessageSid || null,
+    const contact = await Contact.findOne({
+      _id: req.params.contactId,
+      userId: DPS_SCOPE,
     });
 
-    res.status(200).send("Inbound message received");
-  } catch (error) {
-    console.error("Receive message error:", error.message);
-    res.status(500).send("Failed to receive inbound message");
-  }
-};
-
-export const getMessagesByContact = async (req, res) => {
-  try {
-    const { contactId } = req.params;
-
-    const messages = await Message.find({ contactId })
-      .sort({ createdAt: 1 })
-      .populate("contactId");
-
-    res.status(200).json(messages);
-  } catch (error) {
-    console.error("Error fetching contact messages:", error.message);
-    res.status(500).json({ error: "Failed to fetch contact messages" });
-  }
-};
-
-export const deleteMessage = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const deletedMessage = await Message.findByIdAndDelete(id);
-
-    if (!deletedMessage) {
-      return res.status(404).json({ error: "Message not found" });
+    if (!contact) {
+      return res.status(404).json({ error: "Contact not found." });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Message deleted successfully",
-    });
+    const messages = await Message.find({
+      userId: DPS_SCOPE,
+      contactId: contact._id,
+    }).sort({ createdAt: 1 });
+
+    return res.json(messages);
   } catch (error) {
-    console.error("Error deleting message:", error.message);
-    res.status(500).json({ error: "Failed to delete message" });
+    console.error("Get contact messages failed:", error);
+    return res.status(500).json({ error: "Failed to fetch messages." });
   }
-};
-export const deleteMessagesByContact = async (req, res) => {
+}
+
+export async function deleteMessage(req, res) {
+  if (!validId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid message ID." });
+  }
+
   try {
-    const { contactId } = req.params;
+    const deleted = await Message.findOneAndDelete({
+      _id: req.params.id,
+      userId: DPS_SCOPE,
+    });
 
-    const result = await Message.deleteMany({ contactId });
+    if (!deleted) {
+      return res.status(404).json({ error: "Message not found." });
+    }
 
-    res.status(200).json({
+    return res.json({ success: true, message: "Message deleted." });
+  } catch (error) {
+    console.error("Delete message failed:", error);
+    return res.status(500).json({ error: "Failed to delete message." });
+  }
+}
+
+export async function deleteMessagesByContact(req, res) {
+  if (!validId(req.params.contactId)) {
+    return res.status(400).json({ error: "Invalid contact ID." });
+  }
+
+  try {
+    const contact = await Contact.findOne({
+      _id: req.params.contactId,
+      userId: DPS_SCOPE,
+    });
+
+    if (!contact) {
+      return res.status(404).json({ error: "Contact not found." });
+    }
+
+    const result = await Message.deleteMany({
+      userId: DPS_SCOPE,
+      contactId: contact._id,
+    });
+
+    return res.json({
       success: true,
-      message: "Conversation deleted successfully",
+      message: "Conversation deleted.",
       deletedCount: result.deletedCount,
     });
   } catch (error) {
-    console.error("Error deleting conversation:", error.message);
-    res.status(500).json({ error: "Failed to delete conversation" });
+    console.error("Delete conversation failed:", error);
+    return res.status(500).json({ error: "Failed to delete conversation." });
   }
-};
+}
 
+// Do not accept inbound webhooks until Twilio signature verification is added.
+export function receiveMessage(_req, res) {
+  return res.status(503).send("Inbound SMS is not configured.");
+}

@@ -1,13 +1,16 @@
 import express from "express";
 import {
-    sendEmailMessage,
-    getEmailMessages,
-    getEmailsByContact,
-    deleteEmailMessage,
-    deleteEmailsByContact,
+  sendEmailMessage,
+  getEmailMessages,
+  getEmailsByContact,
+  deleteEmailMessage,
+  deleteEmailsByContact,
 } from "../controllers/emailsController.js";
+import { requireAuth, requireStaff } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(requireAuth, requireStaff);
 
 router.post("/send", sendEmailMessage);
 router.get("/", getEmailMessages);

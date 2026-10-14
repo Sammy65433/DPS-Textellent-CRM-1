@@ -1,266 +1,225 @@
+import mongoose from "mongoose";
 import Campaign from "../models/Campaign.js";
 import Contact from "../models/Contact.js";
 import Template from "../models/Template.js";
-import Message from "../models/Message.js";
-import EmailMessage from "../models/EmailMessage.js";
-import { sendSms } from "../services/twilioService.js";
-import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-export const processCampaignSend = async campaign => {
-    const contacts = await Contact.find({
-        _id: { $in: campaign.contactIds },
+const DPS_SCOPE = "user123";
+const SEND_UNAVAILABLE =
+  "Campaign sending is unavailable until recipient consent is implemented.";
+
+function validId(value) {
+  return mongoose.isValidObjectId(value);
+}
+
+function editableFields(body = {}) {
+  return {
+    name: String(body.name ?? "").trim(),
+    body: String(body.body ?? "").trim(),
+    subject: String(body.subject ?? "").trim(),
+    type: body.type || "sms",
+    templateId: body.templateId || null,
+    contactIds: body.contactIds,
+  };
+}
+
+async function validateCampaign(fields) {
+  if (!fields.name || fields.name.length > 150) {
+    return "Enter a valid campaign name.";
+  }
+
+  if (!["sms", "email", "both"].includes(fields.type)) {
+    return "Choose a valid campaign type.";
+  }
+
+  if (fields.body.length > 10000 || fields.subject.length > 200) {
+    return "Campaign content is too long.";
+  }
+
+  if (!Array.isArray(fields.contactIds) || !fields.contactIds.length) {
+    return "Choose at least one contact.";
+  }
+
+  if (
+    fields.contactIds.length > 500 ||
+    fields.contactIds.some((id) => !validId(id))
+  ) {
+    return "Invalid campaign contacts.";
+  }
+
+  const uniqueIds = [...new Set(fields.contactIds.map(String))];
+
+  const count = await Contact.countDocuments({
+    _id: { $in: uniqueIds },
+    userId: DPS_SCOPE,
+  });
+
+  if (count !== uniqueIds.length) {
+    return "One or more contacts are unavailable.";
+  }
+
+  if (fields.templateId) {
+    if (!validId(fields.templateId)) return "Invalid template ID.";
+
+    const template = await Template.exists({
+      _id: fields.templateId,
+      userId: DPS_SCOPE,
     });
 
-    if (!contacts.length) return [];
+    if (!template) return "Template not found.";
+  }
 
-    const populatedCampaign = await Campaign.findById(campaign._id).populate("templateId");
+  if (!fields.body && !fields.templateId) {
+    return "Enter a message or choose a template.";
+  }
 
-    const results = [];
+  return null;
+}
 
-    for (const contact of contacts) {
-        let finalBody = populatedCampaign.body;
+export async function processCampaignSend() {
+  throw new Error(SEND_UNAVAILABLE);
+}
 
-        if (populatedCampaign.templateId && !finalBody) {
-            finalBody = populatedCampaign.templateId.body;
-        }
+export async function createCampaign(req, res) {
+  try {
+    const fields = editableFields(req.body);
+    const validationError = await validateCampaign(fields);
 
-        finalBody = finalBody
-            .replace(/{{firstName}}/g, contact.firstName || "")
-            .replace(/{{lastName}}/g, contact.lastName || "");
-
-        if (populatedCampaign.type === "sms" || populatedCampaign.type === "both") {
-            if (contact.phone) {
-                const twilioMessage = await sendSms(contact.phone, finalBody);
-
-                const savedMessage = await Message.create({
-                    userId: populatedCampaign.userId,
-                    contactId: contact._id,
-                    toPhone: contact.phone,
-                    fromPhone: process.env.TWILIO_PHONE_NUMBER,
-                    body: finalBody,
-                    direction: "outbound",
-                    status: twilioMessage.status || "sent",
-                    twilioSid: twilioMessage.sid,
-                });
-
-                results.push({
-                    channel: "sms",
-                    contactId: contact._id,
-                    phone: contact.phone,
-                    twilioSid: twilioMessage.sid,
-                    messageId: savedMessage._id,
-                });
-            }
-        }
-
-        if (populatedCampaign.type === "email" || populatedCampaign.type === "both") {
-            if (contact.email) {
-                const subject =
-                    populatedCampaign.subject || "Message from DPS CRM";
-
-                const emailResult = await resend.emails.send({
-                    from: "DPS CRM <appointments@dpstaxpro.com>",
-                    to: contact.email,
-                    subject,
-                    html: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${finalBody}</div>`,
-                });
-
-                const savedEmail = await EmailMessage.create({
-                    userId: populatedCampaign.userId,
-                    contactId: contact._id,
-                    toEmail: contact.email,
-                    subject,
-                    body: finalBody,
-                    status: "sent",
-                    resendId: emailResult?.data?.id || null,
-                });
-
-                results.push({
-                    channel: "email",
-                    contactId: contact._id,
-                    email: contact.email,
-                    resendId: emailResult?.data?.id || null,
-                    emailId: savedEmail._id,
-                });
-            }
-        }
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
     }
 
-    campaign.status = "sent";
-    await campaign.save();
+    const campaign = await Campaign.create({
+      ...fields,
+      userId: DPS_SCOPE,
+      status: "draft",
+      scheduledAt: null,
+    });
 
-    return results;
-};
+    return res.status(201).json(campaign);
+  } catch (error) {
+    console.error("Create campaign failed:", error);
+    return res.status(500).json({ error: "Failed to create campaign." });
+  }
+}
 
+export async function getCampaigns(_req, res) {
+  try {
+    const campaigns = await Campaign.find({ userId: DPS_SCOPE })
+      .sort({ createdAt: -1 })
+      .populate("templateId")
+      .populate("contactIds");
 
+    return res.json(campaigns);
+  } catch (error) {
+    console.error("Get campaigns failed:", error);
+    return res.status(500).json({ error: "Failed to fetch campaigns." });
+  }
+}
 
-export const createCampaign = async (req, res) => {
-    try {
-        const {
-            userId,
-            name,
-            body,
-            subject,
-            type,
-            templateId,
-            contactIds,
-            scheduledAt,
-        } = req.body;
+export async function getCampaignById(req, res) {
+  if (!validId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid campaign ID." });
+  }
 
-        if (!userId || !name || !contactIds || contactIds.length === 0) {
-            return res.status(400).json({
-                error: "userId, name, and contactIds are required",
-            });
-        }
+  try {
+    const campaign = await Campaign.findOne({
+      _id: req.params.id,
+      userId: DPS_SCOPE,
+    })
+      .populate("templateId")
+      .populate("contactIds");
 
-        if (!body && !templateId) {
-            return res.status(400).json({
-                error: "body or templateId is required",
-            });
-        }
-
-        const hasSchedule = !!scheduledAt;
-
-        const campaign = await Campaign.create({
-            userId,
-            name,
-            body: body || "",
-            subject: subject || "",
-            type: type || "sms",
-            templateId: templateId || null,
-            contactIds,
-            scheduledAt: hasSchedule ? new Date(scheduledAt) : null,
-            status: hasSchedule ? "scheduled" : "draft",
-        });
-
-        res.status(201).json(campaign);
-    } catch (error) {
-        console.error("Create campaign error:", error.message);
-        res.status(500).json({ error: "Failed to create campaign" });
+    if (!campaign) {
+      return res.status(404).json({ error: "Campaign not found." });
     }
-};
-export const sendCampaign = async (req, res) => {
-    try {
-        const { id } = req.params;
 
-        const campaign = await Campaign.findById(id);
+    return res.json(campaign);
+  } catch (error) {
+    console.error("Get campaign failed:", error);
+    return res.status(500).json({ error: "Failed to fetch campaign." });
+  }
+}
 
-        if (!campaign) {
-            return res.status(404).json({ error: "Campaign not found" });
-        }
+export async function updateCampaign(req, res) {
+  if (!validId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid campaign ID." });
+  }
 
-        const results = await processCampaignSend(campaign);
+  try {
+    const existing = await Campaign.findOne({
+      _id: req.params.id,
+      userId: DPS_SCOPE,
+    });
 
-        res.status(200).json({
-            success: true,
-            message: "Campaign sent successfully",
-            campaignId: campaign._id,
-            sentCount: results.length,
-            results,
-        });
-    } catch (error) {
-        console.error("Send campaign error:", error.message);
-        res.status(500).json({ error: "Failed to send campaign" });
+    if (!existing) {
+      return res.status(404).json({ error: "Campaign not found." });
     }
-};
-export const getCampaigns = async (req, res) => {
-    try {
-        const { userId } = req.query;
 
-        if (!userId) {
-            return res.status(400).json({ error: "userId is required" });
-        }
-
-        const campaigns = await Campaign.find({ userId })
-            .sort({ createdAt: -1 })
-            .populate("templateId")
-            .populate("contactIds");
-
-        res.status(200).json(campaigns);
-    } catch (error) {
-        console.error("Get campaigns error:", error.message);
-        res.status(500).json({ error: "Failed to fetch campaigns" });
+    if (existing.status === "sent") {
+      return res.status(409).json({ error: "Sent campaigns cannot be edited." });
     }
-};
 
-export const getCampaignById = async (req, res) => {
-    try {
-        const { id } = req.params;
+    const fields = editableFields({
+      name: req.body?.name ?? existing.name,
+      body: req.body?.body ?? existing.body,
+      subject: req.body?.subject ?? existing.subject,
+      type: req.body?.type ?? existing.type,
+      templateId: req.body?.templateId ?? existing.templateId,
+      contactIds: req.body?.contactIds ?? existing.contactIds,
+    });
 
-        const campaign = await Campaign.findById(id)
-            .populate("templateId")
-            .populate("contactIds");
+    const validationError = await validateCampaign(fields);
 
-        if (!campaign) {
-            return res.status(404).json({ error: "Campaign not found" });
-        }
-
-        res.status(200).json(campaign);
-    } catch (error) {
-        console.error("Get campaign by id error:", error.message);
-        res.status(500).json({ error: "Failed to fetch campaign" });
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
     }
-};
 
-export const updateCampaign = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const {
-            name,
-            body,
-            subject,
-            type,
-            templateId,
-            contactIds,
-            status,
-            scheduledAt,
-        } = req.body;
+    const updated = await Campaign.findOneAndUpdate(
+      { _id: existing._id, userId: DPS_SCOPE },
+      {
+        $set: {
+          ...fields,
+          status: "draft",
+          scheduledAt: null,
+        },
+      },
+      { new: true, runValidators: true }
+    )
+      .populate("templateId")
+      .populate("contactIds");
 
-        const updatedCampaign = await Campaign.findByIdAndUpdate(
-            id,
-            {
-                name,
-                body,
-                subject,
-                type,
-                templateId,
-                contactIds,
-                status,
-                scheduledAt,
-            },
-            { returnDocument: "after" }
-        )
-            .populate("templateId")
-            .populate("contactIds");
+    return res.json(updated);
+  } catch (error) {
+    console.error("Update campaign failed:", error);
+    return res.status(500).json({ error: "Failed to update campaign." });
+  }
+}
 
-        if (!updatedCampaign) {
-            return res.status(404).json({ error: "Campaign not found" });
-        }
+export async function deleteCampaign(req, res) {
+  if (!validId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid campaign ID." });
+  }
 
-        res.status(200).json(updatedCampaign);
-    } catch (error) {
-        console.error("Update campaign error:", error.message);
-        res.status(500).json({ error: "Failed to update campaign" });
+  try {
+    const deleted = await Campaign.findOneAndDelete({
+      _id: req.params.id,
+      userId: DPS_SCOPE,
+      status: { $ne: "sent" },
+    });
+
+    if (!deleted) {
+      return res.status(404).json({
+        error: "Campaign not found or cannot be deleted.",
+      });
     }
-};
 
-export const deleteCampaign = async (req, res) => {
-    try {
-        const { id } = req.params;
+    return res.json({ success: true, message: "Campaign deleted." });
+  } catch (error) {
+    console.error("Delete campaign failed:", error);
+    return res.status(500).json({ error: "Failed to delete campaign." });
+  }
+}
 
-        const deletedCampaign = await Campaign.findByIdAndDelete(id);
-
-        if (!deletedCampaign) {
-            return res.status(404).json({ error: "Campaign not found" });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "Campaign deleted successfully",
-        });
-    } catch (error) {
-        console.error("Delete campaign error:", error.message);
-        res.status(500).json({ error: "Failed to delete campaign" });
-    }
-};
+export async function sendCampaign(_req, res) {
+  return res.status(503).json({ error: SEND_UNAVAILABLE });
+}

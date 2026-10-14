@@ -1,163 +1,216 @@
+import mongoose from "mongoose";
+import { Resend } from "resend";
 import Contact from "../models/Contact.js";
 import Template from "../models/Template.js";
 import EmailMessage from "../models/EmailMessage.js";
-import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const DPS_SCOPE = "user123";
 
-export const sendEmailMessage = async (req, res) => {
-    try {
-        const { userId, contactId, toEmail, subject, body, templateId } = req.body || {};
-        console.log("EMAIL REQ BODY:", req.body);
+const cleanEmail = (value) =>
+  String(value ?? "").trim().toLowerCase();
 
+const validEmail = (value) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-        if (!userId) {
-            return res.status(400).json({ error: "userId is required" });
-        }
+function renderTemplate(body, contact) {
+  return body
+    .replace(/{{firstName}}/g, contact?.firstName || "")
+    .replace(/{{lastName}}/g, contact?.lastName || "");
+}
 
-        let finalToEmail = toEmail;
-        let finalBody = body;
-        let contact = null;
+export async function sendEmailMessage(req, res) {
+  const { contactId, toEmail, subject, body, templateId } = req.body ?? {};
 
-        if (contactId) {
-            contact = await Contact.findById(contactId);
+  try {
+    let contact = null;
 
-            if (!contact) {
-                return res.status(404).json({ error: "Contact not found" });
-            }
+    if (contactId) {
+      if (!mongoose.isValidObjectId(contactId)) {
+        return res.status(400).json({ error: "Invalid contact ID." });
+      }
 
-            if (!finalToEmail) {
-                finalToEmail = contact.email;
-            }
-        }
+      contact = await Contact.findOne({
+        _id: contactId,
+        userId: DPS_SCOPE,
+      });
 
-        if (templateId) {
-            const template = await Template.findById(templateId);
-
-            if (!template) {
-                return res.status(404).json({ error: "Template not found" });
-            }
-
-            if (!finalBody) {
-                finalBody = template.body;
-            }
-
-            if (contact) {
-                finalBody = finalBody
-                    .replace(/{{firstName}}/g, contact.firstName || "")
-                    .replace(/{{lastName}}/g, contact.lastName || "");
-            }
-        }
-
-
-        if (!finalToEmail) {
-            return res.status(400).json({ error: "Recipient email or contactId is required" });
-        }
-
-        if (!subject) {
-            return res.status(400).json({ error: "Email subject is required" });
-        }
-
-        if (!finalBody) {
-            return res.status(400).json({ error: "Email body or templateId is required" });
-        }
-
-        const emailResult = await resend.emails.send({
-            from: "DPS CRM <appointments@dpstaxpro.com>",
-            to: finalToEmail,
-            subject,
-            html: `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${finalBody}</div>`,
-        });
-
-        const savedEmail = await EmailMessage.create({
-            userId,
-            contactId: contactId || null,
-            toEmail: finalToEmail,
-            subject,
-            body: finalBody,
-            status: "sent",
-            resendId: emailResult?.data?.id || null,
-        });
-
-        res.status(200).json({
-            success: true,
-            message: "Email sent successfully",
-            resendId: emailResult?.data?.id || null,
-            dbEmail: savedEmail,
-        });
-    } catch (error) {
-        console.error("Send email error:", error.message);
-        res.status(500).json({ error: "Failed to send email" });
+      if (!contact) {
+        return res.status(404).json({ error: "Contact not found." });
+      }
     }
-};
 
-export const getEmailMessages = async (req, res) => {
-    try {
-        const { userId } = req.query;
+    let template = null;
 
-        if (!userId) {
-            return res.status(400).json({ error: "userId is required" });
-        }
+    if (templateId) {
+      if (!mongoose.isValidObjectId(templateId)) {
+        return res.status(400).json({ error: "Invalid template ID." });
+      }
 
-        const emails = await EmailMessage.find({ userId })
-            .sort({ createdAt: -1 })
-            .populate("contactId");
+      template = await Template.findOne({
+        _id: templateId,
+        userId: DPS_SCOPE,
+      });
 
-        res.status(200).json(emails);
-    } catch (error) {
-        console.error("Get emails error:", error.message);
-        res.status(500).json({ error: "Failed to fetch emails" });
+      if (!template) {
+        return res.status(404).json({ error: "Template not found." });
+      }
     }
-};
 
-export const getEmailsByContact = async (req, res) => {
-    try {
-        const { contactId } = req.params;
+    const recipient = cleanEmail(toEmail || contact?.email);
+    const emailSubject = String(subject ?? "").trim();
+    const emailBody = renderTemplate(
+      String(body || template?.body || "").trim(),
+      contact
+    );
 
-        const emails = await EmailMessage.find({ contactId })
-            .sort({ createdAt: 1 })
-            .populate("contactId");
-
-        res.status(200).json(emails);
-    } catch (error) {
-        console.error("Get emails by contact error:", error.message);
-        res.status(500).json({ error: "Failed to fetch contact emails" });
+    if (!validEmail(recipient) || recipient.length > 254) {
+      return res.status(400).json({ error: "Valid recipient email required." });
     }
-};
-export const deleteEmailMessage = async (req, res) => {
-    try {
-        const { id } = req.params;
 
-        const deletedEmail = await EmailMessage.findByIdAndDelete(id);
-
-        if (!deletedEmail) {
-            return res.status(404).json({ error: "Email not found" });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "Email deleted successfully",
-        });
-    } catch (error) {
-        console.error("Delete email error:", error.message);
-        res.status(500).json({ error: "Failed to delete email" });
+    if (!emailSubject || emailSubject.length > 200) {
+      return res.status(400).json({ error: "Valid subject required." });
     }
-};
 
-export const deleteEmailsByContact = async (req, res) => {
-    try {
-        const { contactId } = req.params;
-
-        const result = await EmailMessage.deleteMany({ contactId });
-
-        res.status(200).json({
-            success: true,
-            message: "Email conversation deleted successfully",
-            deletedCount: result.deletedCount,
-        });
-    } catch (error) {
-        console.error("Delete emails by contact error:", error.message);
-        res.status(500).json({ error: "Failed to delete email conversation" });
+    if (!emailBody || emailBody.length > 20000) {
+      return res.status(400).json({ error: "Valid email body required." });
     }
-};
 
+    if (!process.env.RESEND_API_KEY) {
+      return res.status(503).json({ error: "Email service unavailable." });
+    }
+
+    // Send as plain text. Do not insert staff-entered content into HTML.
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: "DPS CRM <appointments@dpstaxpro.com>",
+      to: recipient,
+      subject: emailSubject,
+      text: emailBody,
+    });
+
+    if (result.error) {
+      console.error("Resend individual email failed:", result.error);
+      return res.status(502).json({ error: "Failed to send email." });
+    }
+
+    const savedEmail = await EmailMessage.create({
+      userId: DPS_SCOPE,
+      contactId: contact?._id || null,
+      toEmail: recipient,
+      subject: emailSubject,
+      body: emailBody,
+      status: "sent",
+      resendId: result.data?.id || null,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Email sent successfully.",
+      resendId: result.data?.id || null,
+      dbEmail: savedEmail,
+    });
+  } catch (error) {
+    console.error("Send email error:", error);
+    return res.status(500).json({ error: "Failed to send email." });
+  }
+}
+
+export async function getEmailMessages(_req, res) {
+  try {
+    const emails = await EmailMessage.find({
+      userId: DPS_SCOPE,
+    })
+      .sort({ createdAt: -1 })
+      .populate("contactId");
+
+    return res.status(200).json(emails);
+  } catch (error) {
+    console.error("Get emails error:", error);
+    return res.status(500).json({ error: "Failed to fetch emails." });
+  }
+}
+
+export async function getEmailsByContact(req, res) {
+  if (!mongoose.isValidObjectId(req.params.contactId)) {
+    return res.status(400).json({ error: "Invalid contact ID." });
+  }
+
+  try {
+    const contact = await Contact.findOne({
+      _id: req.params.contactId,
+      userId: DPS_SCOPE,
+    });
+
+    if (!contact) {
+      return res.status(404).json({ error: "Contact not found." });
+    }
+
+    const emails = await EmailMessage.find({
+      userId: DPS_SCOPE,
+      contactId: contact._id,
+    }).sort({ createdAt: 1 });
+
+    return res.status(200).json(emails);
+  } catch (error) {
+    console.error("Get contact emails error:", error);
+    return res.status(500).json({ error: "Failed to fetch contact emails." });
+  }
+}
+
+export async function deleteEmailMessage(req, res) {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid email ID." });
+  }
+
+  try {
+    const deleted = await EmailMessage.findOneAndDelete({
+      _id: req.params.id,
+      userId: DPS_SCOPE,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Email not found." });
+    }
+
+    return res.json({
+      success: true,
+      message: "Email deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Delete email error:", error);
+    return res.status(500).json({ error: "Failed to delete email." });
+  }
+}
+
+export async function deleteEmailsByContact(req, res) {
+  if (!mongoose.isValidObjectId(req.params.contactId)) {
+    return res.status(400).json({ error: "Invalid contact ID." });
+  }
+
+  try {
+    const contact = await Contact.findOne({
+      _id: req.params.contactId,
+      userId: DPS_SCOPE,
+    });
+
+    if (!contact) {
+      return res.status(404).json({ error: "Contact not found." });
+    }
+
+    const result = await EmailMessage.deleteMany({
+      userId: DPS_SCOPE,
+      contactId: contact._id,
+    });
+
+    return res.json({
+      success: true,
+      message: "Email conversation deleted successfully.",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Delete contact emails error:", error);
+    return res.status(500).json({
+      error: "Failed to delete email conversation.",
+    });
+  }
+}

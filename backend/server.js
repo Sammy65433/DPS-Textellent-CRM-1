@@ -1,12 +1,15 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+
 import messageRoutes from "./routes/messages.js";
 import contactRoutes from "./routes/contacts.js";
 import templateRoutes from "./routes/templates.js";
 import campaignRoutes from "./routes/campaigns.js";
 import emailRoutes from "./routes/emails.js";
 import authRoutes from "./routes/authRoutes.js";
+import internalContactLinkRoutes from "./routes/internalContactLinkRoutes.js";
+
 import { connectDB } from "./config/db.js";
 import { startCampaignScheduler } from "./services/campaignScheduler.js";
 import { inviteStaff } from "./controllers/staffController.js";
@@ -15,24 +18,62 @@ import {
   requireStaff,
   requireAdmin,
 } from "./middleware/authMiddleware.js";
+import contactLinkRoutes from "./routes/contactLinkRoutes.js";
+import staffDocumentRoutes from "./routes/staffDocumentRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
+  "https://dps-textellent-frontend.onrender.com",
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Server-to-server requests do not send a browser Origin header.
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Origin not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json({ limit: "1mb" }));
+
 connectDB();
 startCampaignScheduler();
 
-app.use(cors());
-app.use(express.json());
+app.get("/", (_req, res) => {
+  res.send("Textellent backend running");
+});
 
 app.use("/api/auth", authRoutes);
-app.post("/api/admin/staff", requireAuth, requireAdmin, inviteStaff);
+
+app.post(
+  "/api/admin/staff",
+  requireAuth,
+  requireAdmin,
+  inviteStaff
+);
+app.use("/api/contact-links", contactLinkRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/emails", emailRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/contacts", contactRoutes);
+app.use("/api/staff", staffDocumentRoutes);
+
+
+app.use("/api/internal/contact-links", internalContactLinkRoutes);
 
 app.get(
   "/api/staff/appointments",
@@ -40,9 +81,9 @@ app.get(
   requireStaff,
   async (_req, res) => {
     if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
-      return res
-        .status(503)
-        .json({ message: "DPS connection is not configured." });
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
     }
 
     try {
@@ -56,21 +97,19 @@ app.get(
         }
       );
 
-      console.log("DPS appointments upstream status:", response.status);
-
       if (!response.ok) {
-        return res
-          .status(502)
-          .json({ message: "Could not load DPS appointments." });
+        console.error("DPS appointments upstream status:", response.status);
+        return res.status(502).json({
+          message: "Could not load DPS appointments.",
+        });
       }
 
-      const appointments = await response.json();
-      return res.json(appointments);
+      return res.json(await response.json());
     } catch (error) {
       console.error("DPS appointment request failed:", error);
-      return res
-        .status(502)
-        .json({ message: "DPS appointment service unavailable." });
+      return res.status(502).json({
+        message: "DPS appointment service unavailable.",
+      });
     }
   }
 );
@@ -96,7 +135,6 @@ app.patch(
       message,
     } = req.body;
 
-
     if (
       !service ||
       !tax_preparer ||
@@ -104,9 +142,15 @@ app.patch(
       !appointment_time ||
       ![10, 15, 30, 60].includes(Number(duration_minutes))
     ) {
-      return res
-        .status(400)
-        .json({ message: "Complete all appointment fields." });
+      return res.status(400).json({
+        message: "Complete all appointment fields.",
+      });
+    }
+
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
     }
 
     try {
@@ -126,19 +170,17 @@ app.patch(
             duration_minutes: Number(duration_minutes),
             visit_format,
             message,
-
           }),
           signal: AbortSignal.timeout(60000),
         }
       );
 
-      const data = await response.json();
-      return res.status(response.status).json(data);
+      return res.status(response.status).json(await response.json());
     } catch (error) {
       console.error("Staff appointment update failed:", error);
-      return res
-        .status(502)
-        .json({ message: "DPS appointment service unavailable." });
+      return res.status(502).json({
+        message: "DPS appointment service unavailable.",
+      });
     }
   }
 );
@@ -155,9 +197,9 @@ app.patch(
     }
 
     if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
-      return res
-        .status(503)
-        .json({ message: "DPS connection is not configured." });
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
     }
 
     try {
@@ -172,13 +214,12 @@ app.patch(
         }
       );
 
-      const data = await response.json();
-      return res.status(response.status).json(data);
+      return res.status(response.status).json(await response.json());
     } catch (error) {
       console.error("Staff cancellation failed:", error);
-      return res
-        .status(502)
-        .json({ message: "DPS appointment service unavailable." });
+      return res.status(502).json({
+        message: "DPS appointment service unavailable.",
+      });
     }
   }
 );
@@ -189,9 +230,9 @@ app.get(
   requireStaff,
   async (req, res) => {
     if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
-      return res
-        .status(503)
-        .json({ message: "DPS connection is not configured." });
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
     }
 
     try {
@@ -211,28 +252,20 @@ app.get(
         }
       );
 
-      const contentType = upstream.headers.get("content-type") || "";
-      const body = await upstream.text();
-
-      console.log("Availability upstream:", {
-        url: upstream.url,
-        status: upstream.status,
-        contentType,
-        bodyStart: body.slice(0, 300),
-      });
-
-      if (!upstream.ok || !contentType.includes("application/json")) {
+      if (!upstream.ok) {
+        console.error("DPS availability upstream status:", upstream.status);
         return res.status(502).json({
-          message: "Availability service returned an unexpected response.",
+          message: "Could not load DPS availability.",
         });
       }
 
-      return res.json(JSON.parse(body));
+      const data = await upstream.json();
+      return res.json(data);
     } catch (error) {
       console.error("Staff availability proxy failed:", error);
-      return res
-        .status(502)
-        .json({ message: "Availability service unavailable." });
+      return res.status(502).json({
+        message: "Availability service unavailable.",
+      });
     }
   }
 );
@@ -242,6 +275,12 @@ app.post(
   requireAuth,
   requireStaff,
   async (req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
     try {
       const upstream = await fetch(
         `${process.env.DPS_API_URL}/api/appointments/staff`,
@@ -259,18 +298,15 @@ app.post(
       return res.status(upstream.status).json(await upstream.json());
     } catch (error) {
       console.error("Staff booking proxy failed:", error);
-      return res
-        .status(502)
-        .json({ message: "Booking service unavailable." });
+      return res.status(502).json({
+        message: "Booking service unavailable.",
+      });
     }
   }
 );
 
-app.get("/", (_req, res) => {
-  res.send("Textellent backend running");
-});
+const PORT = process.env.PORT || 5002;
 
-const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

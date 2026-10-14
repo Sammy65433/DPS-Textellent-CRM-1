@@ -1,58 +1,63 @@
+import mongoose from "mongoose";
 import Template from "../models/Template.js";
 
-export const createTemplate = async (req, res) => {
-    try {
-        const { userId, name, body } = req.body;
+const DPS_SCOPE = "user123";
 
-        if (!userId || !name || !body) {
-            return res.status(400).json({
-                error: "userId, name, and body are required",
-            });
-        }
+export async function createTemplate(req, res) {
+  const name = String(req.body?.name ?? "").trim();
+  const body = String(req.body?.body ?? "").trim();
 
-        const template = await Template.create({
-            userId,
-            name,
-            body,
-        });
+  if (!name || name.length > 150 || !body || body.length > 10000) {
+    return res.status(400).json({
+      error: "Enter a valid template name and body.",
+    });
+  }
 
-        res.status(201).json(template);
-    } catch (error) {
-        console.error("Create template error:", error.message);
-        res.status(500).json({ error: "Failed to create template" });
+  try {
+    const template = await Template.create({
+      userId: DPS_SCOPE,
+      name,
+      body,
+    });
+
+    return res.status(201).json(template);
+  } catch (error) {
+    console.error("Create template error:", error);
+    return res.status(500).json({ error: "Failed to create template." });
+  }
+}
+
+export async function getTemplates(_req, res) {
+  try {
+    const templates = await Template.find({
+      userId: DPS_SCOPE,
+    }).sort({ createdAt: -1 });
+
+    return res.json(templates);
+  } catch (error) {
+    console.error("Get templates error:", error);
+    return res.status(500).json({ error: "Failed to fetch templates." });
+  }
+}
+
+export async function deleteTemplate(req, res) {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid template ID." });
+  }
+
+  try {
+    const deleted = await Template.findOneAndDelete({
+      _id: req.params.id,
+      userId: DPS_SCOPE,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Template not found." });
     }
-};
 
-export const getTemplates = async (req, res) => {
-    try {
-        const { userId } = req.query;
-
-        if (!userId) {
-            return res.status(400).json({ error: "userId is required" });
-        }
-
-        const templates = await Template.find({ userId }).sort({ createdAt: -1 });
-
-        res.status(200).json(templates);
-    } catch (error) {
-        console.error("Get templates error:", error.message);
-        res.status(500).json({ error: "Failed to fetch templates" });
-    }
-};
-
-export const deleteTemplate = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const deleted = await Template.findByIdAndDelete(id);
-
-        if (!deleted) {
-            return res.status(404).json({ error: "Template not found" });
-        }
-
-        res.status(200).json({ success: true, message: "Template deleted" });
-    } catch (error) {
-        console.error("Delete template error:", error.message);
-        res.status(500).json({ error: "Failed to delete template" });
-    }
-};
+    return res.json({ success: true, message: "Template deleted." });
+  } catch (error) {
+    console.error("Delete template error:", error);
+    return res.status(500).json({ error: "Failed to delete template." });
+  }
+}

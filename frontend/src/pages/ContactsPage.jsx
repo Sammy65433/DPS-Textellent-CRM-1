@@ -1,12 +1,13 @@
-import { Row, Col, Alert, Button, Badge } from "react-bootstrap";
 import { useMemo, useState } from "react";
+import { Alert, Badge, Button, Col, Row } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import ContactsList from "../components/ContactsList";
 import ContactSummaryCard from "../components/ContactSummaryCard";
+import ContactDocuments from "../components/ContactDocuments";
 import ConversationPanel from "../components/ConversationPanel";
 import AddContactForm from "../components/AddContactForm";
-import { useNavigate } from "react-router-dom";
 
 function ContactsPage({
     theme,
@@ -32,26 +33,27 @@ function ContactsPage({
     onDeleteMessage,
     onDeleteConversation,
 }) {
-
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTag, setActiveTag] = useState("");
+    const [sendingInvite, setSendingInvite] = useState(false);
+    const [inviteFeedback, setInviteFeedback] = useState(null);
     const navigate = useNavigate();
 
-
     const uniqueTags = useMemo(() => {
-        const tags = contacts
-            .flatMap(contact =>
-                (contact.tags || "")
-                    .split(",")
-                    .map(tag => tag.trim())
-                    .filter(Boolean)
-            );
+        const tags = contacts.flatMap((contact) =>
+            (contact.tags || "")
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean)
+        );
 
         return [...new Set(tags)];
     }, [contacts]);
 
     const filteredContacts = useMemo(() => {
-        return contacts.filter(contact => {
+        const search = searchTerm.toLowerCase();
+
+        return contacts.filter((contact) => {
             const fullName =
                 `${contact.firstName || ""} ${contact.lastName || ""}`.toLowerCase();
             const phone = (contact.phone || "").toLowerCase();
@@ -60,19 +62,102 @@ function ContactsPage({
             const notes = (contact.notes || "").toLowerCase();
 
             const matchesSearch =
-                fullName.includes(searchTerm.toLowerCase()) ||
-                phone.includes(searchTerm.toLowerCase()) ||
-                email.includes(searchTerm.toLowerCase()) ||
-                tags.includes(searchTerm.toLowerCase()) ||
-                notes.includes(searchTerm.toLowerCase());
+                fullName.includes(search) ||
+                phone.includes(search) ||
+                email.includes(search) ||
+                tags.includes(search) ||
+                notes.includes(search);
 
             const matchesTag = activeTag
-                ? tags.split(",").map(tag => tag.trim()).includes(activeTag.toLowerCase())
+                ? tags
+                    .split(",")
+                    .map((tag) => tag.trim())
+                    .includes(activeTag.toLowerCase())
                 : true;
 
             return matchesSearch && matchesTag;
         });
     }, [contacts, searchTerm, activeTag]);
+
+    async function handleSendAccountLinkInvitation() {
+        if (!selectedContact?._id || sendingInvite) return;
+
+        const contact = selectedContact;
+        const name =
+            `${contact.firstName || ""} ${contact.lastName || ""}`.trim() ||
+            "this contact";
+        const email = contact.email?.trim();
+
+        if (!email) {
+            setInviteFeedback({
+                variant: "warning",
+                message:
+                    "This contact needs an email address before an invitation can be sent.",
+            });
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Send an account-link invitation to ${name} at ${email}? For this local test, use only a dummy contact and email you control.`
+        );
+
+        if (!confirmed) return;
+
+        setInviteFeedback(null);
+        setSendingInvite(true);
+
+        try {
+            const staffToken = localStorage.getItem("token");
+
+            if (!staffToken) {
+                throw new Error(
+                    "Your staff session is missing. Sign in to the CRM again."
+                );
+            }
+
+            const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+
+            if (!apiBase) {
+                throw new Error("The CRM API URL is not configured.");
+            }
+
+            const response = await fetch(
+                `${apiBase}/api/contact-links/${encodeURIComponent(contact._id)}/request`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${staffToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Could not send the account-link invitation."
+                );
+            }
+
+            setInviteFeedback({
+                variant: "success",
+                message: `Account-link invitation sent to ${email}.`,
+            });
+        } catch (error) {
+            setInviteFeedback({
+                variant: "danger",
+                message:
+                    error.message || "Could not send the account-link invitation.",
+            });
+        } finally {
+            setSendingInvite(false);
+        }
+    }
+
+    function handleSelectContact(contact) {
+        setInviteFeedback(null);
+        onSelectContact(contact);
+    }
 
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
@@ -83,6 +168,16 @@ function ContactsPage({
 
             {alert && <Alert variant={alert.variant}>{alert.message}</Alert>}
 
+            {inviteFeedback && (
+                <Alert
+                    variant={inviteFeedback.variant}
+                    dismissible
+                    onClose={() => setInviteFeedback(null)}
+                >
+                    {inviteFeedback.message}
+                </Alert>
+            )}
+
             <div className="d-flex flex-wrap gap-2 mb-3">
                 <Button
                     size="sm"
@@ -92,13 +187,13 @@ function ContactsPage({
                     All
                 </Button>
 
-                {uniqueTags.map(tag => (
+                {uniqueTags.map((tag) => (
                     <Badge
                         key={tag}
                         pill
                         bg={activeTag === tag ? "primary" : "secondary"}
                         className="tag-filter-pill"
-                        onClick={() => setActiveTag(prev => (prev === tag ? "" : tag))}
+                        onClick={() => setActiveTag((prev) => (prev === tag ? "" : tag))}
                         style={{ cursor: "pointer" }}
                     >
                         {tag}
@@ -111,7 +206,7 @@ function ContactsPage({
                     <ContactsList
                         contacts={filteredContacts}
                         selectedContact={selectedContact}
-                        onSelectContact={onSelectContact}
+                        onSelectContact={handleSelectContact}
                         onEditContact={onEditContact}
                         onDeleteContact={onDeleteContact}
                         searchTerm={searchTerm}
@@ -125,27 +220,44 @@ function ContactsPage({
                         conversation={conversation}
                         emailMessages={emailMessages}
                     />
-                    {selectedContact && (
-                        <Button
-                            variant="success"
-                            className="mb-3"
-                            onClick={() =>
-                                navigate("/booking", {
-                                    state: {
-                                        customer: {
-                                            first_name: selectedContact.firstName || "",
-                                            last_name: selectedContact.lastName || "",
-                                            phone: selectedContact.phone || "",
-                                            email: selectedContact.email || "",
-                                        },
-                                    },
-                                })
-                            }
-                        >
-                            Book Appointment for {selectedContact.firstName}
-                        </Button>
-                    )}
 
+                    <ContactDocuments
+                        key={selectedContact?._id || "none"}
+                        contactId={selectedContact?._id}
+                    />
+
+
+                    {selectedContact && (
+                        <div className="d-flex flex-wrap gap-2 mb-3">
+                            <Button
+                                variant="success"
+                                onClick={() =>
+                                    navigate("/booking", {
+                                        state: {
+                                            customer: {
+                                                first_name: selectedContact.firstName || "",
+                                                last_name: selectedContact.lastName || "",
+                                                phone: selectedContact.phone || "",
+                                                email: selectedContact.email || "",
+                                            },
+                                        },
+                                    })
+                                }
+                            >
+                                Book Appointment for {selectedContact.firstName}
+                            </Button>
+
+                            <Button
+                                variant="outline-primary"
+                                disabled={sendingInvite || !selectedContact.email}
+                                onClick={handleSendAccountLinkInvitation}
+                            >
+                                {sendingInvite
+                                    ? "Sending invitation..."
+                                    : "Send account-link invitation"}
+                            </Button>
+                        </div>
+                    )}
 
                     <ConversationPanel
                         selectedContact={selectedContact}
