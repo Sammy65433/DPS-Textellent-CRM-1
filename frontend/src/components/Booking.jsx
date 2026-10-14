@@ -145,6 +145,9 @@ export default function Booking({ theme, onToggleTheme }) {
     const [cancelError, setCancelError] = useState("");
 
     const [importingId, setImportingId] = useState(null);
+    const [appointmentContacts, setAppointmentContacts] = useState({});
+    const [invitingId, setInvitingId] = useState(null);
+
     const [contactMessage, setContactMessage] = useState("");
     const [contactError, setContactError] = useState("");
 
@@ -537,6 +540,14 @@ export default function Booking({ theme, onToggleTheme }) {
             if (!response.ok) {
                 throw new Error(data.message || "Could not add contact.");
             }
+if (!data.contact?._id) {
+  throw new Error("No CRM contact was returned for this appointment.");
+}
+
+setAppointmentContacts((current) => ({
+  ...current,
+  [appointment.id]: data.contact,
+}));
 
             setContactMessage(data.message || "Contact added.");
         } catch (err) {
@@ -545,6 +556,46 @@ export default function Booking({ theme, onToggleTheme }) {
             setImportingId(null);
         }
     }
+async function sendAccountLinkInvitation(appointment) {
+  const contact = appointmentContacts[appointment.id];
+  if (!contact?._id || invitingId) return;
+
+  if (
+    !window.confirm(
+      `Send an account-link invitation to ${contact.email || "this contact"}?`
+    )
+  ) {
+    return;
+  }
+
+  setInvitingId(appointment.id);
+  setContactMessage("");
+  setContactError("");
+
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("CRM login required.");
+
+    const response = await fetch(
+      `${CRM_API_URL}/api/contact-links/${encodeURIComponent(contact._id)}/request`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message || "Could not send invitation.");
+    }
+
+    setContactMessage("Account-link invitation sent.");
+  } catch (error) {
+    setContactError(error.message || "Could not send invitation.");
+  } finally {
+    setInvitingId(null);
+  }
+}
 
     function openCampaignDraft(appointmentIds) {
         navigate("/campaigns", { state: { appointmentIds } });
@@ -579,6 +630,18 @@ export default function Booking({ theme, onToggleTheme }) {
                     onClick={() => addToContacts(appointment)}
                 >
                     {importingId === appointment.id ? "Adding..." : "Add to Contacts"}
+                    {appointmentContacts[appointment.id]?._id && (
+  <button
+    type="button"
+    disabled={invitingId === appointment.id}
+    onClick={() => sendAccountLinkInvitation(appointment)}
+  >
+    {invitingId === appointment.id
+      ? "Sending invitation..."
+      : "Send Account-Link Invitation"}
+  </button>
+)}
+
                 </button>
 
                 <button
