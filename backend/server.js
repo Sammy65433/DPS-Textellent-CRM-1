@@ -305,6 +305,252 @@ app.post(
   }
 );
 
+app.get(
+  "/api/staff/realty-appointments",
+  requireAuth,
+  requireStaff,
+  async (_req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.DPS_API_URL}/api/realty-appointments`,
+        {
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("DPS realty appointments upstream status:", response.status);
+        return res.status(502).json({
+          message: "Could not load DPS realty appointments.",
+        });
+      }
+
+      return res.json(await response.json());
+    } catch (error) {
+      console.error("DPS realty appointments request failed:", error);
+      return res.status(502).json({
+        message: "DPS realty appointment service unavailable.",
+      });
+    }
+  }
+);
+
+app.patch(
+  "/api/staff/realty-appointments/:id",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.DPS_API_URL}/api/realty-appointments/${req.params.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("DPS realty appointment update status:", response.status);
+        return res.status(502).json({
+          message: "Could not update DPS realty appointment.",
+        });
+      }
+
+      return res.json(await response.json());
+    } catch (error) {
+      console.error("DPS realty appointment update failed:", error);
+      return res.status(502).json({
+        message: "DPS realty appointment service unavailable.",
+      });
+    }
+  }
+);
+
+app.patch(
+  "/api/staff/realty-appointments/:id/confirm",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.DPS_API_URL}/api/realty-appointments/${req.params.id}/confirm`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("DPS realty appointment confirm status:", response.status);
+        return res.status(502).json({
+          message: "Could not confirm DPS realty appointment.",
+        });
+      }
+
+      return res.json(await response.json());
+    } catch (error) {
+      console.error("DPS realty appointment confirm failed:", error);
+      return res.status(502).json({
+        message: "DPS realty appointment service unavailable.",
+      });
+    }
+  }
+);
+
+app.patch(
+  "/api/staff/realty-appointments/:id/cancel",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.DPS_API_URL}/api/realty-appointments/${req.params.id}/cancel`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("DPS realty appointment cancel status:", response.status);
+        return res.status(502).json({
+          message: "Could not cancel DPS realty appointment.",
+        });
+      }
+
+      return res.json(await response.json());
+    } catch (error) {
+      console.error("DPS realty appointment cancel failed:", error);
+      return res.status(502).json({
+        message: "DPS realty appointment service unavailable.",
+      });
+    }
+  }
+);
+
+app.patch(
+  "/api/staff/realty-appointments/:id/archive",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.DPS_API_URL}/api/realty-appointments/${req.params.id}/archive`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("DPS realty appointment archive status:", response.status);
+        return res.status(502).json({
+          message: "Could not archive DPS realty appointment.",
+        });
+      }
+
+      return res.json(await response.json());
+    } catch (error) {
+      console.error("DPS realty appointment archive failed:", error);
+      return res.status(502).json({
+        message: "DPS realty appointment service unavailable.",
+      });
+    }
+  }
+);
+
+app.delete(
+  "/api/staff/realty-appointments/:id",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.DPS_API_URL}/api/realty-appointments/${req.params.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("DPS realty appointment delete status:", response.status);
+        return res.status(502).json({
+          message: "Could not delete DPS realty appointment.",
+        });
+      }
+
+      return res.json(await response.json());
+    } catch (error) {
+      console.error("DPS realty appointment delete failed:", error);
+      return res.status(502).json({
+        message: "DPS realty appointment service unavailable.",
+      });
+    }
+  }
+);
+
 const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, () => {

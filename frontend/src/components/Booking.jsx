@@ -167,6 +167,8 @@ export default function Booking({ theme, onToggleTheme }) {
 
     const [appointments, setAppointments] = useState([]);
     const [appointmentsError, setAppointmentsError] = useState("");
+    const [realtyAppointments, setRealtyAppointments] = useState([]);
+    const [realtyAppointmentsError, setRealtyAppointmentsError] = useState("");
     const [showAll, setShowAll] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -225,6 +227,51 @@ export default function Booking({ theme, onToggleTheme }) {
         }
 
         loadAppointments();
+        return () => controller.abort();
+    }, [refreshKey]);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+
+        if (!token || !CRM_API_URL) {
+            setRealtyAppointmentsError("CRM login or API URL is missing.");
+            return;
+        }
+
+        const controller = new AbortController();
+
+        async function loadRealtyAppointments() {
+            try {
+                const response = await fetch(
+                    `${CRM_API_URL}/api/staff/realty-appointments`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                        signal: controller.signal,
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Could not load realty appointments (${response.status}).`
+                    );
+                }
+
+                const data = await response.json();
+
+                if (!controller.signal.aborted) {
+                    setRealtyAppointments(Array.isArray(data) ? data : []);
+                    setRealtyAppointmentsError("");
+                }
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    setRealtyAppointmentsError(err.message);
+                }
+            }
+        }
+
+        loadRealtyAppointments();
         return () => controller.abort();
     }, [refreshKey]);
 
@@ -315,10 +362,23 @@ export default function Booking({ theme, onToggleTheme }) {
             appointmentTimestamp(a).localeCompare(appointmentTimestamp(b))
         );
 
-    const appointmentsForDate = (value) =>
-        activeAppointments.filter(
+    const appointmentsForDate = (value) => [
+        ...activeAppointments.filter(
             (appointment) => appointment.appointment_date === value
-        );
+        ),
+        ...realtyAppointments
+            .filter(
+                (appointment) =>
+                    appointment.appointment_date === value &&
+                    ["pending", "confirmed"].includes(appointment.status)
+            )
+            .map((appointment) => ({
+                ...appointment,
+                tax_preparer: appointment.tax_preparer || "DPS Realty",
+                duration_minutes: appointment.duration_minutes || 60,
+                visit_format: appointment.visit_format || "in_person",
+            })),
+    ];
 
     const selectedDate = dateFromKey(day);
     const monthStart = new Date(
@@ -975,6 +1035,15 @@ async function sendAccountLinkInvitation(appointment) {
                                 {dailyAppointments.length} active appointment
                                 {dailyAppointments.length === 1 ? "" : "s"}
                             </p>
+
+                            {realtyAppointmentsError && (
+                                <p
+                                    className="booking-status error"
+                                    role="alert"
+                                >
+                                    {realtyAppointmentsError}
+                                </p>
+                            )}
 
                             {appointmentsError && (
                                 <p className="booking-status error" role="alert">

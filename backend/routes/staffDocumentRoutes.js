@@ -7,8 +7,7 @@ import DocumentAccessLog from "../models/DocumentAccessLog.js";
 const router = Router();
 const CONTACT_SCOPE = "user123";
 const MAX_BYTES = 5 * 1024 * 1024;
-const DOCUMENT_ID_PATTERN =
-  /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+const DOCUMENT_ID_PATTERN = /^[a-f0-9]{24}$/i;
 
 async function linkedCustomerId(contactId) {
   const contact = await Contact.findOne({
