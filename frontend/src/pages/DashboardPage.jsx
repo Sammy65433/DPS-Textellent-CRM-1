@@ -1,5 +1,5 @@
 import { Row, Col, Alert, Card, ListGroup, Badge, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import StatsCards from "../components/StatsCards";
@@ -20,6 +20,7 @@ import {
     CartesianGrid,
 } from "recharts";
 import { useEffect, useState } from "react";
+import { createContact, createCampaign } from "../api/api";
 import { FaCalendarCheck } from "react-icons/fa";
 
 
@@ -57,6 +58,8 @@ function DashboardPage({
     const draftCampaigns = campaigns.filter(campaign => campaign.status === "draft").length;
 const [appointments, setAppointments] = useState([]);
     const [bookingError, setBookingError] = useState("");
+    const navigate = useNavigate();
+    const [actionStatus, setActionStatus] = useState({});
 
     const activityByDay = {};
 
@@ -133,6 +136,66 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
             return String(a.appointment_time).localeCompare(String(b.appointment_time));
         });
 
+
+
+    async function saveContactFromBooking(appt) {
+        setActionStatus((prev) => ({ ...prev, [appt.id]: "Saving contact..." }));
+        try {
+            const result = await createContact({
+                firstName: appt.first_name,
+                lastName: appt.last_name,
+                phone: String(appt.phone || "").replace(/\D/g, ""),
+                email: appt.email || "",
+                tags: "DPS Website",
+                notes: appt.message || "",
+            });
+            if (result?.error) throw new Error(result.error);
+            setActionStatus((prev) => ({ ...prev, [appt.id]: "Contact saved." }));
+        } catch (err) {
+            setActionStatus((prev) => ({ ...prev, [appt.id]: err.message || "Could not save contact." }));
+        }
+    }
+
+    async function createCampaignFromBooking(appt) {
+        setActionStatus((prev) => ({ ...prev, [appt.id]: "Creating campaign..." }));
+        try {
+            const contactResult = await createContact({
+                firstName: appt.first_name,
+                lastName: appt.last_name,
+                phone: String(appt.phone || "").replace(/\D/g, ""),
+                email: appt.email || "",
+                tags: "DPS Website",
+                notes: appt.message || "",
+            });
+            if (contactResult?.error) throw new Error(contactResult.error);
+            const contactId = contactResult?._id || contactResult?.id;
+            if (!contactId) throw new Error("Contact was not created.");
+            const campResult = await createCampaign({
+                name: `DPS website - ${appt.first_name} ${appt.last_name}`,
+                body: appt.message || "Follow up on your DPS appointment request.",
+                subject: "DPS follow-up",
+                type: "sms",
+                contactIds: [contactId],
+            });
+            if (campResult?.error) throw new Error(campResult.error);
+            setActionStatus((prev) => ({ ...prev, [appt.id]: "Campaign created." }));
+        } catch (err) {
+            setActionStatus((prev) => ({ ...prev, [appt.id]: err.message || "Could not create campaign." }));
+        }
+    }
+
+    function bookFromBooking(appt) {
+        navigate("/booking", {
+            state: {
+                customer: {
+                    first_name: appt.first_name,
+                    last_name: appt.last_name,
+                    phone: appt.phone,
+                    email: appt.email,
+                },
+            },
+        });
+    }
 
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
@@ -409,6 +472,20 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                                                 ) : null}
                                             </div>
                                             <div>{a.message}</div>
+                                            <div className="d-flex flex-wrap gap-2 mt-2">
+                                                <Button size="sm" variant="outline-primary" onClick={() => saveContactFromBooking(a)}>
+                                                    Save to Contacts
+                                                </Button>
+                                                <Button size="sm" variant="outline-success" onClick={() => createCampaignFromBooking(a)}>
+                                                    Create Campaign
+                                                </Button>
+                                                <Button size="sm" variant="outline-dark" onClick={() => bookFromBooking(a)}>
+                                                    Book Appointment
+                                                </Button>
+                                            </div>
+                                            {actionStatus[a.id] && (
+                                                <small className="text-muted d-block mt-1">{actionStatus[a.id]}</small>
+                                            )}
                                             <small className="text-muted">
                                                 {a.appointment_date} · {a.appointment_time} · {a.service}
                                             </small>
