@@ -23,6 +23,14 @@ import { useEffect, useState } from "react";
 import { FaCalendarCheck } from "react-icons/fa";
 
 
+const PREPARER_COLORS = {
+    "Pierre Polidor": { bg: "#eff6ff", text: "#1e40af", dot: "#2563eb" },
+    "Dalia Pierre": { bg: "#f5f0ff", text: "#6b21a8", dot: "#9333ea" },
+    "Severe Jacquet": { bg: "#ecfdf5", text: "#065f46", dot: "#059669" },
+    "Jean P Cifrant": { bg: "#fff7ed", text: "#9a3412", dot: "#ea580c" },
+    "Ricot Casimir": { bg: "#fdf2f8", text: "#9d174d", dot: "#db2777" },
+};
+
 function DashboardPage({
     theme,
     onToggleTheme,
@@ -101,6 +109,30 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
             ["booked", "confirmed"].includes(appointment.status)
     );
 
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+    const weekKeys = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(weekStart);
+        d.setDate(weekStart.getDate() + i);
+        return [
+            d.getFullYear(),
+            String(d.getMonth() + 1).padStart(2, "0"),
+            String(d.getDate()).padStart(2, "0"),
+        ].join("-");
+    });
+
+    const weekAppointments = appointments
+        .filter(
+            (a) =>
+                weekKeys.includes(a.appointment_date) &&
+                ["booked", "confirmed"].includes(a.status)
+        )
+        .sort((a, b) => {
+            const dayDiff = weekKeys.indexOf(a.appointment_date) - weekKeys.indexOf(b.appointment_date);
+            if (dayDiff !== 0) return dayDiff;
+            return String(a.appointment_time).localeCompare(String(b.appointment_time));
+        });
+
 
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
@@ -122,6 +154,66 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                     <Button as={Link} to="/booking" variant="success">
                         View Calendar
                     </Button>
+                </Card.Body>
+            </Card>
+
+            <Card className="crm-card border-0 mb-4">
+                <Card.Body>
+                    <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <h3 className="mb-0">
+                            <FaCalendarCheck className="me-2" />
+                            This Week&apos;s Bookings
+                        </h3>
+                        <Button as={Link} to="/booking" size="sm" variant="outline-primary">
+                            Open Calendar
+                        </Button>
+                    </div>
+                    {weekAppointments.length === 0 ? (
+                        <p className="mb-0 text-muted">No bookings scheduled this week.</p>
+                    ) : (
+                        <div className="d-flex flex-column gap-2">
+                            {weekAppointments.map((a) => {
+                                const color =
+                                    PREPARER_COLORS[a.tax_preparer] || {
+                                        bg: "#f1f5f9",
+                                        text: "#334155",
+                                        dot: "#94a3b8",
+                                    };
+                                return (
+                                    <div
+                                        key={a.id}
+                                        className="d-flex align-items-center gap-3 p-2 rounded"
+                                        style={{
+                                            background: color.bg,
+                                            borderLeft: `4px solid ${color.dot}`,
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                width: 10,
+                                                height: 10,
+                                                borderRadius: "50%",
+                                                background: color.dot,
+                                                flexShrink: 0,
+                                            }}
+                                        />
+                                        <div className="flex-grow-1">
+                                            <div className="fw-semibold" style={{ color: color.text }}>
+                                                {a.first_name} {a.last_name}{" "}
+                                                <span className="text-muted fw-normal">
+                                                    · {a.appointment_date} {a.appointment_time}
+                                                </span>
+                                            </div>
+                                            <small className="text-muted">
+                                                {a.service} · {a.tax_preparer} · {a.duration_minutes ?? 30} min
+                                                {a.message ? ` · 💬 ${a.message}` : ""}
+                                            </small>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </Card.Body>
             </Card>
 
