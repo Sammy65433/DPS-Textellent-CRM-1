@@ -197,6 +197,33 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
         });
     }
 
+    async function deleteBookingMessage(appt) {
+        if (!window.confirm("Are you sure you want to delete this message?")) return;
+        setActionStatus((prev) => ({ ...prev, [appt.id]: "Deleting..." }));
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/staff/booking-messages/${encodeURIComponent(appt.id)}`,
+                {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.message || "Could not delete the message.");
+            }
+            setAppointments((prev) =>
+                prev.map((a) =>
+                    a.id === appt.id ? { ...a, message: "" } : a
+                )
+            );
+            setActionStatus((prev) => ({ ...prev, [appt.id]: "Message deleted." }));
+        } catch (err) {
+            setActionStatus((prev) => ({ ...prev, [appt.id]: err.message || "Could not delete." }));
+        }
+    }
+
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <PageHeader
@@ -481,6 +508,9 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                                                 </Button>
                                                 <Button size="sm" variant="outline-dark" onClick={() => bookFromBooking(a)}>
                                                     Book Appointment
+                                                </Button>
+                                                <Button size="sm" variant="outline-danger" onClick={() => deleteBookingMessage(a)}>
+                                                    Delete
                                                 </Button>
                                             </div>
                                             {actionStatus[a.id] && (

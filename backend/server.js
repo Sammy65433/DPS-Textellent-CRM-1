@@ -11,6 +11,7 @@ import authRoutes from "./routes/authRoutes.js";
 import internalContactLinkRoutes from "./routes/internalContactLinkRoutes.js";
 
 import { connectDB } from "./config/db.js";
+import AuditLog from "./models/AuditLog.js";
 import { startCampaignScheduler } from "./services/campaignScheduler.js";
 import { inviteStaff } from "./controllers/staffController.js";
 import {
@@ -546,6 +547,63 @@ app.delete(
       console.error("DPS realty appointment delete failed:", error);
       return res.status(502).json({
         message: "DPS realty appointment service unavailable.",
+      });
+    }
+  }
+);
+
+
+app.delete(
+  "/api/staff/booking-messages/:id",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    const { id } = req.params;
+
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.DPS_API_URL}/api/appointments/${encodeURIComponent(id)}/clear-message`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("DPS clear-message upstream status:", response.status);
+        return res.status(502).json({
+          message: "Could not delete the message.",
+        });
+      }
+
+      try {
+        await AuditLog.create({
+          staffUserId: req.user._id,
+          staffEmail: req.user.email,
+          action: "delete_booking_message",
+          targetType: "appointment",
+          targetId: String(id),
+          details: "Cleared client message from front-page booking.",
+        });
+      } catch (auditError) {
+        console.error("Audit log write failed:", auditError);
+      }
+
+      return res.json({ message: "Message deleted." });
+    } catch (error) {
+      console.error("Delete booking message failed:", error);
+      return res.status(502).json({
+        message: "DPS booking message service unavailable.",
       });
     }
   }
