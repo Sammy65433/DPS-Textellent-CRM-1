@@ -1010,3 +1010,10 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+
+.booking-legend-dot.preparer-pierre { background: #2563eb; }
+.booking-legend-dot.preparer-dalia { background: #9333ea; }
+.booking-legend-dot.preparer-severe { background: #059669; }
+.booking-legend-dot.preparer-jean { background: #ea580c; }
+.booking-legend-dot.preparer-ricot { background: #db2777; }
+.booking-legend-dot.preparer-unassigned { background: #94a3b8; }
