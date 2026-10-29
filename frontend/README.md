@@ -417,3 +417,131 @@ A practical order:
 
 
 ```
+
+
+# DPS Website and Textellent CRM: Work Handoff
+
+**Developer:** Samuel Jacquet  
+**Applications:** DPS public website and DPS Textellent staff CRM  
+**Status:** Local work and selected local tests are described below. Do not assume a change is pushed or deployed without checking each repository and its Render service separately.
+
+## 1. System boundaries
+
+| Application | Users | Frontend | Backend | Data |
+| --- | --- | --- | --- | --- |
+| DPS website | Visitors and customers | React/Vite | Express | Supabase Auth, appointments, private document Storage and metadata |
+| Textellent CRM | DPS staff | React/Vite | Express | MongoDB staff users, contacts, account links, communications, campaigns and download audit records |
+
+Customer sign-in uses **Supabase Auth**. Staff sign-in uses a **CRM-issued JWT** backed by a MongoDB staff account. They are not interchangeable.
+
+Typical local backend ports are DPS `5001` and CRM `5002`. Vite frontend ports vary. Use the URLs printed by the respective terminals.
+
+## 2. What was verified locally
+
+- A DPS customer could book an appointment. The appointment appeared on the CRM staff calendar, and a booking email arrived.
+- An appointment-management email link opened the customer management flow. The meeting-format field and readable date format were added in local code; do not assume they are on the deployed site.
+- Customer signup and sign-in through Supabase were exercised. Supabase email confirmation and CRM account-link invitation emails were received during testing.
+- At least one dummy customer-to-CRM contact invitation was redeemed, with `supabaseCustomerId` populated on the intended MongoDB contact. A reused invitation reported invalid or expired.
+- A DPS client portal upload appeared in that customer's portal.
+- For a linked contact, CRM staff saw a document and successfully downloaded it locally.
+- A successful staff download produced a MongoDB `documentaccesslogs` record with `outcome: "allowed"` and `statusCode: 200`.
+- CRM individual email sending was exercised: the email arrived and appeared in CRM history.
+- Contacts and templates remained visible after their authentication changes.
+
+**Limits of those tests:** They do not prove all contacts are linked, all files are accessible, every access-denial case works, malware scanning exists, or Render has deployed the local changes. A separate contact with `supabaseCustomerId: null` could not show the uploading customer's files. Do not copy another contact's customer ID into it.
+
+## 3. DPS appointment work
+
+The public booking flow remains available to visitors. The CRM staff calendar retrieves appointment details through its authenticated CRM backend, which calls DPS using a backend-only staff key.
+
+Local `ManageAppointment.jsx` changes include:
+
+- Displaying meeting format and allowing customers to choose `in_person`, `phone`, or `virtual` when changing an active appointment.
+- Sending `visit_format` in the reschedule request.
+- Disabling past dates and Sundays in the visible calendar.
+- Formatting the appointment details date as **October 29, 2026** rather than displaying the raw database date.
+
+The DPS `manageAppointmentController.js` was changed to return, validate and save `visit_format`. It retains availability checks and the database overlap protection. The frontend should keep `YYYY-MM-DD` for API requests and format the date **only for display**.
+
+The live management page was observed without the new meeting-format select at one point. Verify the exact DPS frontend and backend deployments before claiming that feature is live.
+
+## 4. Customer login and account linking
+
+The DPS site has separate client pages for login, signup, portal access and invitation confirmation. A distinct **Log In** header button leads to a choice page:
+
+- **Client Access** opens DPS customer login.
+- **Staff Access** opens the separate CRM login.
+
+The invitation flow requires a signed-in, email-confirmed Supabase customer whose email matches the invitation recipient. Its token is one-time and expires. Signing in, signing up, booking or uploading **does not automatically link** an account to a CRM contact.
+
+Local DPS frontend changes to `ClientLink.jsx`, `ClientLogin.jsx` and `ClientSignup.jsx` were provided to preserve the invitation return destination through signup and Supabase email confirmation. The existing CRM internal redemption route retains its duplicate-link and one-time-use checks. Verify the saved versions and deployment before relying on that return flow.
+
+For local invitations, the CRM backend's `DPS_FRONTEND_URL` must point to the **DPS Vite frontend**, not the CRM frontend. In Render it must point to the deployed DPS website. Do not share invitation tokens or URLs.
+
+## 5. Customer-to-staff documents
+
+The DPS customer portal uploads to a private Supabase Storage bucket and stores metadata under the authenticated customer's ID. CRM document listing and downloading go through:
+
+1. CRM staff JWT verification.
+2. A selected CRM contact's stored `supabaseCustomerId`.
+3. A CRM-backend-to-DPS-backend request using a server-only staff key.
+4. A DPS metadata lookup that matches both customer ID and document ID before a private Storage download.
+
+The CRM download route writes a staff access audit record and blocks a successful download if the audit write fails.
+
+A `scan_status` column was added to `customer_documents`, defaulting to `pending`. **No malware scanner was connected.** During local work, DPS staff-route filters for `scan_status = "clean"` were added, then removal of those filters was discussed to restore non-sensitive-file downloads. Confirm which version is actually **saved locally, committed and deployed**. Do not claim files are scanned.
+
+The DPS portal should consistently say:
+
+> Upload non-sensitive files only. Files are not malware-scanned. Do not upload tax returns, IDs, Social Security numbers, banking records or other confidential information. Use CCH iFirm for sensitive documents.
+
+An upload success message must not promise staff access unless the contact is linked and the running staff route actually permits the file. **CCH iFirm remains the workflow for sensitive documents.**
+
+Staff document deletion was discussed but **not implemented**. There is no verified staff Delete endpoint or confirmation flow. Downloaded copies on staff devices would not be removed by deleting a Storage object.
+
+## 6. CRM Contacts, Emails and Booking UI
+
+- CRM Contacts has a staff-only **Send account-link invitation** action for a selected contact.
+- The CRM Emails page was given a complete JSX replacement to show the selected contact's document panel, Download action, Book Appointment button and invitation button while retaining email history and the composer. Confirm it was saved and deployed before describing it as live.
+- The CRM `Booking.jsx` received incremental instructions to show **Send Account-Link Invitation** only after **Add to Contacts** returns a specific CRM contact. Its `appointmentContacts` state is in memory, so that button disappears on reload until Add to Contacts is used again.
+- Importing an appointment into Contacts does **not** establish marketing consent and does **not** link the customer to a Supabase account.
+- Separate contacts, even with similar names or shared contact details, must not inherit each other's document access.
+
+## 7. CRM route-security work and open issues
+
+Contact CRUD, individual emails, templates and message staff routes were changed locally to use CRM authentication and a server-derived legacy DPS scope, `user123`. Frontend API calls for those routes were updated to send the CRM staff JWT. The message controller no longer relies on a browser-supplied `userId` in the supplied replacement. SMS remains mock-only; the inbound Twilio webhook is not configured with provider signature verification.
+
+Campaign work needs reconciliation before deployment:
+
+- The campaign routes were given staff authentication.
+- A supplied replacement campaign controller disables manual sending pending recipient-consent handling.
+- A supplied replacement scheduler disables automatic sending.
+- Samuel wants automatic scheduling in the eventual product. **Do not assume the controller, scheduler and frontend are currently consistent, and do not deploy a combination that sends without consent or retries a throwing send function every minute.**
+- Check the exact saved files before changing or deploying campaigns.
+
+`user123` remains a shared **DPS-only legacy partition**, not organization isolation. This CRM is currently intended for DPS staff, not multiple businesses. Do not use a browser-supplied `userId` as authorization.
+
+The `DocumentAccessLog` model and route should also be reconciled: the route tries to log malformed contact IDs with no `contactId`, while one shown model version still requires that field. This bug does not explain a contact's empty document panel.
+
+## 8. Current deployment and configuration boundary
+
+Do **not** copy local `.env` files to Render. Local backend-to-backend URLs use `http://localhost:5001` and `http://localhost:5002`; production must use the respective deployed backend URLs. CRM frontend `VITE_API_URL` must target the **CRM backend**, never DPS port `5001`. Server keys must never go into `VITE_` settings.
+
+The DPS and CRM repositories must be reviewed, committed and deployed separately. A local working feature, a pushed commit and a completed Render deployment are three different states. Earlier Git checks found uncommitted account-link work in both repositories; today's final Git status and deployed commits have **not** been established in this handoff.
+
+Never commit `.env` files, password-reset scripts, JWTs, invitation URLs, appointment-management tokens or private document URLs. Previous screenshots exposed private links; treat those links as credentials.
+
+## 9. Targeted checks before broader release
+
+1. Review `git status` and the diff in **each repository separately**. Identify exactly which versions of the DPS staff document route, portal disclaimer, CRM campaign controller and scheduler were saved.
+2. Build both frontends and start both backends from their intended configuration. Fix build/runtime failures before committing.
+3. On DPS, verify public booking, available times, customer sign-in/signup, appointment-management changes and the displayed meeting format. Do not use a real customer's appointment to test rescheduling.
+4. On CRM, verify staff login, calendar appointments, Contacts, Templates and individual email without relying on browser-supplied `userId`.
+5. With non-sensitive test files, verify the linked contact sees only its customer's documents, an unlinked contact is denied, staff download works and its audit record is written. Verify the portal disclaimer matches the **actual** scan behavior.
+6. Reconcile campaign consent and scheduler behavior before deploying campaign changes. Do not send a campaign as a deployment smoke test.
+7. Review file retention/deletion, malware risk, staff-device handling and access logs before expanding document use. Real tax documents remain in CCH iFirm.
+8. Commit and deploy the DPS and CRM changes separately. Check the resulting Render commits and production environment settings without disclosing values.
+
+## 10. Where to resume
+
+First establish the exact **saved, committed and deployed state** of both repositories, particularly the document scan filter and campaign files. Then resolve only the differences that block the intended non-sensitive-file workflow. Do not reopen the already working customer upload or staff download code without a specific failure.

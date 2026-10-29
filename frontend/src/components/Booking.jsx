@@ -103,6 +103,42 @@ function visitLabel(value) {
     return "Not specified";
 }
 
+const PREPARER_THEMES = {
+    "Pierre Polidor": "pierre",
+    "Dalia Pierre": "dalia",
+    "Severe Jacquet": "severe",
+    "Jean P Cifrant": "jean",
+    "Ricot Casimir": "ricot",
+};
+
+function preparerTheme(name) {
+    return PREPARER_THEMES[name] || "unassigned";
+}
+
+function formatTime(totalMinutes) {
+    const hour24 = Math.floor(totalMinutes / 60);
+    const minute = totalMinutes % 60;
+
+    return `${hour24 % 12 || 12}:${String(minute).padStart(2, "0")} ${
+        hour24 >= 12 ? "PM" : "AM"
+    }`;
+}
+
+function getDisplayTimes(dateValue, duration) {
+    const date = dateFromKey(dateValue);
+    if (!date || date.getDay() === 0) return [];
+
+    const opens = 9 * 60;
+    const closes = date.getDay() === 6 ? 18 * 60 : 17 * 60;
+    const times = [];
+
+    for (let start = opens; start + duration <= closes; start += 30) {
+        times.push(formatTime(start));
+    }
+
+    return times;
+}
+
 export default function Booking({ theme, onToggleTheme }) {
     const location = useLocation();
     const navigate = useNavigate();
@@ -308,6 +344,7 @@ export default function Booking({ theme, onToggleTheme }) {
     const visibleAppointments = showAll
         ? activeAppointments
         : dailyAppointments;
+    const displayTimes = getDisplayTimes(day, duration);
 
     const openedAppointment = dailyAppointments.find(
         (appointment) => String(appointment.id) === String(openedAppointmentId)
@@ -659,13 +696,20 @@ async function sendAccountLinkInvitation(appointment) {
             <button
                 key={appointment.id}
                 type="button"
-                className="booking-calendar-event"
+                className={`booking-calendar-event preparer-${preparerTheme(
+                    appointment.tax_preparer
+                )}`}
                 onClick={() => openAppointment(appointment)}
-                title={`${appointment.appointment_time} - ${appointment.first_name} ${appointment.last_name}`}
+                title={`${appointment.appointment_time} - ${appointment.first_name} ${appointment.last_name} - ${appointment.tax_preparer}`}
             >
-                <span>{appointment.appointment_time}</span>
-                <span>
+                <span className="booking-event-time">
+                    {appointment.appointment_time}
+                </span>
+                <span className="booking-event-name">
                     {appointment.first_name} {appointment.last_name}
+                </span>
+                <span className="booking-event-preparer">
+                    {appointment.tax_preparer}
                 </span>
             </button>
         );
@@ -761,7 +805,8 @@ async function sendAccountLinkInvitation(appointment) {
 
                                 {monthDays.map((date) => {
                                     const value = dateKey(date);
-                                    const count = appointmentsForDate(value).length;
+                                    const daily = appointmentsForDate(value);
+                                    const count = daily.length;
 
                                     return (
                                         <button
@@ -780,6 +825,27 @@ async function sendAccountLinkInvitation(appointment) {
                                             {count > 0 && (
                                                 <span className="booking-count">
                                                     {count} booked
+                                                </span>
+                                            )}
+                                            {daily.slice(0, 3).map((appointment) => (
+                                                <span
+                                                    key={appointment.id}
+                                                    className={`booking-day-chip preparer-${preparerTheme(
+                                                        appointment.tax_preparer
+                                                    )}`}
+                                                >
+                                                    <span>
+                                                        {appointment.appointment_time}
+                                                    </span>
+                                                    <span>
+                                                        {appointment.first_name}{" "}
+                                                        {appointment.last_name}
+                                                    </span>
+                                                </span>
+                                            ))}
+                                            {count > 3 && (
+                                                <span className="booking-day-more">
+                                                    +{count - 3} more
                                                 </span>
                                             )}
                                         </button>
@@ -826,11 +892,77 @@ async function sendAccountLinkInvitation(appointment) {
 
                         {view === "day" && (
                             <div className="booking-day-view">
-                                <h2>{formatDate(day)}</h2>
+                                <div className="booking-dashboard-heading">
+                                    <div>
+                                        <h2>Daily Dashboard</h2>
+                                        <p className="booking-muted">
+                                            {formatDate(day)} · {dailyAppointments.length}{" "}
+                                            appointment
+                                            {dailyAppointments.length === 1 ? "" : "s"}
+                                        </p>
+                                    </div>
+
+                                    <div className="booking-legend">
+                                        {PREPARERS.map((name) => (
+                                            <span
+                                                className="booking-legend-item"
+                                                key={name}
+                                            >
+                                                <span
+                                                    className={`booking-legend-dot preparer-${preparerTheme(
+                                                        name
+                                                    )}`}
+                                                />
+                                                {name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 {dailyAppointments.length === 0 ? (
                                     <p>No appointments for this day.</p>
                                 ) : (
-                                    dailyAppointments.map(renderCalendarAppointment)
+                                    <div className="booking-dashboard-grid">
+                                        {dailyAppointments.map((appointment) => (
+                                            <button
+                                                key={appointment.id}
+                                                type="button"
+                                                className={`booking-dashboard-card preparer-${preparerTheme(
+                                                    appointment.tax_preparer
+                                                )}`}
+                                                onClick={() =>
+                                                    openAppointment(appointment)
+                                                }
+                                                aria-label={`Open ${appointment.first_name} ${appointment.last_name} at ${appointment.appointment_time}`}
+                                            >
+                                                <span className="booking-dashboard-time">
+                                                    {appointment.appointment_time}
+                                                </span>
+                                                <strong>
+                                                    {appointment.first_name}{" "}
+                                                    {appointment.last_name}
+                                                </strong>
+                                                <span>{appointment.service}</span>
+                                                <span className="booking-dashboard-preparer">
+                                                    {appointment.tax_preparer}
+                                                </span>
+                                                <span className="booking-dashboard-visit">
+                                                    {visitLabel(
+                                                        appointment.visit_format
+                                                    )}{" "}
+                                                    ·{" "}
+                                                    {appointment.duration_minutes ??
+                                                        30}{" "}
+                                                    min
+                                                </span>
+                                                {appointment.message && (
+                                                    <span className="booking-dashboard-note">
+                                                        {appointment.message}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -858,7 +990,9 @@ async function sendAccountLinkInvitation(appointment) {
                                         <button
                                             key={appointment.id}
                                             type="button"
-                                            className="booking-day-appointment-button"
+                                            className={`booking-day-appointment-button preparer-${preparerTheme(
+                                                appointment.tax_preparer
+                                            )}`}
                                             aria-expanded={
                                                 String(openedAppointmentId) === String(appointment.id)
                                             }
@@ -874,7 +1008,9 @@ async function sendAccountLinkInvitation(appointment) {
                                             <span>
                                                 {appointment.first_name} {appointment.last_name}
                                             </span>
-                                            <small>{appointment.service}</small>
+                                            <small>
+                                                {appointment.service} · {appointment.tax_preparer}
+                                            </small>
                                         </button>
                                     ))}
                                 </div>
@@ -898,6 +1034,12 @@ async function sendAccountLinkInvitation(appointment) {
                                     <p>
                                         Visit: {visitLabel(openedAppointment.visit_format)}
                                     </p>
+                                    {openedAppointment.message && (
+                                        <div className="booking-note">
+                                            <strong>Client comments</strong>
+                                            <p>{openedAppointment.message}</p>
+                                        </div>
+                                    )}
                                     <p>
                                         Phone: {openedAppointment.phone || "Not provided"}
                                     </p>
@@ -1010,23 +1152,41 @@ async function sendAccountLinkInvitation(appointment) {
                                             <p>No available times for this date.</p>
                                         )}
 
-                                    <label className="booking-filter">
-                                        Select a time
-                                        <select
-                                            value={time}
-                                            onChange={(event) =>
-                                                setTime(event.target.value)
-                                            }
-                                            disabled={loadingSlots || slots.length === 0}
+                                    {!loadingSlots && !bookingError && service && preparer ? (
+                                        <div
+                                            className="booking-time-grid"
+                                            role="group"
+                                            aria-label="Appointment times"
                                         >
-                                            <option value="">Choose an available time</option>
-                                            {slots.map((slot) => (
-                                                <option key={slot} value={slot}>
-                                                    {slot}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
+                                            {displayTimes.map((slot) => {
+                                                const available = slots.includes(slot);
+                                                const selected = time === slot;
+
+                                                return (
+                                                    <button
+                                                        key={slot}
+                                                        type="button"
+                                                        className={`booking-time-slot${
+                                                            selected ? " selected" : ""
+                                                        }`}
+                                                        onClick={() => setTime(slot)}
+                                                        disabled={!available}
+                                                        aria-pressed={available ? selected : undefined}
+                                                        aria-label={`${slot} Eastern Time, ${
+                                                            available ? "available" : "unavailable"
+                                                        }`}
+                                                    >
+                                                        {slot}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <p className="booking-times-message">
+                                            Select a service and preparer to see
+                                            available times.
+                                        </p>
+                                    )}
 
                                     {time && (
                                         <>
@@ -1290,7 +1450,7 @@ async function sendAccountLinkInvitation(appointment) {
                             </label>
 
                             <label className="booking-field">
-                                Appointment details
+                                Client comments / appointment notes
                                 <textarea
                                     value={editing.message || ""}
                                     onChange={(event) =>
