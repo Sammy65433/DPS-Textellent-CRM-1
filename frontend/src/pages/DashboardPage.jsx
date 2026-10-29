@@ -283,6 +283,51 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                 </Col>
             </Row>
 
+            <Row className="g-4 section-spacer">
+                <Col md={12}>
+                    <Card className="crm-card panel-booking-notes border-0">
+                        <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                            <span>Front-Page Booking Messages</span>
+                            <Button as={Link} to="/booking" size="sm" variant="outline-primary">
+                                Open Calendar
+                            </Button>
+                        </Card.Header>
+                        <ListGroup variant="flush">
+                            {appointments.filter((a) => a.message).length === 0 ? (
+                                <ListGroup.Item>
+                                    No messages from website bookings yet.
+                                </ListGroup.Item>
+                            ) : (
+                                appointments
+                                    .filter((a) => a.message)
+                                    .sort(
+                                        (a, b) =>
+                                            new Date(b.created_at || b.appointment_date) -
+                                            new Date(a.created_at || a.appointment_date)
+                                    )
+                                    .slice(0, 10)
+                                    .map((a) => (
+                                        <ListGroup.Item key={a.id}>
+                                            <div className="fw-semibold">
+                                                {a.first_name} {a.last_name}
+                                                {a.tax_preparer ? (
+                                                    <Badge bg="secondary" className="ms-2">
+                                                        {a.tax_preparer}
+                                                    </Badge>
+                                                ) : null}
+                                            </div>
+                                            <div>{a.message}</div>
+                                            <small className="text-muted">
+                                                {a.appointment_date} · {a.appointment_time} · {a.service}
+                                            </small>
+                                        </ListGroup.Item>
+                                    ))
+                            )}
+                        </ListGroup>
+                    </Card>
+                </Col>
+            </Row>
+
         </AppLayout>
     );
 }

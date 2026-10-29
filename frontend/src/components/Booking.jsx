@@ -848,6 +848,19 @@ async function sendAccountLinkInvitation(appointment) {
                                 </button>
                             </div>
 
+                            <div className="booking-legend" aria-label="Preparer color legend">
+                                {PREPARERS.map((name) => (
+                                    <span className="booking-legend-item" key={name}>
+                                        <span
+                                            className={`booking-legend-dot preparer-${preparerTheme(
+                                                name
+                                            )}`}
+                                        />
+                                        {name}
+                                    </span>
+                                ))}
+                            </div>
+
                             <div
                                 className="booking-view-switch"
                                 role="group"

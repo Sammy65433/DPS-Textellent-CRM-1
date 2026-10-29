@@ -44,7 +44,10 @@ function AppLayout({ children, theme, onToggleTheme }) {
         className="crm-navbar shadow-sm mb-4"
       >
         <Container fluid>
-          <Navbar.Brand className="fw-bold">DPS CRM</Navbar.Brand>
+          <Navbar.Brand className="fw-bold d-flex align-items-center gap-2">
+              <img src="/dps-favicon.png" alt="DPS" width={32} height={32} style={{ borderRadius: 6 }} />
+              DPS CRM
+            </Navbar.Brand>
 
           {["staff", "admin"].includes(role) && (
             <span

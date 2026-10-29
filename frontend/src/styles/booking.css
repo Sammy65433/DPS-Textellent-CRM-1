@@ -736,8 +736,20 @@
 }
 
 [data-theme="dark"] .booking-page {
-  background: linear-gradient(135deg, #0f172a, #111f2d);
-  color: #f1f5f9;
+  background:
+    radial-gradient(1000px 500px at 0% 0%, rgba(111, 66, 168, 0.22), transparent 60%),
+    radial-gradient(900px 450px at 100% 100%, rgba(20, 167, 155, 0.14), transparent 60%),
+    #05070b;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .booking-panel,
+[data-theme="dark"] .booking-appointment,
+[data-theme="dark"] .booking-week-day {
+  border-color: rgba(111, 66, 168, 0.28);
+  background: rgba(17, 24, 39, 0.86);
+  color: #f8fafc;
+  backdrop-filter: blur(10px);
 }
 
 [data-theme="dark"] .booking-panel,
