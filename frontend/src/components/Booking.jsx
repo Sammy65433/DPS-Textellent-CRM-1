@@ -1,6 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "./AppLayout";
+import {
+    FaCalendarAlt,
+    FaClock,
+    FaCommentDots,
+    FaUser,
+    FaStethoscope,
+    FaChevronLeft,
+    FaChevronRight,
+    FaPlus,
+    FaTimes,
+    FaCheck,
+    FaBan,
+    FaEnvelope,
+    FaPhone,
+    FaMapMarkerAlt,
+} from "react-icons/fa";
 
 const CRM_API_URL = import.meta.env.VITE_API_URL;
 
@@ -770,6 +786,9 @@ async function sendAccountLinkInvitation(appointment) {
                 </span>
                 <span className="booking-event-preparer">
                     {appointment.tax_preparer}
+                    {appointment.message && (
+                        <FaCommentDots className="booking-event-note-icon" />
+                    )}
                 </span>
             </button>
         );
@@ -780,8 +799,8 @@ async function sendAccountLinkInvitation(appointment) {
             <main className="booking-page">
                 <div className="booking-toolbar">
                     <div>
-                        <h1>Booking Calendar</h1>
-                        <p>View appointments and book visits for DPS customers.</p>
+                        <h1><FaCalendarAlt style={{ marginRight: 10, verticalAlign: "middle" }} />Booking Calendar</h1>
+                        <p>View appointments, manage visits, and coordinate preparers for DPS customers.</p>
                     </div>
                 </div>
 
@@ -1076,6 +1095,12 @@ async function sendAccountLinkInvitation(appointment) {
                                             <strong>{appointment.appointment_time}</strong>
                                             <span>
                                                 {appointment.first_name} {appointment.last_name}
+                                                {appointment.message && (
+                                                    <FaCommentDots
+                                                        className="booking-note-icon"
+                                                        title="Has client comments"
+                                                    />
+                                                )}
                                             </span>
                                             <small>
                                                 {appointment.service} · {appointment.tax_preparer}
