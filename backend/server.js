@@ -122,7 +122,7 @@ app.patch(
   async (req, res) => {
     const { id } = req.params;
 
-    if (!/^\d+$/.test(id)) {
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
       return res.status(400).json({ message: "Invalid appointment ID." });
     }
 
@@ -193,7 +193,7 @@ app.patch(
   async (req, res) => {
     const { id } = req.params;
 
-    if (!/^\d+$/.test(id)) {
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
       return res.status(400).json({ message: "Invalid appointment ID." });
     }
 

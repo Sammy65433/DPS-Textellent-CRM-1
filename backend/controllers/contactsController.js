@@ -129,9 +129,9 @@ export async function deleteContact(req, res) {
 }
 
 export async function importAppointmentContact(req, res) {
-  const appointmentId = Number(req.body?.appointmentId);
+  const appointmentId = String(req.body?.appointmentId || "").trim();
 
-  if (!Number.isSafeInteger(appointmentId) || appointmentId <= 0) {
+  if (!/^[0-9a-fA-F]{24}$/.test(appointmentId)) {
     return res.status(400).json({ message: "Invalid appointment ID." });
   }
 
@@ -165,7 +165,7 @@ export async function importAppointmentContact(req, res) {
     }
 
     const appointment = appointments.find(
-      (item) => Number(item.id) === appointmentId
+      (item) => String(item.id) === appointmentId
     );
 
     if (!appointment) {
