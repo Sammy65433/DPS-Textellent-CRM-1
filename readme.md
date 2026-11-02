@@ -57,6 +57,8 @@ The chart counts communications by message/email creation date and appointments 
 
 Appointment details are loaded through a CRM backend endpoint protected by login and staff-role checks. The CRM backend uses a server-only key to call the DPS backend. Do not put this key in frontend code.
 
+Staff appointment IDs are MongoDB ObjectIds (24-character hex strings). The CRM backend validates staff appointment routes with the ObjectId pattern and passes the ID through to the DPS backend unchanged.
+
 ### Customer appointment management
 
 The public DPS website has a separate, private **Manage My Appointment** page linked from a customer's booking email. Its expiring link lets the customer view and change only their appointment, including service, preparer, date, time, and 30- or 60-minute duration, or cancel it.
@@ -172,6 +174,19 @@ The production frontend is deployed from GitHub to Render. A local change does n
 5. Add staff audit logs.
 6. Finalize seasonal booking hours across the DPS site and both backends.
 7. Review production SMS/Twilio compliance before enabling real SMS.
+
+## Recent fixes applied
+
+- Staff appointment update/cancel routes now validate MongoDB ObjectId format (`/^[0-9a-fA-F]{24}$/i`) instead of numeric-only IDs, resolving the `Invalid appointment ID` error.
+- Staff appointment lookups now compare IDs as strings against MongoDB ObjectId values.
+- Customer document upload flow now sends the correct customer JWT via the backend.
+- Staff document metadata/download proxy flow is intact through the DPS backend staff key.
+
+## Status update
+
+Working and tested: admin/staff JWT login; admin-only staff invitation with expiring password-setup link; staff account setup and login; staff blocked from /staff and received backend 403 on POST /api/admin/staff; staff Booking calendar with create/edit/cancel, customer emails, and Add to Contacts; customer private Manage My Appointment page; Supabase no-overlap constraint; dashboard and analytics; email-only test campaign. SMS is currently mock mode.
+
+Current next priority: secure and scope CRM contact/campaign/message/email routes. Existing code sometimes trusts browser-supplied userId "user123". Then implement channel-specific marketing consent/opt-outs and reliable campaign results. Calendar Personal/Group Campaign buttons currently only navigate with appointment IDs; they do not select eligible contacts or send anything. Keep marketing consent separate from booking.
 ````
 
 
