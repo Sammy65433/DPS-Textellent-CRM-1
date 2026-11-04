@@ -27,6 +27,18 @@ const SERVICES = [
     "Translation Services",
 ];
 
+const REALTY_SERVICES = [
+    "Buying a Home",
+    "Selling a Home",
+    "Renting",
+    "Investment Property",
+    "General Consultation",
+];
+
+const REALTY_PREPARER = "DPS Realty";
+
+const ALL_SERVICES = [...SERVICES, ...REALTY_SERVICES];
+
 const PREPARERS = [
     "Pierre Polidor",
     "Dalia Pierre",
@@ -296,7 +308,10 @@ export default function Booking({ theme, onToggleTheme }) {
         setSlots([]);
         setBookingError("");
 
-        if (!day || !service || !preparer || day < dateKey(new Date())) return;
+        const isRealtyService = REALTY_SERVICES.includes(service);
+        const slotPreparer = isRealtyService ? REALTY_PREPARER : preparer;
+
+        if (!day || !service || !slotPreparer || day < dateKey(new Date())) return;
 
         if (!CRM_API_URL) {
             setBookingError("VITE_API_URL is missing.");
@@ -311,7 +326,7 @@ export default function Booking({ theme, onToggleTheme }) {
             try {
                 const params = new URLSearchParams({
                     date: day,
-                    preparer,
+                    preparer: slotPreparer,
                     duration_minutes: String(duration),
                 });
 
@@ -360,6 +375,8 @@ export default function Booking({ theme, onToggleTheme }) {
         loadSlots();
         return () => controller.abort();
     }, [day, service, preparer, duration, refreshKey]);
+
+    const isRealtyService = REALTY_SERVICES.includes(service);
 
     useEffect(() => {
         if (editing) {
@@ -473,8 +490,12 @@ export default function Booking({ theme, onToggleTheme }) {
         event.preventDefault();
         if (submitting) return;
 
-        if (!service || !preparer || !time || !visitFormat) {
-            setBookingError("Select a service, preparer, time, and visit format.");
+        if (!service || (!isRealtyService && !preparer) || !time || !visitFormat) {
+            setBookingError(
+                isRealtyService
+                    ? "Select a real estate service, time, and visit format."
+                    : "Select a service, preparer, time, and visit format."
+            );
             return;
         }
 
@@ -500,22 +521,34 @@ export default function Booking({ theme, onToggleTheme }) {
 
         try {
             const response = await fetch(
-                `${CRM_API_URL}/api/staff/appointments`,
+                isRealtyService
+                    ? `${CRM_API_URL}/api/staff/realty-appointments`
+                    : `${CRM_API_URL}/api/staff/appointments`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },
-                    body: JSON.stringify({
-                        ...customer,
-                        service,
-                        tax_preparer: preparer,
-                        appointment_date: day,
-                        appointment_time: time,
-                        duration_minutes: duration,
-                        visit_format: visitFormat,
-                    }),
+                    body: JSON.stringify(
+                        isRealtyService
+                            ? {
+                                  ...customer,
+                                  service,
+                                  appointment_date: day,
+                                  appointment_time: time,
+                                  visit_format: visitFormat,
+                              }
+                            : {
+                                  ...customer,
+                                  service,
+                                  tax_preparer: preparer,
+                                  appointment_date: day,
+                                  appointment_time: time,
+                                  duration_minutes: duration,
+                                  visit_format: visitFormat,
+                              }
+                    ),
                 }
             );
 
@@ -1187,11 +1220,20 @@ async function sendAccountLinkInvitation(appointment) {
                                                 }
                                             >
                                                 <option value="">Select a service</option>
-                                                {SERVICES.map((item) => (
-                                                    <option key={item} value={item}>
-                                                        {item}
-                                                    </option>
-                                                ))}
+                                                <optgroup label="Appointments">
+                                                    {SERVICES.map((item) => (
+                                                        <option key={item} value={item}>
+                                                            {item}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                                <optgroup label="Real Estate (DPS Realty)">
+                                                    {REALTY_SERVICES.map((item) => (
+                                                        <option key={item} value={item}>
+                                                            {item}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
                                             </select>
                                         </label>
 
@@ -1210,6 +1252,7 @@ async function sendAccountLinkInvitation(appointment) {
                                             </select>
                                         </label>
 
+                                    {!isRealtyService && (
                                         <label className="booking-filter">
                                             Preparer
                                             <select
@@ -1226,8 +1269,14 @@ async function sendAccountLinkInvitation(appointment) {
                                                 ))}
                                             </select>
                                         </label>
+                                    )}
+                                    {isRealtyService && (
+                                        <p className="booking-filter-note">
+                                            Real Estate appointments are handled by DPS Realty.
+                                        </p>
+                                    )}
 
-                                        <label className="booking-filter">
+                                    <label className="booking-filter">
                                             How would you like to meet?
                                             <select
                                                 value={visitFormat}
@@ -1254,12 +1303,12 @@ async function sendAccountLinkInvitation(appointment) {
                                     {!loadingSlots &&
                                         !bookingError &&
                                         service &&
-                                        preparer &&
+                                        (isRealtyService || preparer) &&
                                         slots.length === 0 && (
                                             <p>No available times for this date.</p>
                                         )}
 
-                                    {!loadingSlots && !bookingError && service && preparer ? (
+                                    {!loadingSlots && !bookingError && service && (isRealtyService || preparer) ? (
                                         <div
                                             className="booking-time-grid"
                                             role="group"
@@ -1290,16 +1339,19 @@ async function sendAccountLinkInvitation(appointment) {
                                         </div>
                                     ) : (
                                         <p className="booking-times-message">
-                                            Select a service and preparer to see
-                                            available times.
+                                            {isRealtyService
+                                                ? "Select a real estate service to see available times."
+                                                : "Select a service and preparer to see available times."}
                                         </p>
                                     )}
 
                                     {time && (
                                         <>
                                             <p className="booking-selection-summary">
-                                                {formatDate(day)} at {time} with {preparer} for{" "}
-                                                {duration} minutes
+                                                {formatDate(day)} at {time} for{" "}
+                                                {isRealtyService
+                                                    ? `${service} (DPS Realty)`
+                                                    : `${preparer} · ${duration} minutes`}
                                             </p>
 
                                             <form

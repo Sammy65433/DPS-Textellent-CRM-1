@@ -345,6 +345,41 @@ app.get(
   }
 );
 
+app.post(
+  "/api/staff/realty-appointments",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({
+        message: "DPS connection is not configured.",
+      });
+    }
+
+    try {
+      const upstream = await fetch(
+        `${process.env.DPS_API_URL}/api/realty-appointments/staff`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(60000),
+        }
+      );
+
+      return res.status(upstream.status).json(await upstream.json());
+    } catch (error) {
+      console.error("Staff realty booking proxy failed:", error);
+      return res.status(502).json({
+        message: "Realty booking service unavailable.",
+      });
+    }
+  }
+);
+
 app.patch(
   "/api/staff/realty-appointments/:id",
   requireAuth,
