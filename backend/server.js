@@ -321,6 +321,9 @@ app.get(
       const response = await fetch(
         `${process.env.DPS_API_URL}/api/realty-appointments`,
         {
+          headers: {
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
           signal: AbortSignal.timeout(60000),
         }
       );
