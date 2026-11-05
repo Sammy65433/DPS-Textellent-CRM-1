@@ -33,6 +33,9 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://127.0.0.1:5174",
   "https://dps-textellent-frontend.onrender.com",
+  "https://dps-crm.com",
+  "https://www.dps-crm.com",
+  "https://dps-crm-1.onrender.com",
 ];
 
 app.use(
@@ -618,10 +621,19 @@ app.delete(
         }
       );
 
+      const upstreamBody = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        console.error("DPS clear-message upstream status:", response.status);
-        return res.status(502).json({
-          message: "Could not delete the message.",
+        console.error(
+          "DPS clear-message upstream status:",
+          response.status,
+          upstreamBody
+        );
+        return res.status(response.status).json({
+          message:
+            upstreamBody.message ||
+            upstreamBody.error ||
+            "Could not delete the message.",
         });
       }
 
