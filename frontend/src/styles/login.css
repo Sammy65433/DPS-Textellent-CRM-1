@@ -173,3 +173,97 @@
     justify-content: center;
   }
 }
+
+/* DPS branding overrides for the CRM login page */
+.login-page {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(110, 68, 131, 0.25), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(20, 109, 115, 0.35), transparent 45%),
+    linear-gradient(135deg, #0a3f3a 0%, #0f5c54 50%, #1a1a2e 100%);
+  font-family: "Open Sans", Arial, sans-serif;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(245, 211, 108, 0.4);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.login-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.login-logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 8px 20px rgba(15, 92, 84, 0.25);
+}
+
+.login-icon {
+  background: linear-gradient(135deg, #0f5c54, #6e4483);
+  color: #f5d36c;
+  border: 1px solid #f5d36c;
+}
+
+.login-card h1 {
+  font-family: "Libre Baskerville", Georgia, serif;
+  color: #0f5c54;
+}
+
+.login-text {
+  color: #334155;
+}
+
+.login-form label svg {
+  color: #6e4483;
+}
+
+.login-form input:focus {
+  border-color: rgba(110, 68, 131, 0.5);
+  box-shadow: 0 0 0 4px rgba(110, 68, 131, 0.12);
+}
+
+.login-form button {
+  background: linear-gradient(135deg, #0f5c54, #6e4483);
+  box-shadow: 0 12px 24px rgba(15, 92, 84, 0.25);
+}
+
+.login-form button:hover {
+  background: linear-gradient(135deg, #146d73, #8b5cf6);
+}
+
+.login-password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-password-field input {
+  padding-right: 4.5rem;
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #146d73;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.login-password-toggle:hover {
+  background: #e2e8f0;
+}

@@ -14,7 +14,7 @@ import { connectDB } from "./config/db.js";
 import AuditLog from "./models/AuditLog.js";
 import Contact from "./models/Contact.js";
 import { startCampaignScheduler } from "./services/campaignScheduler.js";
-import { inviteStaff } from "./controllers/staffController.js";
+import { inviteStaff, listStaff, setStaffActive } from "./controllers/staffController.js";
 import {
   requireAuth,
   requireStaff,
@@ -68,6 +68,20 @@ app.post(
   requireAuth,
   requireAdmin,
   inviteStaff
+);
+
+app.get(
+  "/api/admin/staff",
+  requireAuth,
+  requireAdmin,
+  listStaff
+);
+
+app.patch(
+  "/api/admin/staff/:id",
+  requireAuth,
+  requireAdmin,
+  setStaffActive
 );
 app.use("/api/contact-links", contactLinkRoutes);
 app.use("/api/templates", templateRoutes);

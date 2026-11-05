@@ -13,6 +13,7 @@ function LoginPage() {
 
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -46,15 +47,22 @@ function LoginPage() {
     <section className="section login-page">
       <div className="container">
         <div className="login-card">
+          <div className="login-logo-wrap">
+            <img
+              src="/dps-logo.png"
+              alt="DPS Professional Tax Services logo"
+              className="login-logo"
+            />
+          </div>
+
           <div className="login-icon">
             <FaSignInAlt />
           </div>
 
-          <h1>Login</h1>
+          <h1>DPS CRM Login</h1>
           <p className="login-text">
-  Sign in to access the internal DPS outreach and CRM workspace.
-</p>
-
+            Sign in to access the internal DPS outreach and CRM workspace.
+          </p>
 
           <form onSubmit={handleSubmit} className="login-form">
             <label htmlFor="email">
@@ -75,15 +83,25 @@ function LoginPage() {
               <FaLock />
               <span>Password</span>
             </label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
+            <div className="login-password-field">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <button
+                type="button"
+                className="login-password-toggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
 
             <button type="submit" className="btn" disabled={loading}>
               {loading ? "Signing In..." : "Login"}

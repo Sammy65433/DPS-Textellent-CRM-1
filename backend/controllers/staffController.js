@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import { Resend } from "resend";
 
@@ -58,5 +59,60 @@ export async function inviteStaff(req, res) {
   } catch (error) {
     console.error("Staff invitation failed:", error);
     return res.status(500).json({ message: "Could not invite staff." });
+  }
+}
+
+export async function listStaff(req, res) {
+  try {
+    const users = await User.find({})
+      .select("name firstName lastName email role active createdAt")
+      .sort({ createdAt: -1 });
+
+    return res.json({ staff: users });
+  } catch (error) {
+    console.error("List staff failed:", error);
+    return res.status(500).json({ message: "Could not load staff." });
+  }
+}
+
+export async function setStaffActive(req, res) {
+  const { id } = req.params;
+  const active = req.body?.active;
+
+  if (typeof active !== "boolean") {
+    return res.status(400).json({ message: "active must be true or false." });
+  }
+
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ message: "Invalid staff ID." });
+  }
+
+  try {
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Staff not found." });
+    }
+
+    if (String(user._id) === String(req.user._id) && active === false) {
+      return res.status(400).json({ message: "You cannot deactivate your own account." });
+    }
+
+    user.active = active;
+    await user.save();
+
+    return res.json({
+      message: active ? "Staff reactivated." : "Staff deactivated.",
+      staff: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        active: user.active,
+      },
+    });
+  } catch (error) {
+    console.error("Set staff active failed:", error);
+    return res.status(500).json({ message: "Could not update staff." });
   }
 }
