@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Container, Navbar, Nav, Button } from "react-bootstrap";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -15,15 +15,29 @@ import {
 import ThemeToggle from "./ThemeToggle";
 
 function AppLayout({ children, theme, onToggleTheme }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [role, setRole] = useState(
+    () => JSON.parse(localStorage.getItem("user") || "null")?.role || null
+  );
 
-  let role = null;
-  try {
-    role = JSON.parse(localStorage.getItem("user") || "null")?.role;
-  } catch {
-    role = null;
-  }
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const api = (import.meta.env.VITE_API_URL || "http://localhost:5002").replace(/\/$/, "");
+    fetch(`${api}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.user) {
+          const stored = JSON.parse(localStorage.getItem("user") || "null") || {};
+          localStorage.setItem("user", JSON.stringify({ ...stored, ...data.user }));
+          setRole(data.user.role);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const closeMenu = () => setMenuOpen(false);
 

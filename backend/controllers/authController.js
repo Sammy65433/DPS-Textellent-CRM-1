@@ -59,6 +59,25 @@ export const loginUser = async (req, res) => {
   }
 };
 
+export async function getMe(req, res) {
+  try {
+    const user = req.user;
+    return res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        active: user.active,
+      },
+    });
+  } catch (error) {
+    console.error("Get me failed:", error);
+    return res.status(500).json({ message: "Could not load account." });
+  }
+}
 export async function setupPassword(req, res) {
   const token = req.body?.token;
   const password = req.body?.password;
