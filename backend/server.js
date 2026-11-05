@@ -12,6 +12,7 @@ import internalContactLinkRoutes from "./routes/internalContactLinkRoutes.js";
 
 import { connectDB } from "./config/db.js";
 import AuditLog from "./models/AuditLog.js";
+import Contact from "./models/Contact.js";
 import { startCampaignScheduler } from "./services/campaignScheduler.js";
 import { inviteStaff } from "./controllers/staffController.js";
 import {

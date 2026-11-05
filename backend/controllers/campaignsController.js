@@ -204,12 +204,11 @@ export async function deleteCampaign(req, res) {
     const deleted = await Campaign.findOneAndDelete({
       _id: req.params.id,
       userId: DPS_SCOPE,
-      status: { $ne: "sent" },
     });
 
     if (!deleted) {
       return res.status(404).json({
-        error: "Campaign not found or cannot be deleted.",
+        error: "Campaign not found.",
       });
     }
 

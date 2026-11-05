@@ -69,6 +69,18 @@ export async function fetchContactDocuments(contactId) {
   return Array.isArray(data.documents) ? data.documents : [];
 }
 
+export async function linkClientAccount(contactId) {
+  return apiResponse(
+    await fetch(
+      `${API}/api/staff/contacts/${encodeURIComponent(contactId)}/link-client`,
+      {
+        method: "POST",
+        headers: staffHeaders(true),
+      }
+    )
+  );
+}
+
 export async function fetchMessages() {
   return apiResponse(
     await fetch(`${API}/api/messages`, { headers: staffHeaders() })

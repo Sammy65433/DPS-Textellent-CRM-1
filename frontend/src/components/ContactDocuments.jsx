@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, Badge, Button, Card, Spinner } from "react-bootstrap";
-import { fetchContactDocuments } from "../api/api";
+import { fetchContactDocuments, linkClientAccount } from "../api/api";
 
 const CRM_API = (import.meta.env.VITE_API_URL || "http://localhost:5002")
   .replace(/\/$/, "");
@@ -17,6 +17,26 @@ function ContactDocuments({ contactId }) {
   const [loading, setLoading] = useState(false);
   const [downloadingId, setDownloadingId] = useState(null);
   const [error, setError] = useState("");
+  const [linking, setLinking] = useState(false);
+  const [linkMessage, setLinkMessage] = useState("");
+
+  async function handleLinkClient() {
+    if (!contactId || linking) return;
+    setLinking(true);
+    setLinkMessage("");
+    setError("");
+    try {
+      const result = await linkClientAccount(contactId);
+      setLinkMessage(result?.message || "Client account connected.");
+      // reload documents now that the contact is linked
+      const items = await fetchContactDocuments(contactId);
+      setDocuments(items);
+    } catch (requestError) {
+      setError(requestError.message || "Could not connect client account.");
+    } finally {
+      setLinking(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -111,9 +131,29 @@ function ContactDocuments({ contactId }) {
           </Spinner>
         ) : (
           <>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <Button
+                size="sm"
+                variant="outline-primary"
+                disabled={linking}
+                onClick={handleLinkClient}
+              >
+                {linking ? "Connecting..." : "Connect client account"}
+              </Button>
+              <span className="text-muted small">
+                Links an existing client account by email.
+              </span>
+            </div>
+
             {error && (
               <Alert variant="warning" role="alert">
                 {error}
+              </Alert>
+            )}
+
+            {linkMessage && (
+              <Alert variant="success" role="status">
+                {linkMessage}
               </Alert>
             )}
 

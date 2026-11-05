@@ -57,6 +57,74 @@ async function recordDownloadAttempt(
 
 router.use(requireAuth, requireStaff);
 
+router.post("/contacts/:contactId/link-client", async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.contactId)) {
+    return res.status(400).json({ message: "Invalid contact ID." });
+  }
+
+  const connection = dpsConnection();
+
+  if (!connection) {
+    return res.status(503).json({ message: "DPS connection is not configured." });
+  }
+
+  try {
+    const contact = await Contact.findOne({
+      _id: req.params.contactId,
+      userId: CONTACT_SCOPE,
+    }).select("+supabaseCustomerId");
+
+    if (!contact) {
+      return res.status(404).json({ message: "Contact not found." });
+    }
+
+    if (contact.supabaseCustomerId) {
+      return res.status(409).json({
+        message: "Contact already linked to a client account.",
+      });
+    }
+
+    const email = String(contact.email || "").trim().toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Contact needs an email address first.",
+      });
+    }
+
+    const upstream = await fetch(
+      `${connection.url}/api/customer/by-email?email=${encodeURIComponent(email)}`,
+      {
+        headers: { "X-DPS-Staff-Key": connection.key },
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+
+    const data = await upstream.json().catch(() => ({}));
+
+    if (!upstream.ok) {
+      return res.status(404).json({
+        message:
+          data.error ||
+          "No client account found for this email. Ask the client to sign up first.",
+      });
+    }
+
+    contact.supabaseCustomerId = String(data.customer.id);
+    await contact.save();
+
+    return res.json({
+      message: "Client account connected to this contact.",
+      customerId: data.customer.id,
+    });
+  } catch (error) {
+    console.error("Link client account failed:", error);
+    return res.status(502).json({
+      message: "Could not connect the client account.",
+    });
+  }
+});
+
 router.get("/contacts/:contactId/documents", async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.contactId)) {
     return res.status(400).json({ message: "Invalid contact ID." });

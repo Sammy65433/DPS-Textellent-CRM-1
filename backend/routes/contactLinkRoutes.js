@@ -22,8 +22,12 @@ router.post("/:contactId/request", async (req, res) => {
   }
 
   if (!process.env.RESEND_API_KEY || !process.env.DPS_FRONTEND_URL) {
+    const missing = [
+      !process.env.RESEND_API_KEY && "RESEND_API_KEY",
+      !process.env.DPS_FRONTEND_URL && "DPS_FRONTEND_URL",
+    ].filter(Boolean);
     return res.status(503).json({
-      message: "Invitation email is not configured.",
+      message: `Invitation email is not configured. Missing: ${missing.join(", ")}.`,
     });
   }
 
