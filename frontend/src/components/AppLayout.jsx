@@ -20,6 +20,11 @@ function AppLayout({ children, theme, onToggleTheme }) {
   const [role, setRole] = useState(
     () => JSON.parse(localStorage.getItem("user") || "null")?.role || null
   );
+  const [userName, setUserName] = useState(
+    () => JSON.parse(localStorage.getItem("user") || "null")?.name ||
+          JSON.parse(localStorage.getItem("user") || "null")?.firstName ||
+          null
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -34,6 +39,7 @@ function AppLayout({ children, theme, onToggleTheme }) {
           const stored = JSON.parse(localStorage.getItem("user") || "null") || {};
           localStorage.setItem("user", JSON.stringify({ ...stored, ...data.user }));
           setRole(data.user.role);
+          setUserName(data.user.name || data.user.firstName || null);
         }
       })
       .catch(() => {});
@@ -64,16 +70,26 @@ function AppLayout({ children, theme, onToggleTheme }) {
             </Navbar.Brand>
 
           {["staff", "admin"].includes(role) && (
-            <span
-              className="ms-2 px-3 py-1 rounded-pill fw-bold"
-              style={{
-                backgroundColor: "#fbbf24",
-                color: "#111827",
-                fontSize: "0.8rem",
-              }}
-            >
-              {role === "admin" ? "Admin" : "Staff"}
-            </span>
+            <>
+              {userName && (
+                <span
+                  className="ms-2 fw-semibold"
+                  style={{ color: "#f97316", fontSize: "0.95rem" }}
+                >
+                  Welcome, {userName}
+                </span>
+              )}
+              <span
+                className="ms-2 px-3 py-1 rounded-pill fw-bold"
+                style={{
+                  backgroundColor: "#fbbf24",
+                  color: "#111827",
+                  fontSize: "0.8rem",
+                }}
+              >
+                {role === "admin" ? "Admin" : "Staff"}
+              </span>
+            </>
           )}
 
           <Navbar.Toggle
