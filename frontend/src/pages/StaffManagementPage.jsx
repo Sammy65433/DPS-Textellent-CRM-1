@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import AppLayout from "../components/AppLayout";
 
-const CRM_API = (import.meta.env.VITE_API_URL || "http://localhost:5002").replace(
-  /\/$/,
-  ""
-);
-
 export default function StaffManagementPage({ theme, onToggleTheme }) {
   const [form, setForm] = useState({
     firstName: "",
@@ -17,6 +12,38 @@ export default function StaffManagementPage({ theme, onToggleTheme }) {
   const [staff, setStaff] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [checkingRole, setCheckingRole] = useState(true);
+
+  const CRM_API = (import.meta.env.VITE_API_URL || "http://localhost:5002").replace(
+    /\/$/,
+    ""
+  );
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setCheckingRole(false);
+      return;
+    }
+    fetch(`${CRM_API}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.user) {
+          setCurrentUser(data.user);
+          const stored = JSON.parse(localStorage.getItem("user") || "null") || {};
+          localStorage.setItem("user", JSON.stringify({ ...stored, ...data.user }));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCheckingRole(false));
+  }, []);
+
+  useEffect(() => {
+    if (currentUser?.role === "admin") loadStaff();
+  }, [currentUser]);
 
   async function loadStaff() {
     setLoadingStaff(true);
@@ -102,86 +129,107 @@ export default function StaffManagementPage({ theme, onToggleTheme }) {
       <main className="container py-4">
         <h1>Staff Management</h1>
 
-        <form onSubmit={submit} className="d-grid gap-3" style={{ maxWidth: 480 }}>
-          {["firstName", "lastName", "email"].map((field) => (
-            <label key={field}>
-              {field === "firstName"
-                ? "First name"
-                : field === "lastName"
-                ? "Last name"
-                : "Work email"}
-              <input
-                className="form-control"
-                required
-                type={field === "email" ? "email" : "text"}
-                value={form[field]}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    [field]: event.target.value,
-                  }))
-                }
-              />
-            </label>
-          ))}
-          <button className="btn btn-primary" disabled={saving}>
-            {saving ? "Sending..." : "Invite Staff"}
-          </button>
-          {message && <p role="status">{message}</p>}
-        </form>
+        {checkingRole && <p>Checking your account...</p>}
 
-        <h2 className="mt-5">Existing Staff</h2>
-        {loadingStaff ? (
-          <p>Loading staff...</p>
-        ) : staff.length === 0 ? (
-          <p className="text-muted">No staff accounts yet.</p>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-sm align-middle">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.map((member) => (
-                  <tr key={member._id || member.id}>
-                    <td>{member.name || `${member.firstName || ""} ${member.lastName || ""}`.trim()}</td>
-                    <td>{member.email}</td>
-                    <td>{member.role}</td>
-                    <td>
-                      <span
-                        className={`badge ${
-                          member.active ? "bg-success" : "bg-secondary"
-                        }`}
-                      >
-                        {member.active ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className={`btn btn-sm ${
-                          member.active ? "btn-outline-danger" : "btn-outline-success"
-                        }`}
-                        disabled={updatingId === (member._id || member.id)}
-                        onClick={() => toggleActive(member)}
-                      >
-                        {updatingId === (member._id || member.id)
-                          ? "Updating..."
-                          : member.active
-                          ? "Deactivate"
-                          : "Reactivate"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {!checkingRole && currentUser?.role !== "admin" && (
+          <div className="alert alert-warning">
+            <h2>Admin access required</h2>
+            <p>
+              Your account (<strong>{currentUser?.email || "unknown"}</strong>) has role{" "}
+              <code>{currentUser?.role || "none"}</code>, not <code>admin</code>.
+            </p>
+            <p className="mb-0">
+              Fix: open MongoDB Atlas → <code>users</code> collection → set this
+              account's <code>role</code> to <code>"admin"</code> and{" "}
+              <code>active</code> to <code>true</code>, then log out and back in.
+            </p>
           </div>
+        )}
+
+        {!checkingRole && currentUser?.role === "admin" && (
+          <>
+            <form onSubmit={submit} className="d-grid gap-3" style={{ maxWidth: 480 }}>
+              {["firstName", "lastName", "email"].map((field) => (
+                <label key={field}>
+                  {field === "firstName"
+                    ? "First name"
+                    : field === "lastName"
+                    ? "Last name"
+                    : "Work email"}
+                  <input
+                    className="form-control"
+                    required
+                    type={field === "email" ? "email" : "text"}
+                    value={form[field]}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        [field]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              ))}
+              <button className="btn btn-primary" disabled={saving}>
+                {saving ? "Sending..." : "Invite Staff"}
+              </button>
+              {message && <p role="status">{message}</p>}
+            </form>
+
+            <h2 className="mt-5">Existing Staff</h2>
+            {loadingStaff ? (
+              <p>Loading staff...</p>
+            ) : staff.length === 0 ? (
+              <p className="text-muted">No staff accounts yet.</p>
+            ) : (
+              <div className="table-responsive">
+                <table className="table table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staff.map((member) => (
+                      <tr key={member._id || member.id}>
+                        <td>{member.name || `${member.firstName || ""} ${member.lastName || ""}`.trim()}</td>
+                        <td>{member.email}</td>
+                        <td>{member.role}</td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              member.active ? "bg-success" : "bg-secondary"
+                            }`}
+                          >
+                            {member.active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className={`btn btn-sm ${
+                              member.active ? "btn-outline-danger" : "btn-outline-success"
+                            }`}
+                            disabled={updatingId === (member._id || member.id)}
+                            onClick={() => toggleActive(member)}
+                          >
+                            {updatingId === (member._id || member.id)
+                              ? "Updating..."
+                              : member.active
+                              ? "Deactivate"
+                              : "Reactivate"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </main>
     </AppLayout>

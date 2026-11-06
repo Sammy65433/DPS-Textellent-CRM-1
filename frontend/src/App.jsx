@@ -314,17 +314,7 @@ function App() {
   path="/staff"
   element={
     <ProtectedRoute>
-      {JSON.parse(localStorage.getItem("user") || "null")?.role === "admin" ? (
-        <StaffManagementPage theme={theme} onToggleTheme={toggleTheme} />
-      ) : (
-        <div className="container py-5">
-          <h1>Admin access required</h1>
-          <p className="text-muted">
-            Your account does not have admin privileges. Log out and back in, or
-            contact an administrator to upgrade your role.
-          </p>
-        </div>
-      )}
+      <StaffManagementPage theme={theme} onToggleTheme={toggleTheme} />
     </ProtectedRoute>
   }
 />
