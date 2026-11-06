@@ -53,6 +53,16 @@ function AddContactForm({
 
                     <Form.Control
                         className="mb-2"
+                        type="date"
+                        placeholder="Birthday"
+                        value={contactForm.birthday || ""}
+                        onChange={e =>
+                            setContactForm(prev => ({ ...prev, birthday: e.target.value }))
+                        }
+                    />
+
+                    <Form.Control
+                        className="mb-2"
                         placeholder="Tags (comma separated)"
                         value={contactForm.tags}
                         onChange={e =>

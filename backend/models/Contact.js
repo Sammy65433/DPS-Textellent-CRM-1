@@ -25,6 +25,8 @@ const contactSchema = new mongoose.Schema(
     },
     tags: { type: String, trim: true, maxlength: 500 },
     notes: { type: String, trim: true, default: "", maxlength: 5000 },
+    birthday: { type: Date, default: null },
+    lastBirthdaySentDate: { type: String, default: null },
     supabaseCustomerId: {
       type: String,
       default: null,

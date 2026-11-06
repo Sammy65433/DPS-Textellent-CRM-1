@@ -25,13 +25,19 @@ router.post("/redeem", async (req, res) => {
         return res.status(401).json({ message: "Unauthorized." });
     }
 
-    const { token, customerId, verifiedEmail } = req.body ?? {};
+    const { token, customerId, verifiedEmail, birthday } = req.body ?? {};
+
+    const isObjectId = /^[a-f0-9]{24}$/i.test(customerId);
+    const isUuid =
+      /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(
+        customerId
+      );
 
     if (
         typeof token !== "string" ||
         !/^[a-f0-9]{64}$/i.test(token) ||
         typeof customerId !== "string" ||
-        !/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(customerId) ||
+        (!isObjectId && !isUuid) ||
         typeof verifiedEmail !== "string" ||
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(verifiedEmail)
     ) {
@@ -110,7 +116,7 @@ router.post("/redeem", async (req, res) => {
                     supabaseCustomerId: null,
                     email: invitation.recipientEmail,
                 },
-                { $set: { supabaseCustomerId: customerId } },
+                { $set: { supabaseCustomerId: customerId, ...(birthday ? { birthday: new Date(birthday) } : {}) } },
                 { returnDocument: "after", session }
             ).select("+supabaseCustomerId");
 

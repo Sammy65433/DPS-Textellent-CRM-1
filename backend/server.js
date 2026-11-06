@@ -14,6 +14,7 @@ import { connectDB } from "./config/db.js";
 import AuditLog from "./models/AuditLog.js";
 import Contact from "./models/Contact.js";
 import { startCampaignScheduler } from "./services/campaignScheduler.js";
+import { startBirthdayScheduler, runBirthdayTick } from "./services/birthdayScheduler.js";
 import { inviteStaff, listStaff, setStaffActive } from "./controllers/staffController.js";
 import {
   requireAuth,
@@ -56,6 +57,7 @@ app.use(express.json({ limit: "1mb" }));
 
 connectDB();
 startCampaignScheduler();
+startBirthdayScheduler();
 
 app.get("/", (_req, res) => {
   res.send("Textellent backend running");
@@ -87,6 +89,21 @@ app.use("/api/contact-links", contactLinkRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/emails", emailRoutes);
+
+app.post(
+  "/api/birthdays/run",
+  requireAuth,
+  requireStaff,
+  async (_req, res) => {
+    try {
+      const result = await runBirthdayTick();
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      console.error("Birthday run failed:", error);
+      return res.status(500).json({ error: "Birthday run failed." });
+    }
+  }
+);
 app.use("/api/messages", messageRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/staff", staffDocumentRoutes);

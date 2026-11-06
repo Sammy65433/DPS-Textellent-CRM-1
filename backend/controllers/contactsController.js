@@ -14,6 +14,13 @@ function validEmail(email) {
 }
 
 function contactFields(body = {}) {
+  const birthdayRaw = String(body.birthday ?? "").trim();
+  let birthday = null;
+  if (birthdayRaw) {
+    const d = new Date(birthdayRaw);
+    if (!Number.isNaN(d.getTime())) birthday = d;
+  }
+
   return {
     firstName: String(body.firstName ?? "").trim(),
     lastName: String(body.lastName ?? "").trim(),
@@ -21,6 +28,7 @@ function contactFields(body = {}) {
     email: cleanEmail(body.email),
     tags: String(body.tags ?? "").trim(),
     notes: String(body.notes ?? "").trim(),
+    birthday,
   };
 }
 
@@ -85,10 +93,15 @@ export async function updateContact(req, res) {
     return res.status(400).json({ error: validationError });
   }
 
+  const update = { ...fields };
+  if (req.body?.birthday === undefined) {
+    delete update.birthday;
+  }
+
   try {
     const contact = await Contact.findOneAndUpdate(
       { _id: req.params.id, userId: DPS_CONTACT_SCOPE },
-      { $set: fields },
+      { $set: update },
       { new: true, runValidators: true }
     );
 

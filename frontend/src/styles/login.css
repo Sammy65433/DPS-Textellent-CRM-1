@@ -267,3 +267,22 @@
 .login-password-toggle:hover {
   background: #e2e8f0;
 }
+
+/* Mobile: keep the show/hide toggle out of the password input's tap area */
+@media (max-width: 520px) {
+  .login-password-field {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .login-password-field input {
+    padding-right: 1rem;
+  }
+
+  .login-password-toggle {
+    position: static;
+    transform: none;
+    align-self: flex-end;
+    margin-top: 0.4rem;
+  }
+}

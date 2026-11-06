@@ -65,6 +65,7 @@ export function useAppHandlers({
             lastName: "",
             phone: "",
             email: "",
+            birthday: "",
             tags: "",
             notes: "",
         });
@@ -210,6 +211,9 @@ export function useAppHandlers({
             lastName: contact.lastName || "",
             phone: contact.phone || "",
             email: contact.email || "",
+            birthday: contact.birthday
+              ? new Date(contact.birthday).toISOString().slice(0, 10)
+              : "",
             tags: contact.tags || "",
             notes: contact.notes || "",
         });

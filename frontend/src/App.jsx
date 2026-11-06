@@ -76,6 +76,7 @@ function App() {
     lastName: "",
     phone: "",
     email: "",
+    birthday: "",
     tags: "",
     notes: "",
   });
