@@ -1145,10 +1145,31 @@
 
   .booking-calendar-panel {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .booking-calendar {
-    min-width: 320px;
+    min-width: 420px;
+  }
+
+  .booking-calendar .booking-day {
+    min-height: 60px;
+    padding: 4px 3px;
+  }
+
+  .booking-calendar .booking-day strong {
+    font-size: 0.9rem;
+  }
+
+  .booking-calendar-event {
+    font-size: 0.58rem;
+    padding: 1px 3px;
+    line-height: 1.1;
+  }
+
+  .booking-count {
+    font-size: 0.58rem;
+    padding: 1px 3px;
   }
 }
 

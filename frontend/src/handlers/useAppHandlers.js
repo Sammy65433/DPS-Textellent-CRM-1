@@ -101,20 +101,25 @@ export function useAppHandlers({
     };
 
     const loadData = async () => {
-        const [contactsData, messagesData, templatesData, campaignsData, emailsData] =
-            await Promise.all([
-                fetchContacts(),
-                fetchMessages(),
-                fetchTemplates(),
-                fetchCampaigns(),
-                fetchEmails(),
-            ]);
+        try {
+            const [contactsData, messagesData, templatesData, campaignsData, emailsData] =
+                await Promise.all([
+                    fetchContacts(),
+                    fetchMessages(),
+                    fetchTemplates(),
+                    fetchCampaigns(),
+                    fetchEmails(),
+                ]);
 
-        setContacts(contactsData);
-        setMessages(messagesData);
-        setTemplates(templatesData);
-        setCampaigns(campaignsData);
-        setEmails(emailsData);
+            setContacts(Array.isArray(contactsData) ? contactsData : []);
+            setMessages(Array.isArray(messagesData) ? messagesData : []);
+            setTemplates(Array.isArray(templatesData) ? templatesData : []);
+            setCampaigns(Array.isArray(campaignsData) ? campaignsData : []);
+            setEmails(Array.isArray(emailsData) ? emailsData : []);
+        } catch (error) {
+            console.error("loadData failed:", error);
+            showAlert("danger", "Could not load dashboard data. Check your connection.");
+        }
     };
 
     const refreshSelectedConversation = async contactId => {

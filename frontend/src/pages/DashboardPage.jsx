@@ -1,7 +1,6 @@
-import { Row, Col, Alert, Card, ListGroup, Badge, Button } from "react-bootstrap";
+import { Row, Col, Alert, Card, ListGroup, Badge, Button, Form } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
-import Booking from "../components/Booking";
 import PageHeader from "../components/PageHeader";
 import StatsCards from "../components/StatsCards";
 import {
@@ -63,7 +62,6 @@ const [appointments, setAppointments] = useState([]);
     const [bookingError, setBookingError] = useState("");
     const navigate = useNavigate();
     const [actionStatus, setActionStatus] = useState({});
-    const [showBooking, setShowBooking] = useState(false);
 
     async function handleDeleteRecentMessage(msg) {
         if (!onDeleteMessage) return;
@@ -432,28 +430,6 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                             </Card>
                         </Col>
                     </Row>
-                </Col>
-            </Row>
-
-            <Row className="g-4 section-spacer">
-                <Col md={12}>
-                    <Card className="crm-card border-0">
-                        <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
-                            <span>Book Appointment</span>
-                            <Button
-                                size="sm"
-                                variant="outline-secondary"
-                                onClick={() => setShowBooking((v) => !v)}
-                            >
-                                {showBooking ? "Hide" : "Show"}
-                            </Button>
-                        </Card.Header>
-                        {showBooking && (
-                            <Card.Body>
-                                <Booking theme={theme} onToggleTheme={onToggleTheme} />
-                            </Card.Body>
-                        )}
-                    </Card>
                 </Col>
             </Row>
 
