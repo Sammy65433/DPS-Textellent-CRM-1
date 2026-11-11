@@ -1,6 +1,7 @@
 import { Row, Col, Alert, Card, ListGroup, Badge, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
+import Booking from "../components/Booking";
 import PageHeader from "../components/PageHeader";
 import StatsCards from "../components/StatsCards";
 import {
@@ -41,6 +42,8 @@ function DashboardPage({
     templates,
     campaigns,
     emails = [],
+    onDeleteMessage,
+    onDeleteEmail,
 }) {
     const recentMessages = [...messages]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -60,6 +63,27 @@ const [appointments, setAppointments] = useState([]);
     const [bookingError, setBookingError] = useState("");
     const navigate = useNavigate();
     const [actionStatus, setActionStatus] = useState({});
+    const [showBooking, setShowBooking] = useState(false);
+
+    async function handleDeleteRecentMessage(msg) {
+        if (!onDeleteMessage) return;
+        if (!window.confirm("Are you sure you want to delete this message?")) return;
+        try {
+            await onDeleteMessage(msg._id);
+        } catch (error) {
+            // handler already alerts
+        }
+    }
+
+    async function handleDeleteRecentEmail(email) {
+        if (!onDeleteEmail) return;
+        if (!window.confirm("Are you sure you want to delete this email?")) return;
+        try {
+            await onDeleteEmail(email._id);
+        } catch (error) {
+            // handler already alerts
+        }
+    }
 
     const activityByDay = {};
 
@@ -370,22 +394,30 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                                 <Card.Header className="card-header-clean">
                                     Quick Actions
                                 </Card.Header>
-                                <Card.Body className="d-grid gap-3">
-                                    <Button as={Link} to="/contacts" variant="dark">
+                                <Card.Body className="d-grid gap-2">
+                                    <Button as={Link} to="/contacts" variant="dark" size="sm">
                                         <FaUsers className="me-2" />
                                         Manage Contacts
                                     </Button>
-                                    <Button as={Link} to="/emails" variant="primary">
+                                    <Button as={Link} to="/emails" variant="primary" size="sm">
                                         <FaEnvelope className="me-2" />
                                         Send Email
                                     </Button>
-                                    <Button as={Link} to="/templates" variant="warning">
+                                    <Button as={Link} to="/templates" variant="warning" size="sm">
                                         <FaFileAlt className="me-2" />
                                         Manage Templates
                                     </Button>
-                                    <Button as={Link} to="/campaigns" variant="success">
+                                    <Button as={Link} to="/campaigns" variant="success" size="sm">
                                         <FaBullhorn className="me-2" />
                                         Create Campaign
+                                    </Button>
+                                    <Button
+                                        variant="info"
+                                        size="sm"
+                                        onClick={() => setShowBooking((v) => !v)}
+                                    >
+                                        <FaCalendarCheck className="me-2" />
+                                        {showBooking ? "Hide Booking Form" : "Book Appointment"}
                                     </Button>
                                 </Card.Body>
                             </Card>
@@ -414,6 +446,28 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
             </Row>
 
             <Row className="g-4 section-spacer">
+                <Col md={12}>
+                    <Card className="crm-card border-0">
+                        <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                            <span>Book Appointment</span>
+                            <Button
+                                size="sm"
+                                variant="outline-secondary"
+                                onClick={() => setShowBooking((v) => !v)}
+                            >
+                                {showBooking ? "Hide" : "Show"}
+                            </Button>
+                        </Card.Header>
+                        {showBooking && (
+                            <Card.Body>
+                                <Booking theme={theme} onToggleTheme={onToggleTheme} />
+                            </Card.Body>
+                        )}
+                    </Card>
+                </Col>
+            </Row>
+
+            <Row className="g-4 section-spacer">
                 <Col md={6}>
                     <Card className="crm-card panel-messages border-0">
                         <Card.Header className="card-header-clean">
@@ -434,6 +488,15 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                                         <small className="text-muted">
                                             {msg.direction} • {new Date(msg.createdAt).toLocaleString()}
                                         </small>
+                                        <div className="mt-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline-danger"
+                                                onClick={() => handleDeleteRecentMessage(msg)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
                                     </ListGroup.Item>
                                 ))
                             )}
@@ -457,6 +520,15 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                                         <small className="text-muted">
                                             email • {new Date(email.createdAt).toLocaleString()}
                                         </small>
+                                        <div className="mt-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline-danger"
+                                                onClick={() => handleDeleteRecentEmail(email)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
                                     </ListGroup.Item>
                                 ))
                             )}

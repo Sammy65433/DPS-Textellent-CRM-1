@@ -157,6 +157,8 @@ function App() {
                 templates={templates}
                 campaigns={campaigns}
                 emails={emails}
+                onDeleteMessage={handleDeleteMessage}
+                onDeleteEmail={handleDeleteEmail}
               />
             </ProtectedRoute>
           }
