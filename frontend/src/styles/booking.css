@@ -1205,3 +1205,36 @@
     font-size: 0.6rem;
   }
 }
+
+/* Mobile: keep booked chips inside day cells */
+@media (max-width: 700px) {
+  .booking-day-chip {
+    padding: 2px 3px;
+    font-size: 0.6rem;
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .booking-day-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  .booking-day-chip .booking-event-note-icon {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .booking-day-chip {
+    font-size: 0.55rem;
+    padding: 1px 2px;
+  }
+
+  .booking-day-chip span:last-child {
+    display: none; /* hide name on very small screens, keep time */
+  }
+}
