@@ -1092,3 +1092,10 @@
     padding: 1px 3px;
   }
 }
+
+/* Keep native date inputs from overflowing on mobile */
+.form-control[type="date"] {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}

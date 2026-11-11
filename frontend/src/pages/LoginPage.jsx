@@ -83,25 +83,23 @@ function LoginPage() {
               <FaLock />
               <span>Password</span>
             </label>
-            <div className="login-password-field">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <label className="login-show-password">
               <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-                required
+                type="checkbox"
+                checked={showPassword}
+                onChange={(event) => setShowPassword(event.target.checked)}
               />
-              <button
-                type="button"
-                className="login-password-toggle"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
+              Show password
+            </label>
 
             <button type="submit" className="btn" disabled={loading}>
               {loading ? "Signing In..." : "Login"}
