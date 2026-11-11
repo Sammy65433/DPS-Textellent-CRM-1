@@ -62,6 +62,8 @@ const [appointments, setAppointments] = useState([]);
     const [bookingError, setBookingError] = useState("");
     const navigate = useNavigate();
     const [actionStatus, setActionStatus] = useState({});
+    const [selectedMessageIds, setSelectedMessageIds] = useState([]);
+    const [selectedEmailIds, setSelectedEmailIds] = useState([]);
 
     async function handleDeleteRecentMessage(msg) {
         if (!onDeleteMessage) return;
@@ -81,6 +83,32 @@ const [appointments, setAppointments] = useState([]);
         } catch (error) {
             // handler already alerts
         }
+    }
+
+    async function handleBulkDeleteMessages() {
+        if (selectedMessageIds.length === 0) return;
+        if (!window.confirm(`Delete ${selectedMessageIds.length} selected message(s)?`)) return;
+        for (const id of selectedMessageIds) {
+            try {
+                await onDeleteMessage?.(id);
+            } catch (error) {
+                // continue
+            }
+        }
+        setSelectedMessageIds([]);
+    }
+
+    async function handleBulkDeleteEmails() {
+        if (selectedEmailIds.length === 0) return;
+        if (!window.confirm(`Delete ${selectedEmailIds.length} selected email(s)?`)) return;
+        for (const id of selectedEmailIds) {
+            try {
+                await onDeleteEmail?.(id);
+            } catch (error) {
+                // continue
+            }
+        }
+        setSelectedEmailIds([]);
     }
 
     const activityByDay = {};
@@ -436,8 +464,17 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
             <Row className="g-4 section-spacer">
                 <Col md={6}>
                     <Card className="crm-card panel-messages border-0">
-                        <Card.Header className="card-header-clean">
-                            Recent Messages
+                        <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                            <span>Recent Messages</span>
+                            {selectedMessageIds.length > 0 && (
+                                <Button
+                                    size="sm"
+                                    variant="danger"
+                                    onClick={handleBulkDeleteMessages}
+                                >
+                                    Delete selected ({selectedMessageIds.length})
+                                </Button>
+                            )}
                         </Card.Header>
                         <ListGroup variant="flush">
                             {recentMessages.length === 0 ? (
@@ -445,22 +482,40 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                             ) : (
                                 recentMessages.map(msg => (
                                     <ListGroup.Item key={msg._id}>
-                                        <div className="fw-semibold">
-                                            {msg.contactId?.firstName
-                                                ? `${msg.contactId.firstName} ${msg.contactId.lastName || ""}`
-                                                : msg.toPhone || msg.fromPhone}
-                                        </div>
-                                        <div>{msg.body}</div>
-                                        <small className="text-muted">
-                                            {msg.direction} • {new Date(msg.createdAt).toLocaleString()}
-                                        </small>
-                                        <div className="mt-2">
+                                        <div className="d-flex justify-content-between align-items-start gap-2">
+                                            <Form.Check
+                                                type="checkbox"
+                                                className="mt-1"
+                                                checked={selectedMessageIds.includes(msg._id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedMessageIds((prev) => [...prev, msg._id]);
+                                                    } else {
+                                                        setSelectedMessageIds((prev) =>
+                                                            prev.filter((id) => id !== msg._id)
+                                                        );
+                                                    }
+                                                }}
+                                            />
+                                            <div className="flex-grow-1">
+                                                <div className="fw-semibold">
+                                                    {msg.contactId?.firstName
+                                                        ? `${msg.contactId.firstName} ${msg.contactId.lastName || ""}`
+                                                        : msg.toPhone || msg.fromPhone}
+                                                </div>
+                                                <div>{msg.body}</div>
+                                                <small className="text-muted">
+                                                    {msg.direction} • {new Date(msg.createdAt).toLocaleString()}
+                                                </small>
+                                            </div>
                                             <Button
                                                 size="sm"
                                                 variant="outline-danger"
+                                                className="py-0 px-2"
                                                 onClick={() => handleDeleteRecentMessage(msg)}
+                                                title="Delete"
                                             >
-                                                Delete
+                                                ×
                                             </Button>
                                         </div>
                                     </ListGroup.Item>
@@ -472,8 +527,17 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
 
                 <Col md={6}>
                     <Card className="crm-card panel-emails border-0">
-                        <Card.Header className="card-header-clean">
-                            Recent Emails
+                        <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                            <span>Recent Emails</span>
+                            {selectedEmailIds.length > 0 && (
+                                <Button
+                                    size="sm"
+                                    variant="danger"
+                                    onClick={handleBulkDeleteEmails}
+                                >
+                                    Delete selected ({selectedEmailIds.length})
+                                </Button>
+                            )}
                         </Card.Header>
                         <ListGroup variant="flush">
                             {recentEmails.length === 0 ? (
@@ -481,18 +545,36 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                             ) : (
                                 recentEmails.map(email => (
                                     <ListGroup.Item key={email._id}>
-                                        <div className="fw-semibold">{email.toEmail}</div>
-                                        <div>{email.subject}</div>
-                                        <small className="text-muted">
-                                            email • {new Date(email.createdAt).toLocaleString()}
-                                        </small>
-                                        <div className="mt-2">
+                                        <div className="d-flex justify-content-between align-items-start gap-2">
+                                            <Form.Check
+                                                type="checkbox"
+                                                className="mt-1"
+                                                checked={selectedEmailIds.includes(email._id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedEmailIds((prev) => [...prev, email._id]);
+                                                    } else {
+                                                        setSelectedEmailIds((prev) =>
+                                                            prev.filter((id) => id !== email._id)
+                                                        );
+                                                    }
+                                                }}
+                                            />
+                                            <div className="flex-grow-1">
+                                                <div className="fw-semibold">{email.toEmail}</div>
+                                                <div>{email.subject}</div>
+                                                <small className="text-muted">
+                                                    email • {new Date(email.createdAt).toLocaleString()}
+                                                </small>
+                                            </div>
                                             <Button
                                                 size="sm"
                                                 variant="outline-danger"
+                                                className="py-0 px-2"
                                                 onClick={() => handleDeleteRecentEmail(email)}
+                                                title="Delete"
                                             >
-                                                Delete
+                                                ×
                                             </Button>
                                         </div>
                                     </ListGroup.Item>

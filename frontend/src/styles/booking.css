@@ -1100,47 +1100,52 @@
   box-sizing: border-box;
 }
 
-/* Mobile calendar: stack controls, scrollable grid */
+/* Mobile calendar: compact, no awkward gaps */
 @media (max-width: 700px) {
   .booking-calendar-header {
-    gap: 8px;
+    gap: 6px;
   }
 
   .booking-month-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
   }
 
   .booking-month-controls strong {
-    order: -1;
+    flex-basis: 100%;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    margin: 2px 0;
   }
 
   .booking-month-controls button {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+    padding: 4px 6px;
+    font-size: 0.7rem;
     min-width: 0;
-    padding: 6px 4px;
-    font-size: 0.75rem;
   }
 
   .booking-legend {
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
     justify-content: center;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
 
   .booking-view-switch {
     width: 100%;
     display: flex;
+    gap: 4px;
   }
 
   .booking-view-switch button {
     flex: 1;
-    padding: 6px 4px;
-    font-size: 0.8rem;
+    padding: 5px 2px;
+    font-size: 0.75rem;
   }
 
   .booking-calendar-panel {
@@ -1149,39 +1154,54 @@
   }
 
   .booking-calendar {
-    min-width: 420px;
+    min-width: 300px;
+    gap: 2px;
   }
 
   .booking-calendar .booking-day {
-    min-height: 60px;
-    padding: 4px 3px;
+    min-height: 52px;
+    padding: 3px 2px;
+    font-size: 0.75rem;
   }
 
   .booking-calendar .booking-day strong {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .booking-weekday {
+    font-size: 0.65rem;
+    padding: 3px 0;
   }
 
   .booking-calendar-event {
-    font-size: 0.58rem;
-    padding: 1px 3px;
+    font-size: 0.55rem;
+    padding: 1px 2px;
     line-height: 1.1;
   }
 
   .booking-count {
-    font-size: 0.58rem;
+    font-size: 0.55rem;
     padding: 1px 3px;
   }
 }
 
 @media (max-width: 420px) {
   .booking-month-controls button {
-    font-size: 0.7rem;
-    padding: 5px 2px;
+    font-size: 0.65rem;
+    padding: 4px 4px;
   }
 
   .booking-calendar .booking-day {
-    min-height: 44px;
+    min-height: 46px;
     padding: 2px;
+    font-size: 0.7rem;
+  }
+
+  .booking-calendar .booking-day strong {
     font-size: 0.75rem;
+  }
+
+  .booking-weekday {
+    font-size: 0.6rem;
   }
 }
