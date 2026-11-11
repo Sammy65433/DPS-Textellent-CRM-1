@@ -18,6 +18,24 @@ function ContactsList({
             </Card.Header>
 
             <Card.Body className="pb-2">
+                <Form.Select
+                    className="mb-2"
+                    value={selectedContact?._id || ""}
+                    onChange={(e) => {
+                        const chosen = contacts.find((c) => c._id === e.target.value);
+                        if (chosen) onSelectContact(chosen);
+                    }}
+                    aria-label="Quick select contact"
+                >
+                    <option value="">Quick select a contact...</option>
+                    {contacts.map((contact) => (
+                        <option key={contact._id} value={contact._id}>
+                            {contact.firstName} {contact.lastName}
+                            {contact.email ? ` — ${contact.email}` : ""}
+                        </option>
+                    ))}
+                </Form.Select>
+
                 <InputGroup className="mb-2">
                     <InputGroup.Text>
                         <FaSearch />

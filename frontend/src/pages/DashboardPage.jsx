@@ -395,30 +395,20 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                                     Quick Actions
                                 </Card.Header>
                                 <Card.Body className="d-grid gap-2">
-                                    <Button as={Link} to="/contacts" variant="dark" size="sm">
-                                        <FaUsers className="me-2" />
-                                        Manage Contacts
-                                    </Button>
-                                    <Button as={Link} to="/emails" variant="primary" size="sm">
-                                        <FaEnvelope className="me-2" />
-                                        Send Email
-                                    </Button>
-                                    <Button as={Link} to="/templates" variant="warning" size="sm">
-                                        <FaFileAlt className="me-2" />
-                                        Manage Templates
-                                    </Button>
-                                    <Button as={Link} to="/campaigns" variant="success" size="sm">
-                                        <FaBullhorn className="me-2" />
-                                        Create Campaign
-                                    </Button>
-                                    <Button
-                                        variant="info"
-                                        size="sm"
-                                        onClick={() => setShowBooking((v) => !v)}
+                                    <Form.Select
+                                        value=""
+                                        onChange={(e) => {
+                                            const target = e.target.value;
+                                            if (target) navigate(target);
+                                        }}
                                     >
-                                        <FaCalendarCheck className="me-2" />
-                                        {showBooking ? "Hide Booking Form" : "Book Appointment"}
-                                    </Button>
+                                        <option value="">Quick Actions...</option>
+                                        <option value="/contacts">Manage Contacts</option>
+                                        <option value="/emails">Send Email</option>
+                                        <option value="/templates">Manage Templates</option>
+                                        <option value="/campaigns">Create Campaign</option>
+                                        <option value="/booking">Book Appointment</option>
+                                    </Form.Select>
                                 </Card.Body>
                             </Card>
                         </Col>

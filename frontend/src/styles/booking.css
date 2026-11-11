@@ -1099,3 +1099,68 @@
   min-width: 0;
   box-sizing: border-box;
 }
+
+/* Mobile calendar: stack controls, scrollable grid */
+@media (max-width: 700px) {
+  .booking-calendar-header {
+    gap: 8px;
+  }
+
+  .booking-month-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .booking-month-controls strong {
+    order: -1;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+
+  .booking-month-controls button {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 6px 4px;
+    font-size: 0.75rem;
+  }
+
+  .booking-legend {
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    font-size: 0.7rem;
+  }
+
+  .booking-view-switch {
+    width: 100%;
+    display: flex;
+  }
+
+  .booking-view-switch button {
+    flex: 1;
+    padding: 6px 4px;
+    font-size: 0.8rem;
+  }
+
+  .booking-calendar-panel {
+    overflow-x: auto;
+  }
+
+  .booking-calendar {
+    min-width: 320px;
+  }
+}
+
+@media (max-width: 420px) {
+  .booking-month-controls button {
+    font-size: 0.7rem;
+    padding: 5px 2px;
+  }
+
+  .booking-calendar .booking-day {
+    min-height: 44px;
+    padding: 2px;
+    font-size: 0.75rem;
+  }
+}
