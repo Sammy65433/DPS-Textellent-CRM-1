@@ -67,31 +67,31 @@ function AppLayout({ children, theme, onToggleTheme }) {
       >
         <Container fluid>
           <Navbar.Brand className="fw-bold d-flex align-items-center gap-2">
-              <img src="/dps-favicon.png" alt="DPS" width={32} height={32} style={{ borderRadius: 6 }} />
-              DPS CRM
+              <img src="/dps-logo.png" alt="DPS" width={36} height={36} style={{ borderRadius: 8 }} />
+              <span style={{ fontFamily: '"Libre Baskerville", Georgia, serif' }}>DPS CRM</span>
             </Navbar.Brand>
 
           {["staff", "admin"].includes(role) && (
-            <>
+            <div className="d-flex align-items-center gap-2 ms-2">
               {userName && (
                 <span
-                  className="ms-2 fw-semibold"
-                  style={{ color: "#f97316", fontSize: "0.95rem" }}
+                  className="fw-semibold d-none d-md-inline"
+                  style={{ color: "#f97316", fontSize: "0.9rem" }}
                 >
                   Welcome, {userName}
                 </span>
               )}
               <span
-                className="ms-2 px-3 py-1 rounded-pill fw-bold"
+                className="px-2 py-1 rounded-pill fw-bold"
                 style={{
                   backgroundColor: "#fbbf24",
                   color: "#111827",
-                  fontSize: "0.8rem",
+                  fontSize: "0.75rem",
                 }}
               >
                 {role === "admin" ? "Admin" : "Staff"}
               </span>
-            </>
+            </div>
           )}
 
           <Navbar.Toggle
