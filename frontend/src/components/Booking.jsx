@@ -195,6 +195,13 @@ export default function Booking({ theme, onToggleTheme }) {
     const [slots, setSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
 
+    const [showBlockForm, setShowBlockForm] = useState(false);
+    const [blockTime, setBlockTime] = useState("");
+    const [blockDuration, setBlockDuration] = useState(30);
+    const [blockReason, setBlockReason] = useState("");
+    const [blockPreparer, setBlockPreparer] = useState("");
+    const [blocking, setBlocking] = useState(false);
+
     const [showAiSchedule, setShowAiSchedule] = useState(false);
     const [aiScheduleRequest, setAiScheduleRequest] = useState("");
     const [aiScheduleLoading, setAiScheduleLoading] = useState(false);
@@ -1410,7 +1417,111 @@ async function sendAccountLinkInvitation(appointment) {
                                 )}
                             </div>
 
-                            <h2>Book for {formatDate(day)}</h2>
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <h2 className="mb-0">Book for {formatDate(day)}</h2>
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-secondary btn-sm"
+                                    onClick={() => setShowBlockForm((v) => !v)}
+                                >
+                                    {showBlockForm ? "Cancel" : "Block Time"}
+                                </button>
+                            </div>
+
+                            {showBlockForm && (
+                                <div className="booking-block-form mb-3 p-2 border rounded">
+                                    <div className="booking-filters">
+                                        <label className="booking-filter">
+                                            Preparer
+                                            <select value={blockPreparer} onChange={(e) => setBlockPreparer(e.target.value)}>
+                                                <option value="">Choose preparer</option>
+                                                {PREPARERS.map((name) => (
+                                                    <option key={name} value={name}>{name}</option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                        <label className="booking-filter">
+                                            Time
+                                            <select value={blockTime} onChange={(e) => setBlockTime(e.target.value)}>
+                                                <option value="">Select time</option>
+                                                {Array.from({ length: 28 }, (_, i) => {
+                                                    const mins = 9 * 60 + i * 15;
+                                                    const h = Math.floor(mins / 60);
+                                                    const m = mins % 60;
+                                                    const ampm = h >= 12 ? "PM" : "AM";
+                                                    const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                                                    return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+                                                }).map((t) => (
+                                                    <option key={t} value={t}>{t}</option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                        <label className="booking-filter">
+                                            Duration
+                                            <select value={blockDuration} onChange={(e) => setBlockDuration(Number(e.target.value))}>
+                                                <option value={15}>15 min</option>
+                                                <option value={30}>30 min</option>
+                                                <option value={60}>1 hour</option>
+                                            </select>
+                                        </label>
+                                        <label className="booking-filter">
+                                            Reason
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Lunch, Meeting"
+                                                value={blockReason}
+                                                onChange={(e) => setBlockReason(e.target.value)}
+                                            />
+                                        </label>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="btn btn-danger btn-sm"
+                                        disabled={blocking || !blockPreparer || !blockTime}
+                                        onClick={async () => {
+                                            setBlocking(true);
+                                            try {
+                                                const token = localStorage.getItem("token");
+                                                const response = await fetch(
+                                                    `${CRM_API_URL}/api/staff/appointments/block`,
+                                                    {
+                                                        method: "POST",
+                                                        headers: {
+                                                            "Content-Type": "application/json",
+                                                            Authorization: `Bearer ${token}`,
+                                                        },
+                                                        body: JSON.stringify({
+                                                            tax_preparer: blockPreparer,
+                                                            appointment_date: day,
+                                                            appointment_time: blockTime,
+                                                            duration_minutes: blockDuration,
+                                                            reason: blockReason || "Blocked time",
+                                                        }),
+                                                    }
+                                                );
+                                                const data = await response.json().catch(() => ({}));
+                                                if (!response.ok) throw new Error(data.message || "Block failed.");
+                                                setBlockTime("");
+                                                setBlockReason("");
+                                                setShowBlockForm(false);
+                                                const r = await fetch(`${CRM_API_URL}/api/staff/appointments`, {
+                                                    headers: { Authorization: `Bearer ${token}` },
+                                                });
+                                                const d = await r.json().catch(() => ({}));
+                                                if (Array.isArray(d)) setAppointments(d);
+                                            } catch (error) {
+                                                alert(error.message || "Could not block time.");
+                                            } finally {
+                                                setBlocking(false);
+                                            }
+                                        }}
+                                    >
+                                        {blocking ? "Blocking..." : "Block This Time"}
+                                    </button>
+                                </div>
+                            )}
+
+                            <h2 className="mt-2">Book for {formatDate(day)}</h2>
 
                             {day < dateKey(new Date()) ? (
                                 <p>

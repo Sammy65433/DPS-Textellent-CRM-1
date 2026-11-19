@@ -110,6 +110,37 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/staff", staffDocumentRoutes);
 
+// Block time proxy (staff only)
+app.post(
+  "/api/staff/appointments/block",
+  requireAuth,
+  requireStaff,
+  async (req, res) => {
+    if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+      return res.status(503).json({ message: "DPS connection is not configured." });
+    }
+    try {
+      const upstream = await fetch(
+        `${process.env.DPS_API_URL}/api/appointments/block`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY,
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(15000),
+        }
+      );
+      const data = await upstream.json().catch(() => ({}));
+      return res.status(upstream.status).json(data);
+    } catch (error) {
+      console.error("Block time proxy failed:", error);
+      return res.status(502).json({ message: "Block time service unavailable." });
+    }
+  }
+);
+
 
 app.use("/api/internal/contact-links", internalContactLinkRoutes);
 
