@@ -184,6 +184,11 @@ export default function Booking({ theme, onToggleTheme }) {
     const [slots, setSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
 
+    const [showAiSchedule, setShowAiSchedule] = useState(false);
+    const [aiScheduleRequest, setAiScheduleRequest] = useState("");
+    const [aiScheduleLoading, setAiScheduleLoading] = useState(false);
+    const [aiScheduleMessage, setAiScheduleMessage] = useState("");
+
     const [customer, setCustomer] = useState(() => ({
         ...EMPTY_CUSTOMER,
         ...(location.state?.customer || {}),
@@ -1201,6 +1206,85 @@ async function sendAccountLinkInvitation(appointment) {
                         </div>
 
                         <div className="booking-form-section">
+                            <div className="booking-ai-schedule mb-3">
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-primary btn-sm"
+                                    onClick={() => setShowAiSchedule((v) => !v)}
+                                >
+                                    {showAiSchedule ? "Hide AI Scheduler" : "AI Schedule"}
+                                </button>
+
+                                {showAiSchedule && (
+                                    <div className="booking-ai-schedule-panel mt-2">
+                                        <textarea
+                                            className="form-control mb-2"
+                                            rows={2}
+                                            placeholder="e.g. Book Omar for 60-min tax prep next Tuesday afternoon"
+                                            value={aiScheduleRequest}
+                                            onChange={(e) => setAiScheduleRequest(e.target.value)}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary btn-sm"
+                                            disabled={aiScheduleLoading || !aiScheduleRequest.trim()}
+                                            onClick={async () => {
+                                                setAiScheduleLoading(true);
+                                                setAiScheduleMessage("");
+                                                try {
+                                                    const token = localStorage.getItem("token");
+                                                    const response = await fetch(
+                                                        `${CRM_API_URL}/api/ai/schedule`,
+                                                        {
+                                                            method: "POST",
+                                                            headers: {
+                                                                "Content-Type": "application/json",
+                                                                Authorization: `Bearer ${token}`,
+                                                            },
+                                                            body: JSON.stringify({
+                                                                request: aiScheduleRequest.trim(),
+                                                                preparers: PREPARERS,
+                                                                services: SERVICES,
+                                                            }),
+                                                        }
+                                                    );
+                                                    const data = await response.json().catch(() => ({}));
+                                                    if (!response.ok) throw new Error(data.error || "Scheduling failed.");
+
+                                                    const s = data.suggestion;
+                                                    if (s) {
+                                                        if (s.service && SERVICES.includes(s.service)) setService(s.service);
+                                                        if (s.preparer && PREPARERS.includes(s.preparer)) setPreparer(s.preparer);
+                                                        if (s.duration) setDuration(Number(s.duration));
+                                                        if (s.visitFormat) setVisitFormat(s.visitFormat);
+                                                        if (s.date) {
+                                                            setDay(s.date);
+                                                            const d = new Date(s.date + "T00:00:00");
+                                                            setCalendarMonth({ year: d.getFullYear(), month: d.getMonth() });
+                                                        }
+                                                        if (s.time) setTime(s.time);
+                                                        setAiScheduleMessage(
+                                                            `Applied: ${s.service || "?"} with ${s.preparer || "?"} on ${s.date || "?"} at ${s.time || "?"}`
+                                                        );
+                                                    } else {
+                                                        setAiScheduleMessage(data.raw || "Could not parse the request.");
+                                                    }
+                                                } catch (error) {
+                                                    setAiScheduleMessage(error.message || "Scheduling failed.");
+                                                } finally {
+                                                    setAiScheduleLoading(false);
+                                                }
+                                            }}
+                                        >
+                                            {aiScheduleLoading ? "Analyzing..." : "Suggest & Apply"}
+                                        </button>
+                                        {aiScheduleMessage && (
+                                            <div className="small text-muted mt-1">{aiScheduleMessage}</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
                             <h2>Book for {formatDate(day)}</h2>
 
                             {day < dateKey(new Date()) ? (

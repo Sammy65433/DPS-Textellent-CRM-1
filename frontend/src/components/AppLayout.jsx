@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
 import AIAssistant from "./AIAssistant";
+import OnboardingTour from "./OnboardingTour";
 
 function AppLayout({ children, theme, onToggleTheme }) {
   const navigate = useNavigate();
@@ -206,6 +207,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
       </Container>
 
       <AIAssistant />
+
+      <OnboardingTour />
     </>
   );
 }

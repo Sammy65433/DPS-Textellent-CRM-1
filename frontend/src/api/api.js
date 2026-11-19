@@ -206,6 +206,46 @@ export async function sendAIChat(payload) {
   );
 }
 
+export async function naturalLanguageSearch(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/search`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function getSmartFollowUps(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/follow-ups`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function aiScheduleAppointment(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/schedule`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function extractDocumentData(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/extract-document`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
 export async function generateContactSummary(payload) {
   return apiResponse(
     await fetch(`${API}/api/ai/contact-summary`, {

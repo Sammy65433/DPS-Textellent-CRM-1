@@ -345,23 +345,97 @@ If a field can't be determined, use null. Do not include markdown or explanation
 export async function extractDocumentData(req, res) {
   const { documentId, contactId } = req.body ?? {};
 
-  if (!documentId) {
-    return res.status(400).json({ error: "Document ID is required." });
+  if (!documentId || !contactId) {
+    return res.status(400).json({ error: "Document ID and contact ID are required." });
   }
 
   if (!process.env.GEMINI_API_KEY) {
     return res.status(503).json({ error: "AI assistant is not configured." });
   }
 
+  if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
+    return res.status(503).json({ error: "DPS connection is not configured." });
+  }
+
   try {
-    // Fetch the document from DPS backend via staff proxy
-    // For now, return a placeholder — full implementation requires
-    // fetching the file bytes from DPS and sending to Gemini vision
-    return res.json({
-      extracted: {
-        message: "Document OCR is being set up. This will extract name, address, income types, and other fields from uploaded intake forms.",
-      },
+    // Load contact to get the linked DPS customer ID
+    const Contact = (await import("../models/Contact.js")).default;
+    const contact = await Contact.findOne({ _id: contactId, userId: "user123" }).select("+supabaseCustomerId");
+
+    if (!contact || !contact.supabaseCustomerId) {
+      return res.status(404).json({ error: "Contact not found or not linked to a client account." });
+    }
+
+    const customerId = contact.supabaseCustomerId;
+
+    // Fetch the file from DPS
+    const fileResponse = await fetch(
+      `${process.env.DPS_API_URL}/api/staff/documents/${encodeURIComponent(customerId)}/${encodeURIComponent(documentId)}/download`,
+      {
+        headers: { "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY },
+        signal: AbortSignal.timeout(30000),
+      }
+    );
+
+    if (!fileResponse.ok) {
+      return res.status(404).json({ error: "Document not found." });
+    }
+
+    const mimeType = fileResponse.headers.get("content-type") || "application/pdf";
+    const buffer = await fileResponse.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+
+    // Only process images and PDFs
+    if (!mimeType.startsWith("image/") && mimeType !== "application/pdf") {
+      return res.status(400).json({ error: "Only images and PDFs can be processed." });
+    }
+
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+    const prompt = `You are a document data extraction assistant for a tax preparation office. Extract the following information from this intake form/document:
+
+- First name
+- Last name
+- Date of birth (YYYY-MM-DD)
+- Phone number
+- Email address
+- Address (street, city, state, zip)
+- Filing status (single, married, head of household, etc.)
+- Income types mentioned (W-2, 1099, self-employment, rental, etc.)
+- Number of dependents
+- Any notes or special requests
+
+Return ONLY a JSON object with these fields (use null for missing info):
+{ "firstName": "", "lastName": "", "dateOfBirth": "", "phone": "", "email": "", "address": "", "city": "", "state": "", "zip": "", "filingStatus": "", "incomeTypes": [], "dependents": null, "notes": "" }
+
+Do not include markdown or explanation. Just the JSON.`;
+
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: mimeType === "application/pdf" ? "application/pdf" : mimeType,
+                data: base64,
+              },
+            },
+          ],
+        },
+      ],
+      generationConfig: { maxOutputTokens: 500, temperature: 0.2 },
     });
+
+    const text = result.response.text().trim();
+    try {
+      const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
+      return res.json({ extracted: parsed });
+    } catch {
+      return res.json({ extracted: { raw: text } });
+    }
   } catch (error) {
     console.error("Document extraction failed:", error);
     return res.status(500).json({ error: "Document extraction failed." });

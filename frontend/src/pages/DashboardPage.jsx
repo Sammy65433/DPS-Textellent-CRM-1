@@ -21,6 +21,7 @@ import {
 } from "recharts";
 import { useEffect, useState } from "react";
 import { createContact, createCampaign } from "../api/api";
+import { getSmartFollowUps } from "../api/api";
 import { FaCalendarCheck } from "react-icons/fa";
 
 
@@ -62,6 +63,8 @@ const [appointments, setAppointments] = useState([]);
     const [bookingError, setBookingError] = useState("");
     const navigate = useNavigate();
     const [actionStatus, setActionStatus] = useState({});
+    const [followUps, setFollowUps] = useState([]);
+    const [loadingFollowUps, setLoadingFollowUps] = useState(false);
     const [selectedMessageIds, setSelectedMessageIds] = useState([]);
     const [selectedEmailIds, setSelectedEmailIds] = useState([]);
 
@@ -147,6 +150,21 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
             })
             .then((data) => setAppointments(Array.isArray(data) ? data : []))
             .catch((error) => setBookingError(error.message));
+    }, []);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        setLoadingFollowUps(true);
+        getSmartFollowUps({
+            contacts,
+            messages,
+            emails,
+            appointments: [],
+        })
+            .then((data) => setFollowUps(Array.isArray(data?.suggestions) ? data.suggestions : []))
+            .catch(() => setFollowUps([]))
+            .finally(() => setLoadingFollowUps(false));
     }, []);
 
     const today = new Date();
@@ -458,6 +476,54 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                             </Card>
                         </Col>
                     </Row>
+                </Col>
+            </Row>
+
+            <Row className="g-4 section-spacer">
+                <Col md={12}>
+                    <Card className="crm-card border-0">
+                        <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                            <span>✨ AI Follow-Up Suggestions</span>
+                            <Button
+                                size="sm"
+                                variant="outline-primary"
+                                disabled={loadingFollowUps}
+                                onClick={() => {
+                                    setLoadingFollowUps(true);
+                                    getSmartFollowUps({ contacts, messages, emails, appointments })
+                                        .then((data) => setFollowUps(Array.isArray(data?.suggestions) ? data.suggestions : []))
+                                        .catch(() => setFollowUps([]))
+                                        .finally(() => setLoadingFollowUps(false));
+                                }}
+                            >
+                                {loadingFollowUps ? "Analyzing..." : "Refresh"}
+                            </Button>
+                        </Card.Header>
+                        <Card.Body>
+                            {loadingFollowUps ? (
+                                <p className="text-muted mb-0">Analyzing contacts...</p>
+                            ) : followUps.length === 0 ? (
+                                <p className="text-muted mb-0">No follow-up suggestions right now.</p>
+                            ) : (
+                                <ListGroup variant="flush">
+                                    {followUps.map((s, idx) => (
+                                        <ListGroup.Item key={idx}>
+                                            <div className="d-flex justify-content-between align-items-start gap-2">
+                                                <div className="flex-grow-1">
+                                                    <div className="fw-semibold">{s.contactName}</div>
+                                                    <div className="small text-muted">{s.reason}</div>
+                                                    <div className="small">{s.suggestedAction}</div>
+                                                </div>
+                                                <Badge bg={s.priority === "high" ? "danger" : s.priority === "medium" ? "warning" : "secondary"}>
+                                                    {s.priority}
+                                                </Badge>
+                                            </div>
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
+                            )}
+                        </Card.Body>
+                    </Card>
                 </Col>
             </Row>
 

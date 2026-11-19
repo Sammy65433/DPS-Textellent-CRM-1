@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Button, Card, Spinner } from "react-bootstrap";
-import { fetchContactDocuments, linkClientAccount } from "../api/api";
+import { Alert, Badge, Button, Card, Modal, Spinner } from "react-bootstrap";
+import { fetchContactDocuments, linkClientAccount, extractDocumentData } from "../api/api";
 
 const CRM_API = (import.meta.env.VITE_API_URL || "http://localhost:5002")
   .replace(/\/$/, "");
@@ -19,6 +19,9 @@ function ContactDocuments({ contactId }) {
   const [error, setError] = useState("");
   const [linking, setLinking] = useState(false);
   const [linkMessage, setLinkMessage] = useState("");
+  const [extractingId, setExtractingId] = useState(null);
+  const [extractedData, setExtractedData] = useState(null);
+  const [showExtractModal, setShowExtractModal] = useState(false);
 
   async function handleLinkClient() {
     if (!contactId || linking) return;
@@ -69,6 +72,21 @@ function ContactDocuments({ contactId }) {
     };
   }, [contactId]);
 
+  async function handleExtract(item) {
+    if (!contactId || !item?.id || extractingId) return;
+    setExtractingId(item.id);
+    setError("");
+    try {
+      const result = await extractDocumentData({ documentId: item.id, contactId });
+      setExtractedData(result.extracted);
+      setShowExtractModal(true);
+    } catch (requestError) {
+      setError(requestError.message || "Could not extract document data.");
+    } finally {
+      setExtractingId(null);
+    }
+  }
+
   async function handleDownload(item) {
   if (!contactId || !item?.id || downloadingId) return;
 
@@ -112,6 +130,7 @@ function ContactDocuments({ contactId }) {
 }
 
   return (
+    <>
     <Card className="crm-card border-0 mb-3">
       <Card.Header className="card-header-clean d-flex justify-content-between">
         <span>Client Documents</span>
@@ -178,16 +197,27 @@ function ContactDocuments({ contactId }) {
                       </div>
                     </div>
 
-                    <Button
-                      size="sm"
-                      variant="outline-primary"
-                      disabled={Boolean(downloadingId)}
-                      onClick={() => handleDownload(item)}
-                    >
-                      {downloadingId === item.id
-                        ? "Downloading..."
-                        : "Download"}
-                    </Button>
+                    <div className="d-flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline-success"
+                        disabled={Boolean(extractingId)}
+                        onClick={() => handleExtract(item)}
+                        title="Extract info with AI"
+                      >
+                        {extractingId === item.id ? "..." : "AI"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline-primary"
+                        disabled={Boolean(downloadingId)}
+                        onClick={() => handleDownload(item)}
+                      >
+                        {downloadingId === item.id
+                          ? "Downloading..."
+                          : "Download"}
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -196,6 +226,27 @@ function ContactDocuments({ contactId }) {
         )}
       </Card.Body>
     </Card>
+
+    <Modal show={showExtractModal} onHide={() => setShowExtractModal(false)} size="lg">
+      <Modal.Header closeButton>
+        <Modal.Title>Extracted Document Info</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {extractedData ? (
+          <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem" }}>
+            {JSON.stringify(extractedData, null, 2)}
+          </pre>
+        ) : (
+          <p>No data extracted.</p>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={() => setShowExtractModal(false)}>
+          Close
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  </>
   );
 }
 

@@ -8,6 +8,7 @@ import ContactSummaryCard from "../components/ContactSummaryCard";
 import ContactDocuments from "../components/ContactDocuments";
 import ConversationPanel from "../components/ConversationPanel";
 import AddContactForm from "../components/AddContactForm";
+import { naturalLanguageSearch } from "../api/api";
 
 function ContactsPage({
     theme,
@@ -34,6 +35,9 @@ function ContactsPage({
     onDeleteConversation,
 }) {
     const [searchTerm, setSearchTerm] = useState("");
+    const [aiSearchQuery, setAiSearchQuery] = useState("");
+    const [aiSearchLoading, setAiSearchLoading] = useState(false);
+    const [aiSearchResult, setAiSearchResult] = useState(null);
     const [activeTag, setActiveTag] = useState("");
     const [sendingInvite, setSendingInvite] = useState(false);
     const [inviteFeedback, setInviteFeedback] = useState(null);
@@ -53,7 +57,7 @@ function ContactsPage({
     const filteredContacts = useMemo(() => {
         const search = searchTerm.toLowerCase();
 
-        return contacts.filter((contact) => {
+        let base = contacts.filter((contact) => {
             const fullName =
                 `${contact.firstName || ""} ${contact.lastName || ""}`.toLowerCase();
             const phone = (contact.phone || "").toLowerCase();
@@ -62,6 +66,7 @@ function ContactsPage({
             const notes = (contact.notes || "").toLowerCase();
 
             const matchesSearch =
+                !search ||
                 fullName.includes(search) ||
                 phone.includes(search) ||
                 email.includes(search) ||
@@ -77,7 +82,14 @@ function ContactsPage({
 
             return matchesSearch && matchesTag;
         });
-    }, [contacts, searchTerm, activeTag]);
+
+        if (aiSearchResult && Array.isArray(aiSearchResult.matchedIds)) {
+            const idSet = new Set(aiSearchResult.matchedIds.map(String));
+            base = base.filter((c) => idSet.has(String(c._id)));
+        }
+
+        return base;
+    }, [contacts, searchTerm, activeTag, aiSearchResult]);
 
     async function handleSendAccountLinkInvitation() {
         if (!selectedContact?._id || sendingInvite) return;
@@ -177,6 +189,58 @@ function ContactsPage({
                     {inviteFeedback.message}
                 </Alert>
             )}
+
+            <Card className="crm-card border-0 mb-3">
+                <Card.Body>
+                    <Form onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (!aiSearchQuery.trim()) {
+                            setAiSearchResult(null);
+                            return;
+                        }
+                        setAiSearchLoading(true);
+                        try {
+                            const result = await naturalLanguageSearch({
+                                query: aiSearchQuery.trim(),
+                                contacts,
+                            });
+                            setAiSearchResult(result);
+                        } catch (error) {
+                            setAiSearchResult({ matchedIds: [], explanation: "Search failed." });
+                        } finally {
+                            setAiSearchLoading(false);
+                        }
+                    }}>
+                        <div className="d-flex gap-2">
+                            <Form.Control
+                                placeholder="AI search: e.g. 'contacts missing email' or 'clients tagged lead'"
+                                value={aiSearchQuery}
+                                onChange={(e) => setAiSearchQuery(e.target.value)}
+                            />
+                            <Button type="submit" variant="primary" disabled={aiSearchLoading}>
+                                {aiSearchLoading ? "..." : "AI Search"}
+                            </Button>
+                            {aiSearchResult && (
+                                <Button
+                                    type="button"
+                                    variant="outline-secondary"
+                                    onClick={() => {
+                                        setAiSearchResult(null);
+                                        setAiSearchQuery("");
+                                    }}
+                                >
+                                    Clear
+                                </Button>
+                            )}
+                        </div>
+                        {aiSearchResult?.explanation && (
+                            <div className="small text-muted mt-1">
+                                {aiSearchResult.explanation} — {aiSearchResult.matchedIds?.length || 0} match(es)
+                            </div>
+                        )}
+                    </Form>
+                </Card.Body>
+            </Card>
 
             <div className="d-flex flex-wrap gap-2 mb-3">
                 <Button
