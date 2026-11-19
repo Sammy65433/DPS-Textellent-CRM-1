@@ -361,7 +361,7 @@ Available services: ${JSON.stringify(services || ["Tax Consultation", "Personal 
 Available time slots (if provided): ${JSON.stringify(availableSlots || [])}
 
 Parse the request and return ONLY a JSON object:
-{ "clientName": "name if mentioned", "service": "service name", "preparer": "preparer name", "date": "YYYY-MM-DD", "time": "H:MM AM/PM", "duration": 60, "visitFormat": "in_person|phone|virtual", "notes": "any extra info" }
+{ "clientName": "name if mentioned", "service": "service name (default to 'Tax Consultation' if not specified)", "preparer": "preparer name or null if not specified", "date": "YYYY-MM-DD", "time": "H:MM AM/PM or null if not specified", "duration": 60, "visitFormat": "in_person|phone|virtual (default in_person)", "notes": "any extra info" }
 
 If a field can't be determined, use null. Do not include markdown or explanation.`;
 

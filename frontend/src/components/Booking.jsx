@@ -1310,7 +1310,7 @@ async function sendAccountLinkInvitation(appointment) {
                                                         if (s.clientName) applied.push(`client: ${s.clientName}`);
                                                         setAiScheduleMessage(
                                                             applied.length > 0
-                                                                ? `Applied → ${applied.join(", ")}. Fill in the rest and book.`
+                                                                ? `Applied → ${applied.join(", ")}. Fill in the rest and click Book Now.`
                                                                 : "Could not extract scheduling details. Please fill in manually."
                                                         );
                                                     } else {
@@ -1327,6 +1327,58 @@ async function sendAccountLinkInvitation(appointment) {
                                         </button>
                                         {aiScheduleMessage && (
                                             <div className="small text-muted mt-1">{aiScheduleMessage}</div>
+                                        )}
+
+                                        {aiScheduleMessage && aiScheduleMessage.startsWith("Applied") && (
+                                            <button
+                                                type="button"
+                                                className="btn btn-success btn-sm mt-2"
+                                                disabled={isSubmitting || !service || !preparer || !time || !day || !visitFormat || !formData.first_name || !formData.last_name || !formData.phone || !formData.email}
+                                                onClick={async () => {
+                                                    if (!window.confirm("Book this appointment now?")) return;
+                                                    // Auto-book: submit directly with current form data
+                                                    setIsSubmitting(true);
+                                                    setStatus({ message: "Booking...", type: "sending" });
+                                                    try {
+                                                        const response = await fetch(`${CRM_API_URL}/api/staff/appointments`, {
+                                                            method: "POST",
+                                                            headers: {
+                                                                "Content-Type": "application/json",
+                                                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                                            },
+                                                            body: JSON.stringify({
+                                                                ...formData,
+                                                                service,
+                                                                tax_preparer: preparer,
+                                                                appointment_date: day,
+                                                                appointment_time: time,
+                                                                duration_minutes: duration,
+                                                                visit_format: visitFormat,
+                                                            }),
+                                                        });
+                                                        const data = await response.json().catch(() => ({}));
+                                                        if (!response.ok) throw new Error(data.message || "Booking failed.");
+                                                        setStatus({ message: "Appointment booked successfully!", type: "success" });
+                                                        setAiScheduleMessage("");
+                                                        // Refresh appointments
+                                                        const token = localStorage.getItem("token");
+                                                        if (token) {
+                                                            fetch(`${CRM_API_URL}/api/staff/appointments`, {
+                                                                headers: { Authorization: `Bearer ${token}` },
+                                                            })
+                                                                .then((r) => r.json())
+                                                                .then((d) => { if (Array.isArray(d)) setAppointments(d); })
+                                                                .catch(() => {});
+                                                        }
+                                                    } catch (error) {
+                                                        setStatus({ message: error.message || "Booking failed.", type: "error" });
+                                                    } finally {
+                                                        setIsSubmitting(false);
+                                                    }
+                                                }}
+                                            >
+                                                {isSubmitting ? "Booking..." : "Book Now"}
+                                            </button>
                                         )}
                                     </div>
                                 )}
