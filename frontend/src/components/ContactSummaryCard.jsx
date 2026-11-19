@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, Badge, Button, Spinner } from "react-bootstrap";
-import { generateContactSummary } from "../api/api";
+import { generateContactSummary, autoTagContact } from "../api/api";
 import {
     FaUser,
     FaPhone,
@@ -18,6 +18,8 @@ function ContactSummaryCard({
 }) {
     const [aiSummary, setAiSummary] = useState("");
     const [loadingSummary, setLoadingSummary] = useState(false);
+    const [suggestedTags, setSuggestedTags] = useState([]);
+    const [loadingTags, setLoadingTags] = useState(false);
 
     if (!selectedContact) {
         return (
@@ -147,6 +149,66 @@ function ContactSummaryCard({
                             {aiSummary && (
                                 <div className="contact-ai-summary mt-2 p-2 rounded bg-light small">
                                     {aiSummary}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mb-3">
+                            <Button
+                                size="sm"
+                                variant="outline-success"
+                                disabled={loadingTags}
+                                onClick={async () => {
+                                    setLoadingTags(true);
+                                    setSuggestedTags([]);
+                                    try {
+                                        const result = await autoTagContact({
+                                            contact: selectedContact,
+                                            messages: conversation,
+                                            emails: emailMessages,
+                                        });
+                                        setSuggestedTags(Array.isArray(result.tags) ? result.tags : []);
+                                    } catch (error) {
+                                        setSuggestedTags([]);
+                                    } finally {
+                                        setLoadingTags(false);
+                                    }
+                                }}
+                            >
+                                {loadingTags ? (
+                                    <>
+                                        <Spinner animation="border" size="sm" className="me-1" />
+                                        Suggesting...
+                                    </>
+                                ) : (
+                                    "🏷️ Suggest Tags"
+                                )}
+                            </Button>
+                            {suggestedTags.length > 0 && (
+                                <div className="mt-2">
+                                    <div className="small text-muted mb-1">Suggested tags:</div>
+                                    <div className="d-flex flex-wrap gap-1">
+                                        {suggestedTags.map((tag) => (
+                                            <Badge
+                                                key={tag}
+                                                bg="info"
+                                                style={{ cursor: "pointer" }}
+                                                onClick={() => {
+                                                    const current = selectedContact.tags || "";
+                                                    const tags = current.split(",").map((t) => t.trim()).filter(Boolean);
+                                                    if (!tags.includes(tag)) {
+                                                        tags.push(tag);
+                                                        // Update contact tags via API
+                                                        const updated = tags.join(", ");
+                                                        // We can't update contact directly from here, so just show
+                                                        alert(`Add tag "${tag}" to contact tags: ${updated}`);
+                                                    }
+                                                }}
+                                            >
+                                                {tag}
+                                            </Badge>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>

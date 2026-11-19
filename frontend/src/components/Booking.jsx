@@ -215,7 +215,8 @@ export default function Booking({ theme, onToggleTheme }) {
     const [cancelMessage, setCancelMessage] = useState("");
     const [cancelError, setCancelError] = useState("");
 
-    const [importingId, setImportingId] = useState(null);
+    const [prepBrief, setPrepBrief] = useState("");
+    const [loadingPrep, setLoadingPrep] = useState(false);
     const [appointmentContacts, setAppointmentContacts] = useState({});
     const [invitingId, setInvitingId] = useState(null);
 
@@ -1191,6 +1192,51 @@ async function sendAccountLinkInvitation(appointment) {
                                     <p>
                                         Email: {openedAppointment.email || "Not provided"}
                                     </p>
+
+                                    <div className="mb-2">
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-primary btn-sm"
+                                            disabled={loadingPrep}
+                                            onClick={async () => {
+                                                setLoadingPrep(true);
+                                                setPrepBrief("");
+                                                try {
+                                                    const token = localStorage.getItem("token");
+                                                    const response = await fetch(
+                                                        `${CRM_API_URL}/api/ai/meeting-prep`,
+                                                        {
+                                                            method: "POST",
+                                                            headers: {
+                                                                "Content-Type": "application/json",
+                                                                Authorization: `Bearer ${token}`,
+                                                            },
+                                                            body: JSON.stringify({
+                                                                appointment: openedAppointment,
+                                                                contact: null,
+                                                                messages: [],
+                                                            }),
+                                                        }
+                                                    );
+                                                    const data = await response.json().catch(() => ({}));
+                                                    if (!response.ok) throw new Error(data.error || "Failed");
+                                                    setPrepBrief(data.brief || "No brief available.");
+                                                } catch (error) {
+                                                    setPrepBrief("Could not generate prep brief.");
+                                                } finally {
+                                                    setLoadingPrep(false);
+                                                }
+                                            }}
+                                        >
+                                            {loadingPrep ? "Generating..." : "AI Prep Brief"}
+                                        </button>
+                                        {prepBrief && (
+                                            <div className="booking-note mt-2">
+                                                <strong>Prep Brief</strong>
+                                                <p style={{ whiteSpace: "pre-wrap" }}>{prepBrief}</p>
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {renderAppointmentActions(openedAppointment)}
 

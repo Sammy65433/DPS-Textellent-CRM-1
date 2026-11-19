@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Card, Badge, Spinner, Form, Button } from "react-bootstrap";
-import { FaPaperPlane, FaTrash } from "react-icons/fa";
+import { FaPaperPlane, FaTrash, FaMagic } from "react-icons/fa";
+import { getSmartReplies } from "../api/api";
 
 function ConversationPanel({
     selectedContact,
@@ -12,6 +14,25 @@ function ConversationPanel({
     onDeleteMessage,
     onDeleteConversation,
 }) {
+    const [smartReplies, setSmartReplies] = useState([]);
+    const [loadingReplies, setLoadingReplies] = useState(false);
+
+    async function loadSmartReplies() {
+        if (!selectedContact) return;
+        setLoadingReplies(true);
+        try {
+            const result = await getSmartReplies({
+                contact: selectedContact,
+                messages: conversation,
+            });
+            setSmartReplies(Array.isArray(result.suggestions) ? result.suggestions : []);
+        } catch {
+            setSmartReplies([]);
+        } finally {
+            setLoadingReplies(false);
+        }
+    }
+
     return (
         <Card className="crm-card border-0">
             <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
@@ -77,6 +98,35 @@ function ConversationPanel({
             </Card.Body>
 
             <Card.Footer className="conversation-footer">
+                {selectedContact && (
+                    <div className="mb-2">
+                        <Button
+                            size="sm"
+                            variant="outline-primary"
+                            disabled={loadingReplies}
+                            onClick={loadSmartReplies}
+                        >
+                            {loadingReplies ? "Generating..." : "✨ Suggest Replies"}
+                        </Button>
+                        {smartReplies.length > 0 && (
+                            <div className="d-flex flex-wrap gap-1 mt-2">
+                                {smartReplies.map((reply, idx) => (
+                                    <Button
+                                        key={idx}
+                                        size="sm"
+                                        variant="outline-secondary"
+                                        onClick={() =>
+                                            setMessageForm((prev) => ({ ...prev, body: reply }))
+                                        }
+                                    >
+                                        {reply}
+                                    </Button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <Form onSubmit={onSendMessage}>
                     <Form.Select
                         className="mb-2 template-select-compact"

@@ -20,8 +20,7 @@ import {
     CartesianGrid,
 } from "recharts";
 import { useEffect, useState } from "react";
-import { createContact, createCampaign } from "../api/api";
-import { getSmartFollowUps } from "../api/api";
+import { createContact, createCampaign, getSmartFollowUps, getRevenueInsights } from "../api/api";
 import { FaCalendarCheck } from "react-icons/fa";
 
 
@@ -65,6 +64,8 @@ const [appointments, setAppointments] = useState([]);
     const [actionStatus, setActionStatus] = useState({});
     const [followUps, setFollowUps] = useState([]);
     const [loadingFollowUps, setLoadingFollowUps] = useState(false);
+    const [revenueInsights, setRevenueInsights] = useState([]);
+    const [loadingInsights, setLoadingInsights] = useState(false);
     const [selectedMessageIds, setSelectedMessageIds] = useState([]);
     const [selectedEmailIds, setSelectedEmailIds] = useState([]);
 
@@ -165,6 +166,16 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
             .then((data) => setFollowUps(Array.isArray(data?.suggestions) ? data.suggestions : []))
             .catch(() => setFollowUps([]))
             .finally(() => setLoadingFollowUps(false));
+    }, []);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        setLoadingInsights(true);
+        getRevenueInsights({ appointments, contacts, campaigns, emails })
+            .then((data) => setRevenueInsights(Array.isArray(data?.insights) ? data.insights : []))
+            .catch(() => setRevenueInsights([]))
+            .finally(() => setLoadingInsights(false));
     }, []);
 
     const today = new Date();
@@ -516,6 +527,56 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                                                 </div>
                                                 <Badge bg={s.priority === "high" ? "danger" : s.priority === "medium" ? "warning" : "secondary"}>
                                                     {s.priority}
+                                                </Badge>
+                                            </div>
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+
+            <Row className="g-4 section-spacer">
+                <Col md={12}>
+                    <Card className="crm-card border-0">
+                        <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                            <span>📊 AI Revenue Insights</span>
+                            <Button
+                                size="sm"
+                                variant="outline-primary"
+                                disabled={loadingInsights}
+                                onClick={() => {
+                                    setLoadingInsights(true);
+                                    getRevenueInsights({ appointments, contacts, campaigns, emails })
+                                        .then((data) => setRevenueInsights(Array.isArray(data?.insights) ? data.insights : []))
+                                        .catch(() => setRevenueInsights([]))
+                                        .finally(() => setLoadingInsights(false));
+                                }}
+                            >
+                                {loadingInsights ? "Analyzing..." : "Refresh"}
+                            </Button>
+                        </Card.Header>
+                        <Card.Body>
+                            {loadingInsights ? (
+                                <p className="text-muted mb-0">Analyzing data...</p>
+                            ) : revenueInsights.length === 0 ? (
+                                <p className="text-muted mb-0">No insights available yet.</p>
+                            ) : (
+                                <ListGroup variant="flush">
+                                    {revenueInsights.map((insight, idx) => (
+                                        <ListGroup.Item key={idx}>
+                                            <div className="d-flex justify-content-between align-items-start gap-2">
+                                                <div className="flex-grow-1">
+                                                    <div className="fw-semibold">{insight.title}</div>
+                                                    <div className="small">{insight.insight}</div>
+                                                    <div className="small text-muted mt-1">
+                                                        💡 {insight.recommendation}
+                                                    </div>
+                                                </div>
+                                                <Badge bg={insight.priority === "high" ? "danger" : insight.priority === "medium" ? "warning" : "secondary"}>
+                                                    {insight.priority}
                                                 </Badge>
                                             </div>
                                         </ListGroup.Item>

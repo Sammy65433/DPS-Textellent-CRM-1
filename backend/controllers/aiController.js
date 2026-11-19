@@ -413,7 +413,6 @@ Example: ["Thanks for reaching out! We'll get back to you shortly.", "Your docum
       const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
       return res.json({ suggestions: Array.isArray(parsed) ? parsed : [] });
     } catch {
-      // Try to extract array from text
       const match = text.match(/\[[\s\S]*\]/);
       if (match) {
         try {

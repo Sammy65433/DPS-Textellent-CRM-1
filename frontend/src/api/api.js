@@ -233,6 +233,46 @@ export async function getSmartFollowUps(payload) {
   );
 }
 
+export async function getSmartReplies(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/smart-replies`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function autoTagContact(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/auto-tag`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function getMeetingPrep(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/meeting-prep`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function getRevenueInsights(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/insights`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
 export async function aiScheduleAppointment(payload) {
   return apiResponse(
     await fetch(`${API}/api/ai/schedule`, {

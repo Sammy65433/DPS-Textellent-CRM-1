@@ -101,24 +101,34 @@ export function useAppHandlers({
     };
 
     const loadData = async () => {
-        try {
-            const [contactsData, messagesData, templatesData, campaignsData, emailsData] =
-                await Promise.all([
-                    fetchContacts(),
-                    fetchMessages(),
-                    fetchTemplates(),
-                    fetchCampaigns(),
-                    fetchEmails(),
-                ]);
+        const results = await Promise.allSettled([
+            fetchContacts(),
+            fetchMessages(),
+            fetchTemplates(),
+            fetchCampaigns(),
+            fetchEmails(),
+        ]);
 
-            setContacts(Array.isArray(contactsData) ? contactsData : []);
-            setMessages(Array.isArray(messagesData) ? messagesData : []);
-            setTemplates(Array.isArray(templatesData) ? templatesData : []);
-            setCampaigns(Array.isArray(campaignsData) ? campaignsData : []);
-            setEmails(Array.isArray(emailsData) ? emailsData : []);
-        } catch (error) {
-            console.error("loadData failed:", error);
-            showAlert("danger", "Could not load dashboard data. Check your connection.");
+        const [contactsRes, messagesRes, templatesRes, campaignsRes, emailsRes] = results;
+        const failures = [];
+
+        if (contactsRes.status === "fulfilled") setContacts(Array.isArray(contactsRes.value) ? contactsRes.value : []);
+        else { console.error("fetchContacts failed:", contactsRes.reason); failures.push("contacts"); }
+
+        if (messagesRes.status === "fulfilled") setMessages(Array.isArray(messagesRes.value) ? messagesRes.value : []);
+        else { console.error("fetchMessages failed:", messagesRes.reason); failures.push("messages"); }
+
+        if (templatesRes.status === "fulfilled") setTemplates(Array.isArray(templatesRes.value) ? templatesRes.value : []);
+        else { console.error("fetchTemplates failed:", templatesRes.reason); failures.push("templates"); }
+
+        if (campaignsRes.status === "fulfilled") setCampaigns(Array.isArray(campaignsRes.value) ? campaignsRes.value : []);
+        else { console.error("fetchCampaigns failed:", campaignsRes.reason); failures.push("campaigns"); }
+
+        if (emailsRes.status === "fulfilled") setEmails(Array.isArray(emailsRes.value) ? emailsRes.value : []);
+        else { console.error("fetchEmails failed:", emailsRes.reason); failures.push("emails"); }
+
+        if (failures.length > 0) {
+            showAlert("danger", `Could not load: ${failures.join(", ")}. Check connection & VITE_API_URL.`);
         }
     };
 

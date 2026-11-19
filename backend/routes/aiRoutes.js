@@ -8,6 +8,10 @@ import {
   smartFollowUps,
   aiScheduleAppointment,
   extractDocumentData,
+  smartReplySuggestions,
+  autoTagContact,
+  meetingPrepBrief,
+  revenueInsights,
 } from "../controllers/aiController.js";
 
 const router = express.Router();
@@ -21,6 +25,10 @@ router.post("/search", naturalLanguageSearch);
 router.post("/follow-ups", smartFollowUps);
 router.post("/schedule", aiScheduleAppointment);
 router.post("/extract-document", extractDocumentData);
+router.post("/smart-replies", smartReplySuggestions);
+router.post("/auto-tag", autoTagContact);
+router.post("/meeting-prep", meetingPrepBrief);
+router.post("/insights", revenueInsights);
 
 router.get("/models", async (_req, res) => {
   try {
