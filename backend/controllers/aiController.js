@@ -39,7 +39,9 @@ async function callGemini(model, prompt, maxTokens, temperature, base64Data, mim
 
   if (!response.ok) {
     console.error(`Gemini ${model} error:`, response.status, responseText.slice(0, 200));
-    throw new Error(`Gemini API error ${response.status}: ${responseText.slice(0, 200)}`);
+    const error = new Error(`Gemini API error ${response.status}: ${responseText.slice(0, 200)}`);
+    error.status = response.status;
+    throw error;
   }
 
   let data;
@@ -52,26 +54,39 @@ async function callGemini(model, prompt, maxTokens, temperature, base64Data, mim
 
 async function geminiGenerate(prompt, maxTokens = 500, temperature = 0.7) {
   for (const model of GEMINI_MODELS) {
-    try {
-      console.log("Gemini request: model=" + model + ", keyPrefix=" + process.env.GEMINI_API_KEY.slice(0, 8) + "...");
-      const text = await callGemini(model, prompt, maxTokens, temperature, null, null);
-      if (text) return text;
-    } catch (error) {
-      console.error(`Model ${model} failed:`, error.message.slice(0, 100));
-      if (model === GEMINI_MODELS[GEMINI_MODELS.length - 1]) throw error;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        console.log("Gemini request: model=" + model + ", attempt=" + (attempt + 1));
+        const text = await callGemini(model, prompt, maxTokens, temperature, null, null);
+        if (text) return text;
+      } catch (error) {
+        console.error(`Model ${model} attempt ${attempt + 1} failed:`, error.message.slice(0, 100));
+        if (error.status === 503 && attempt === 0) {
+          console.log("Model overloaded, retrying in 2s...");
+          await new Promise((r) => setTimeout(r, 2000));
+          continue;
+        }
+        break;
+      }
     }
   }
-  return "";
+  return "I'm currently experiencing high demand. Please try again in a few moments.";
 }
 
 async function geminiVision(prompt, base64Data, mimeType, maxTokens = 500, temperature = 0.2) {
   for (const model of GEMINI_MODELS) {
-    try {
-      const text = await callGemini(model, prompt, maxTokens, temperature, base64Data, mimeType);
-      if (text) return text;
-    } catch (error) {
-      console.error(`Model ${model} vision failed:`, error.message.slice(0, 100));
-      if (model === GEMINI_MODELS[GEMINI_MODELS.length - 1]) throw error;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const text = await callGemini(model, prompt, maxTokens, temperature, base64Data, mimeType);
+        if (text) return text;
+      } catch (error) {
+        console.error(`Model ${model} vision attempt ${attempt + 1} failed:`, error.message.slice(0, 100));
+        if (error.status === 503 && attempt === 0) {
+          await new Promise((r) => setTimeout(r, 2000));
+          continue;
+        }
+        break;
+      }
     }
   }
   return "";
