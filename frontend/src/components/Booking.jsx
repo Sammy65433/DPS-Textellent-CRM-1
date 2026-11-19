@@ -219,6 +219,7 @@ export default function Booking({ theme, onToggleTheme }) {
     const [loadingPrep, setLoadingPrep] = useState(false);
     const [appointmentContacts, setAppointmentContacts] = useState({});
     const [invitingId, setInvitingId] = useState(null);
+    const [importingId, setImportingId] = useState(null);
 
     const [contactMessage, setContactMessage] = useState("");
     const [contactError, setContactError] = useState("");
@@ -782,19 +783,19 @@ async function sendAccountLinkInvitation(appointment) {
                     onClick={() => addToContacts(appointment)}
                 >
                     {importingId === appointment.id ? "Adding..." : "Add to Contacts"}
-                    {appointmentContacts[appointment.id]?._id && (
-  <button
-    type="button"
-    disabled={invitingId === appointment.id}
-    onClick={() => sendAccountLinkInvitation(appointment)}
-  >
-    {invitingId === appointment.id
-      ? "Sending invitation..."
-      : "Send Account-Link Invitation"}
-  </button>
-)}
-
                 </button>
+
+                {appointmentContacts[appointment.id]?._id && (
+                    <button
+                        type="button"
+                        disabled={invitingId === appointment.id}
+                        onClick={() => sendAccountLinkInvitation(appointment)}
+                    >
+                        {invitingId === appointment.id
+                            ? "Sending invitation..."
+                            : "Send Account-Link Invitation"}
+                    </button>
+                )}
 
                 <button
                     type="button"
