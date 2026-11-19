@@ -117,7 +117,7 @@ function CampaignForm({
                 : "dark";
 
     return (
-        <Card className="crm-card page-panel-campaigns border-0">
+        <Card className="crm-card page-panel-campaigns border-0" data-tour="campaigns-form">
             <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center gap-2">
                     <FaBullhorn className="text-danger" />
@@ -388,7 +388,7 @@ function CampaignForm({
                         )}
                     </div>
 
-                    <Card className="live-preview-card border-0 mb-3">
+                    <Card className="live-preview-card border-0 mb-3" data-tour="campaigns-ai">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-2 mb-2">
                                 <FaEye className="text-primary" />

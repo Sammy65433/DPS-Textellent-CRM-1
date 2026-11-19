@@ -298,7 +298,7 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                 title="Dashboard"
                 subtitle="Overview of contacts, templates, messages, campaigns, and emails."
             />
-            <Card className="crm-card border-0 mb-4">
+            <Card className="crm-card border-0 mb-4" data-tour="dashboard-appointments">
                 <Card.Body className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div>
                         <h3 className="mb-1">
@@ -315,12 +315,12 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                 </Card.Body>
             </Card>
 
-            <Card className="crm-card border-0 mb-4">
+            <Card className="crm-card border-0 mb-4" data-tour="dashboard-week">
                 <Card.Body>
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                         <h3 className="mb-0">
                             <FaCalendarCheck className="me-2" />
-                            This Week&apos;s Bookings
+                            This Week's Bookings
                         </h3>
                         <Button as={Link} to="/booking" size="sm" variant="outline-primary">
                             Open Calendar
@@ -434,7 +434,7 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                 <Col lg={4}>
                     <Row className="g-4">
                         <Col md={12}>
-                            <Card className="crm-card panel-actions border-0">
+                            <Card className="crm-card panel-actions border-0" data-tour="dashboard-quick-actions">
                                 <Card.Header className="card-header-clean">
                                     Quick Actions
                                 </Card.Header>
@@ -481,7 +481,7 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
 
             <Row className="g-4 section-spacer">
                 <Col md={12}>
-                    <Card className="crm-card border-0">
+                    <Card className="crm-card border-0" data-tour="dashboard-followups">
                         <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                             <span>✨ AI Follow-Up Suggestions</span>
                             <Button
@@ -529,7 +529,7 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
 
             <Row className="g-4 section-spacer">
                 <Col md={6}>
-                    <Card className="crm-card panel-messages border-0">
+                    <Card className="crm-card panel-messages border-0" data-tour="dashboard-messages">
                         <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                             <span>Recent Messages</span>
                             {selectedMessageIds.length > 0 && (

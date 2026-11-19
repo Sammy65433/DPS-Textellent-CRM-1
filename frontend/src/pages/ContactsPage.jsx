@@ -190,7 +190,7 @@ function ContactsPage({
                 </Alert>
             )}
 
-            <Card className="crm-card border-0 mb-3">
+            <Card className="crm-card border-0 mb-3" data-tour="contacts-search">
                 <Card.Body>
                     <Form onSubmit={async (e) => {
                         e.preventDefault();
@@ -266,7 +266,7 @@ function ContactsPage({
             </div>
 
             <Row className="g-4">
-                <Col md={3} className="contacts-column-compact">
+                <Col md={3} className="contacts-column-compact" data-tour="contacts-list">
                     <ContactsList
                         contacts={filteredContacts}
                         selectedContact={selectedContact}
@@ -280,12 +280,14 @@ function ContactsPage({
 
                 <Col md={5}>
                     <ContactSummaryCard
+data-tour="contacts-summary"
                         selectedContact={selectedContact}
                         conversation={conversation}
                         emailMessages={emailMessages}
                     />
 
                     <ContactDocuments
+data-tour="contacts-documents"
                         key={selectedContact?._id || "none"}
                         contactId={selectedContact?._id}
                     />
@@ -338,6 +340,7 @@ function ContactsPage({
 
                 <Col md={4}>
                     <AddContactForm
+data-tour="contacts-add"
                         contactForm={contactForm}
                         setContactForm={setContactForm}
                         onCreateContact={onCreateContact}

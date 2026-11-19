@@ -148,7 +148,7 @@ export default function StaffManagementPage({ theme, onToggleTheme }) {
 
         {!checkingRole && currentUser?.role === "admin" && (
           <>
-            <form onSubmit={submit} className="d-grid gap-3" style={{ maxWidth: 480 }}>
+            <form onSubmit={submit} className="d-grid gap-3" style={{ maxWidth: 480 }} data-tour="staff-invite">
               {["firstName", "lastName", "email"].map((field) => (
                 <label key={field}>
                   {field === "firstName"
@@ -176,7 +176,7 @@ export default function StaffManagementPage({ theme, onToggleTheme }) {
               {message && <p role="status">{message}</p>}
             </form>
 
-            <h2 className="mt-5">Existing Staff</h2>
+            <h2 className="mt-5" data-tour="staff-list">Existing Staff</h2>
             {loadingStaff ? (
               <p>Loading staff...</p>
             ) : staff.length === 0 ? (

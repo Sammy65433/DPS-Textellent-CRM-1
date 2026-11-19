@@ -131,7 +131,7 @@ function ContactDocuments({ contactId }) {
 
   return (
     <>
-    <Card className="crm-card border-0 mb-3">
+    <Card className="crm-card border-0 mb-3" data-tour="contacts-documents">
       <Card.Header className="card-header-clean d-flex justify-content-between">
         <span>Client Documents</span>
         <Badge bg="secondary">{documents.length}</Badge>

@@ -918,7 +918,7 @@ async function sendAccountLinkInvitation(appointment) {
                         </div>
 
                         {view === "month" && (
-                            <div className="booking-calendar">
+                            <div className="booking-calendar" data-tour="booking-calendar">
                                 {[
                                     "Sun",
                                     "Mon",
@@ -1205,8 +1205,8 @@ async function sendAccountLinkInvitation(appointment) {
                             )}
                         </div>
 
-                        <div className="booking-form-section">
-                            <div className="booking-ai-schedule mb-3">
+                        <div className="booking-form-section" data-tour="booking-form">
+                            <div className="booking-ai-schedule mb-3" data-tour="booking-ai">
                                 <button
                                     type="button"
                                     className="btn btn-outline-primary btn-sm"

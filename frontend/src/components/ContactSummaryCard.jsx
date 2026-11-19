@@ -21,7 +21,7 @@ function ContactSummaryCard({
 
     if (!selectedContact) {
         return (
-            <Card className="crm-card page-panel-contacts-secondary border-0 mb-3">
+            <Card className="crm-card page-panel-contacts-secondary border-0 mb-3" data-tour="contacts-summary">
                 <Card.Body>
                     <div className="text-muted">
                         Select a contact to view their details.

@@ -116,6 +116,7 @@ function CampaignsPage({
 
                 <Col md={7}>
                     <CampaignList
+                        data-tour="campaigns-list"
                         campaigns={campaigns}
                         onSendCampaign={onSendCampaign}
                         onDeleteCampaign={onDeleteCampaign}

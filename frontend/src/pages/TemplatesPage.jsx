@@ -27,7 +27,7 @@ function TemplatesPage({
 
             <Row className="g-4">
                 <Col lg={5}>
-                    <Card className="crm-card page-panel-templates border-0">
+                    <Card className="crm-card page-panel-templates border-0" data-tour="templates-form">
                         <Card.Header className="card-header-clean d-flex align-items-center gap-2">
                             <FaFileAlt className="text-warning" />
                             Create Template
@@ -114,7 +114,7 @@ function TemplatesPage({
                 </Col>
 
                 <Col lg={7}>
-                    <Card className="crm-card page-panel-templates-secondary border-0">
+                    <Card className="crm-card page-panel-templates-secondary border-0" data-tour="templates-list">
                         <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                             <div className="d-flex align-items-center gap-2">
                                 <FaTags className="text-warning" />

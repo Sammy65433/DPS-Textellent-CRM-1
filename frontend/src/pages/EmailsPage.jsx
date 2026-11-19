@@ -266,7 +266,7 @@ function EmailsPage({
                             </Card.Body>
                         </Card>
 
-                        <div className="crm-card page-panel-emails-secondary border-0">
+                        <div className="crm-card page-panel-emails-secondary border-0" data-tour="emails-compose">
                             <EmailComposer
                                 selectedContact={selectedContact}
                                 emailForm={emailForm}
@@ -278,7 +278,7 @@ function EmailsPage({
                     </Col>
 
                     <Col md={4}>
-                        <div className="crm-card page-panel-emails border-0">
+                        <div className="crm-card page-panel-emails border-0" data-tour="emails-list">
                             <AddContactForm
                                 contactForm={contactForm}
                                 setContactForm={setContactForm}
