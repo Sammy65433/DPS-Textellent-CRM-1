@@ -71,6 +71,16 @@ export default function OnboardingTour() {
   const started = step >= 0 && step < steps.length;
   const current = started ? steps[step] : null;
 
+  // Skip steps whose target element doesn't exist
+  useEffect(() => {
+    if (!started || !current) return;
+    if (current.selector && !document.querySelector(current.selector)) {
+      // skip this step
+      if (step < steps.length - 1) setStep(step + 1);
+      else setStep(-1);
+    }
+  }, [step, started, current, steps.length]);
+
   useEffect(() => {
     if (!started || !current?.selector) {
       setTargetRect(null);
