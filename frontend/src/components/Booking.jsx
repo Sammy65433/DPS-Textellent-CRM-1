@@ -1259,8 +1259,6 @@ async function sendAccountLinkInvitation(appointment) {
                                                         if (s.visitFormat) setVisitFormat(s.visitFormat);
                                                         if (s.date) {
                                                             setDay(s.date);
-                                                            const d = new Date(s.date + "T00:00:00");
-                                                            setCalendarMonth({ year: d.getFullYear(), month: d.getMonth() });
                                                         }
                                                         if (s.time) setTime(s.time);
                                                         setAiScheduleMessage(

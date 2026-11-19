@@ -1,6 +1,6 @@
 import { Card, Form, Button, Badge, Spinner } from "react-bootstrap";
 import { useMemo, useState } from "react";
-import { generateCampaignCopy, createTemplate } from "../api/api";
+import { generateCampaignCopy, createTemplate, fetchTemplates } from "../api/api";
 import {
     FaBullhorn,
     FaUsers,
@@ -14,6 +14,7 @@ function CampaignForm({
     campaignForm,
     setCampaignForm,
     templates,
+    setTemplates,
     contacts,
     onCreateCampaign,
     onToggleContact,
@@ -239,6 +240,14 @@ function CampaignForm({
                                                 category: "general",
                                                 body: result.body || "",
                                             });
+                                            if (setTemplates) {
+                                                try {
+                                                    const updated = await fetchTemplates();
+                                                    setTemplates(Array.isArray(updated) ? updated : templates);
+                                                } catch {
+                                                    // ignore
+                                                }
+                                            }
                                             setCampaignForm((prev) => ({
                                                 ...prev,
                                                 templateId: created._id,

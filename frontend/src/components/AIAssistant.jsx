@@ -16,6 +16,27 @@ export default function AIAssistant({ selectedContact, currentPage }) {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  function formatMessage(text) {
+    // Convert **bold** to <strong>, newlines to <br>
+    const lines = text.split("\n");
+    return lines.map((line, i) => {
+      // Handle numbered lists and bullet points
+      const parts = line.split(/(\*\*[^*]+\*\*)/g);
+      const rendered = parts.map((part, j) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={j}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+      return (
+        <span key={i}>
+          {rendered}
+          {i < lines.length - 1 && <br />}
+        </span>
+      );
+    });
+  }
+
   useEffect(() => {
     if (open && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -88,7 +109,7 @@ export default function AIAssistant({ selectedContact, currentPage }) {
                 key={idx}
                 className={`ai-msg ai-msg--${msg.role}`}
               >
-                {msg.text}
+                {formatMessage(msg.text)}
               </div>
             ))}
             {loading && (

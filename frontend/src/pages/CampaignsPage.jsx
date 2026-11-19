@@ -14,6 +14,7 @@ function CampaignsPage({
     campaignForm,
     setCampaignForm,
     templates,
+    setTemplates,
     contacts,
     onCreateCampaign,
     onToggleContact,
@@ -106,6 +107,7 @@ function CampaignsPage({
                         campaignForm={campaignForm}
                         setCampaignForm={setCampaignForm}
                         templates={templates}
+                        setTemplates={setTemplates}
                         contacts={contacts}
                         onCreateCampaign={onCreateCampaign}
                         onToggleContact={onToggleContact}
