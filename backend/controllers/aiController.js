@@ -1,95 +1,50 @@
-const GEMINI_MODELS = ["gemini-2.0-flash", "gemini-flash-latest", "gemini-1.5-flash"];
-const GEMINI_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODELS = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "llama-3.1-8b-instant"];
 
-async function callGemini(model, prompt, maxTokens, temperature, base64Data, mimeType) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+async function groqGenerate(prompt, maxTokens = 500, temperature = 0.7) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("GROQ_API_KEY not set");
 
-  const url = `${GEMINI_URL_BASE}/${model}:generateContent`;
+  for (const model of GROQ_MODELS) {
+    try {
+      console.log("Groq request: model=" + model);
 
-  const parts = [{ text: prompt }];
-  if (base64Data && mimeType) {
-    parts.push({ inlineData: { mimeType, data: base64Data } });
-  }
+      const response = await fetch(GROQ_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+          temperature,
+        }),
+        signal: AbortSignal.timeout(25000),
+      });
 
-  const body = JSON.stringify({
-    contents: [{ parts }],
-    generationConfig: { maxOutputTokens: maxTokens, temperature },
-  });
+      const responseText = await response.text();
 
-  // Try X-goog-api-key first
-  let response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey },
-    body,
-    signal: AbortSignal.timeout(25000),
-  });
-
-  // If auth key, try Authorization: Bearer as fallback
-  if (!response.ok && apiKey.startsWith("AQ.") && (response.status === 400 || response.status === 401 || response.status === 403)) {
-    response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-      body,
-      signal: AbortSignal.timeout(25000),
-    });
-  }
-
-  const responseText = await response.text();
-
-  if (!response.ok) {
-    console.error(`Gemini ${model} error:`, response.status, responseText.slice(0, 200));
-    const error = new Error(`Gemini API error ${response.status}: ${responseText.slice(0, 200)}`);
-    error.status = response.status;
-    throw error;
-  }
-
-  let data;
-  try { data = JSON.parse(responseText); } catch {
-    throw new Error("Invalid JSON response from Gemini: " + responseText.slice(0, 200));
-  }
-
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-}
-
-async function geminiGenerate(prompt, maxTokens = 500, temperature = 0.7) {
-  for (const model of GEMINI_MODELS) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        console.log("Gemini request: model=" + model + ", attempt=" + (attempt + 1));
-        const text = await callGemini(model, prompt, maxTokens, temperature, null, null);
-        if (text) return text;
-      } catch (error) {
-        console.error(`Model ${model} attempt ${attempt + 1} failed:`, error.message.slice(0, 100));
-        if (error.status === 503 && attempt === 0) {
-          console.log("Model overloaded, retrying in 2s...");
-          await new Promise((r) => setTimeout(r, 2000));
-          continue;
-        }
-        break;
+      if (!response.ok) {
+        console.error(`Groq ${model} error:`, response.status, responseText.slice(0, 200));
+        if (response.status === 429 || response.status === 503) continue;
+        throw new Error(`Groq API error ${response.status}: ${responseText.slice(0, 200)}`);
       }
+
+      let data;
+      try { data = JSON.parse(responseText); } catch {
+        throw new Error("Invalid JSON response from Groq: " + responseText.slice(0, 200));
+      }
+
+      const text = data?.choices?.[0]?.message?.content || "";
+      if (text) return text;
+    } catch (error) {
+      console.error(`Model ${model} failed:`, error.message.slice(0, 100));
+      if (model === GROQ_MODELS[GROQ_MODELS.length - 1]) throw error;
     }
   }
   return "I'm currently experiencing high demand. Please try again in a few moments.";
-}
-
-async function geminiVision(prompt, base64Data, mimeType, maxTokens = 500, temperature = 0.2) {
-  for (const model of GEMINI_MODELS) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const text = await callGemini(model, prompt, maxTokens, temperature, base64Data, mimeType);
-        if (text) return text;
-      } catch (error) {
-        console.error(`Model ${model} vision attempt ${attempt + 1} failed:`, error.message.slice(0, 100));
-        if (error.status === 503 && attempt === 0) {
-          await new Promise((r) => setTimeout(r, 2000));
-          continue;
-        }
-        break;
-      }
-    }
-  }
-  return "";
 }
 
 const DPS_SCOPE = "user123";
@@ -110,12 +65,13 @@ The CRM has these pages (accessible from the sidebar):
 Key features:
 - Staff invite: Admin goes to Staff Management, enters name + email, sends invitation. Staff receives email with setup link, sets password, account becomes active.
 - Client account linking: Staff clicks "Connect client account" on a contact (by email match) OR sends an invitation email. Client signs up on DPS site, confirms email, then connects via invitation link.
-- Document upload: Clients upload docs on DPS site portal. Staff downloads from contact's Documents tab. AI can extract data from uploaded documents.
+- Document upload: Clients upload docs on DPS site portal. Staff downloads from contact's Documents tab.
 - Front-page booking messages: Messages from website booking forms appear on dashboard. Staff can delete them (with confirmation + audit log).
 - Birthday emails: Automatic daily birthday greetings sent at 9 AM ET. Staff can trigger manually via POST /api/birthdays/run.
 - Mock SMS mode: When MOCK_SMS=true, SMS are logged but not actually sent (for testing).
 
 When answering, be concise, friendly, and specific. Reference exact page names and button labels. If you don't know something, say so. Never make up features that don't exist.`;
+
 export async function chatWithAssistant(req, res) {
   const { message, context } = req.body ?? {};
 
@@ -127,8 +83,8 @@ export async function chatWithAssistant(req, res) {
     return res.status(400).json({ error: "Message too long (max 2000 chars)." });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(503).json({ error: "AI assistant is not configured. Set GEMINI_API_KEY in environment." });
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(503).json({ error: "AI assistant is not configured. Set GROQ_API_KEY in environment." });
   }
 
   try {
@@ -136,7 +92,7 @@ export async function chatWithAssistant(req, res) {
       ? `\n\nCurrent context: The user is on the "${context.page || "unknown"}" page. ${context.selectedContact ? `Selected contact: ${context.selectedContact.firstName} ${context.selectedContact.lastName} (${context.selectedContact.email}).` : ""} ${context.role ? `User role: ${context.role}.` : ""}`
       : "";
 
-    const text = await geminiGenerate(
+    const text = await groqGenerate(
       CRM_SYSTEM_PROMPT + contextStr + "\n\nUser question: " + message.trim(),
       500,
       0.7
@@ -156,7 +112,7 @@ export async function generateContactSummary(req, res) {
     return res.status(400).json({ error: "Contact data is required." });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     return res.status(503).json({ error: "AI assistant is not configured." });
   }
 
@@ -181,7 +137,7 @@ ${recentEmails || "none"}
 
 Provide a brief, professional summary highlighting key facts and any suggested follow-up actions.`;
 
-    const text = await geminiGenerate(prompt, 200, 0.5);
+    const text = await groqGenerate(prompt, 200, 0.5);
     return res.json({ summary: text || "No summary available." });
   } catch (error) {
     console.error("Contact summary failed:", error);
@@ -196,7 +152,7 @@ export async function generateCampaignCopy(req, res) {
     return res.status(400).json({ error: "Campaign goal is required." });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     return res.status(503).json({ error: "AI assistant is not configured." });
   }
 
@@ -214,7 +170,7 @@ Return ONLY a JSON object with two fields:
 
 Do not include any explanation or markdown. Just the JSON.`;
 
-    const text = await geminiGenerate(prompt, 300, 0.8);
+    const text = await groqGenerate(prompt, 300, 0.8);
     const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     try {
       const parsed = JSON.parse(cleaned);
@@ -239,7 +195,7 @@ export async function naturalLanguageSearch(req, res) {
     return res.json({ matchedIds: [], explanation: "No contacts to search." });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     return res.status(503).json({ error: "AI assistant is not configured." });
   }
 
@@ -264,7 +220,7 @@ Return ONLY a JSON object: { "matchedIds": ["id1", "id2", ...], "explanation": "
 If no contacts match, return { "matchedIds": [], "explanation": "No matching contacts found." }
 Do not include markdown or explanation outside the JSON.`;
 
-    const text = await geminiGenerate(prompt, 500, 0.2);
+    const text = await groqGenerate(prompt, 500, 0.2);
     try {
       const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
       return res.json({
@@ -287,7 +243,7 @@ export async function smartFollowUps(req, res) {
     return res.json({ suggestions: [] });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     return res.status(503).json({ error: "AI assistant is not configured." });
   }
 
@@ -329,7 +285,7 @@ Return ONLY a JSON array of suggestions (max 5):
 
 If no suggestions, return []. No markdown, just JSON.`;
 
-    const text = await geminiGenerate(prompt, 600, 0.6);
+    const text = await groqGenerate(prompt, 600, 0.6);
     try {
       const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
       return res.json({ suggestions: Array.isArray(parsed) ? parsed : [] });
@@ -349,7 +305,7 @@ export async function aiScheduleAppointment(req, res) {
     return res.status(400).json({ error: "Scheduling request is required." });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     return res.status(503).json({ error: "AI assistant is not configured." });
   }
 
@@ -369,7 +325,7 @@ Parse the request and return ONLY a JSON object:
 
 If a field can't be determined, use null. Do not include markdown or explanation.`;
 
-    const text = await geminiGenerate(prompt, 300, 0.3);
+    const text = await groqGenerate(prompt, 300, 0.3);
     try {
       const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
       return res.json({ suggestion: parsed });
@@ -383,73 +339,9 @@ If a field can't be determined, use null. Do not include markdown or explanation
 }
 
 export async function extractDocumentData(req, res) {
-  const { documentId, contactId } = req.body ?? {};
-
-  if (!documentId || !contactId) {
-    return res.status(400).json({ error: "Document ID and contact ID are required." });
-  }
-
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(503).json({ error: "AI assistant is not configured." });
-  }
-
-  try {
-    const Contact = (await import("../models/Contact.js")).default;
-    const contact = await Contact.findOne({ _id: contactId, userId: "user123" }).select("+supabaseCustomerId");
-
-    if (!contact || !contact.supabaseCustomerId) {
-      return res.status(404).json({ error: "Contact not found or not linked to a client account." });
-    }
-
-    const customerId = contact.supabaseCustomerId;
-
-    const fileResponse = await fetch(
-      `${process.env.DPS_API_URL}/api/staff/documents/${encodeURIComponent(customerId)}/${encodeURIComponent(documentId)}/download`,
-      {
-        headers: { "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY },
-        signal: AbortSignal.timeout(25000),
-      }
-    );
-
-    if (!fileResponse.ok) {
-      return res.status(404).json({ error: "Document not found." });
-    }
-
-    const mimeType = fileResponse.headers.get("content-type") || "application/pdf";
-    const buffer = await fileResponse.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-
-    if (!mimeType.startsWith("image/") && mimeType !== "application/pdf") {
-      return res.status(400).json({ error: "Only images and PDFs can be processed." });
-    }
-
-    const prompt = `You are a document data extraction assistant for a tax preparation office. Extract the following information from this intake form/document:
-
-- First name
-- Last name
-- Date of birth (YYYY-MM-DD)
-- Phone number
-- Email address
-- Address (street, city, state, zip)
-- Filing status (single, married, head of household, etc.)
-- Income types mentioned (W-2, 1099, self-employment, rental, etc.)
-- Number of dependents
-- Any notes or special requests
-
-Return ONLY a JSON object with these fields (use null for missing info):
-{ "firstName": "", "lastName": "", "dateOfBirth": "", "phone": "", "email": "", "address": "", "city": "", "state": "", "zip": "", "filingStatus": "", "incomeTypes": [], "dependents": null, "notes": "" }
-
-Do not include markdown or explanation. Just the JSON.`;
-
-    const text = await geminiVision(prompt, base64, mimeType, 500, 0.2);
-    try {
-      const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
-      return res.json({ extracted: parsed });
-    } catch {
-      return res.json({ extracted: { raw: text } });
-    }
-  } catch (error) {
-    console.error("Document extraction failed:", error);
-    return res.status(500).json({ error: "Document extraction failed. " + error.message });
-  }
+  return res.json({
+    extracted: {
+      message: "Document OCR requires a vision-capable model. Groq text models don't support image processing. Please review the document manually or use a vision-capable provider.",
+    },
+  });
 }
