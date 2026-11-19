@@ -197,13 +197,20 @@ export async function deleteTemplate(templateId) {
 }
 
 export async function sendAIChat(payload) {
-  return apiResponse(
-    await fetch(`${API}/api/ai/chat`, {
-      method: "POST",
-      headers: staffHeaders(true),
-      body: JSON.stringify(payload),
-    })
-  );
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  try {
+    return await apiResponse(
+      await fetch(`${API}/api/ai/chat`, {
+        method: "POST",
+        headers: staffHeaders(true),
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      })
+    );
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export async function naturalLanguageSearch(payload) {

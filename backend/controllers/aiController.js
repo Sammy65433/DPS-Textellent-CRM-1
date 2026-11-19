@@ -5,6 +5,8 @@ async function geminiGenerate(prompt, maxTokens = 500, temperature = 0.7) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
+  console.log("Gemini request: model=" + GEMINI_MODEL + ", keyPrefix=" + apiKey.slice(0, 8) + "...");
+
   const response = await fetch(GEMINI_URL, {
     method: "POST",
     headers: {
@@ -15,16 +17,27 @@ async function geminiGenerate(prompt, maxTokens = 500, temperature = 0.7) {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { maxOutputTokens: maxTokens, temperature },
     }),
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(25000),
   });
 
+  const responseText = await response.text();
+
   if (!response.ok) {
-    const errBody = await response.text().catch(() => "");
-    throw new Error(`Gemini API error ${response.status}: ${errBody.slice(0, 200)}`);
+    console.error("Gemini API error:", response.status, responseText.slice(0, 300));
+    throw new Error(`Gemini API error ${response.status}: ${responseText.slice(0, 200)}`);
   }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new Error("Invalid JSON response from Gemini: " + responseText.slice(0, 200));
+  }
+
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  if (!text) {
+    console.error("Gemini returned empty text. Full response:", responseText.slice(0, 500));
+  }
   return text;
 }
 
@@ -49,16 +62,27 @@ async function geminiVision(prompt, base64Data, mimeType, maxTokens = 500, tempe
       ],
       generationConfig: { maxOutputTokens: maxTokens, temperature },
     }),
-    signal: AbortSignal.timeout(60000),
+    signal: AbortSignal.timeout(25000),
   });
 
+  const responseText = await response.text();
+
   if (!response.ok) {
-    const errBody = await response.text().catch(() => "");
-    throw new Error(`Gemini API error ${response.status}: ${errBody.slice(0, 200)}`);
+    console.error("Gemini Vision API error:", response.status, responseText.slice(0, 300));
+    throw new Error(`Gemini API error ${response.status}: ${responseText.slice(0, 200)}`);
   }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new Error("Invalid JSON response from Gemini: " + responseText.slice(0, 200));
+  }
+
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  if (!text) {
+    console.error("Gemini Vision returned empty text. Full response:", responseText.slice(0, 500));
+  }
   return text;
 }
 
@@ -378,7 +402,7 @@ export async function extractDocumentData(req, res) {
       `${process.env.DPS_API_URL}/api/staff/documents/${encodeURIComponent(customerId)}/${encodeURIComponent(documentId)}/download`,
       {
         headers: { "X-DPS-Staff-Key": process.env.DPS_STAFF_API_KEY },
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(25000),
       }
     );
 
