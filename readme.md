@@ -6,6 +6,7 @@ https://dps-textellent-frontend.onrender.com
 
 A staff-facing CRM and outreach platform for DPS Professional Tax Services. It manages contacts, SMS and email conversations, templates, campaigns, analytics, and appointments.
 
+
 The CRM is a separate application from the public DPS website. The DPS booking backend stores appointments in Supabase; the CRM backend stores CRM data in MongoDB.
 
 ## Tech stack
