@@ -158,6 +158,7 @@ function ContactSummaryCard({
                             <Button
                                 size="sm"
                                 variant="outline-success"
+                                data-tour="contacts-suggest-tags"
                                 disabled={loadingTags}
                                 onClick={async () => {
                                     setLoadingTags(true);

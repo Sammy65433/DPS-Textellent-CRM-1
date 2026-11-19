@@ -103,6 +103,7 @@ function ConversationPanel({
                         <Button
                             size="sm"
                             variant="outline-primary"
+                            data-tour="contacts-suggest-replies"
                             disabled={loadingReplies}
                             onClick={loadSmartReplies}
                         >

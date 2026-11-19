@@ -1,7 +1,9 @@
 import { Alert, Row, Col, Card, Button, Badge, Form } from "react-bootstrap";
-import { FaFileAlt, FaTags, FaEye, FaLightbulb } from "react-icons/fa";
+import { FaFileAlt, FaTags, FaEye, FaLightbulb, FaMagic } from "react-icons/fa";
+import { useState } from "react";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
+import { generateCampaignCopy } from "../api/api";
 
 function TemplatesPage({
     theme,
@@ -13,6 +15,12 @@ function TemplatesPage({
     onCreateTemplate,
     onDeleteTemplate,
 }) {
+    const [showAI, setShowAI] = useState(false);
+    const [aiGoal, setAiGoal] = useState("");
+    const [aiTone, setAiTone] = useState("professional and friendly");
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiMessage, setAiMessage] = useState("");
+
     const previewBody =
         templateForm.body || "Your live template preview will appear here.";
 
@@ -86,9 +94,87 @@ function TemplatesPage({
                                     </div>
                                     <div className="small">
                                         <code>{"{{firstName}}"}</code>{" "}
-                                        <code>{"{{lastName}}"}</code>
+                                        <code>{"{{lastName}}"}</code>{" "}
+                                        <code>{"{{fullName}}"}</code>
                                     </div>
                                 </div>
+
+                                <div className="mb-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline-primary"
+                                        size="sm"
+                                        onClick={() => setShowAI((v) => !v)}
+                                    >
+                                        {showAI ? "Hide AI Generator" : "✨ AI Generate Template"}
+                                    </Button>
+                                </div>
+
+                                {showAI && (
+                                    <Card className="border-0 bg-light mb-3">
+                                        <Card.Body>
+                                            <Form.Group className="mb-2">
+                                                <Form.Label className="small fw-semibold">
+                                                    What should this template say?
+                                                </Form.Label>
+                                                <Form.Control
+                                                    as="textarea"
+                                                    rows={2}
+                                                    placeholder="e.g. Welcome new clients and ask them to upload their tax documents"
+                                                    value={aiGoal}
+                                                    onChange={(e) => setAiGoal(e.target.value)}
+                                                />
+                                            </Form.Group>
+
+                                            <div className="d-flex gap-2 mb-2">
+                                                <Form.Select
+                                                    size="sm"
+                                                    value={aiTone}
+                                                    onChange={(e) => setAiTone(e.target.value)}
+                                                >
+                                                    <option value="professional and friendly">Professional</option>
+                                                    <option value="warm and casual">Warm & casual</option>
+                                                    <option value="urgent">Urgent</option>
+                                                </Form.Select>
+                                            </div>
+
+                                            <Button
+                                                type="button"
+                                                variant="primary"
+                                                size="sm"
+                                                className="w-100 mb-2"
+                                                disabled={aiLoading || !aiGoal.trim()}
+                                                onClick={async () => {
+                                                    setAiLoading(true);
+                                                    setAiMessage("");
+                                                    try {
+                                                        const result = await generateCampaignCopy({
+                                                            audience: "CRM contacts",
+                                                            goal: aiGoal.trim(),
+                                                            tone: aiTone,
+                                                        });
+                                                        setTemplateForm((prev) => ({
+                                                            ...prev,
+                                                            body: result.body || prev.body,
+                                                            name: prev.name || `AI: ${aiGoal.trim().slice(0, 30)}`,
+                                                        }));
+                                                        setAiMessage("Template body generated! Edit as needed.");
+                                                    } catch (error) {
+                                                        setAiMessage(error.message || "Generation failed.");
+                                                    } finally {
+                                                        setAiLoading(false);
+                                                    }
+                                                }}
+                                            >
+                                                {aiLoading ? "Generating..." : "Generate Template Body"}
+                                            </Button>
+
+                                            {aiMessage && (
+                                                <div className="small text-muted">{aiMessage}</div>
+                                            )}
+                                        </Card.Body>
+                                    </Card>
+                                )}
 
                                 <Card className="template-preview-card border-0 mb-3">
                                     <Card.Body>
