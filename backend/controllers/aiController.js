@@ -1,5 +1,5 @@
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODELS = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "llama-3.1-8b-instant"];
+const GROQ_MODELS = ["gemma2-9b-it", "llama3-8b-8192", "llama3-70b-8192"];
 
 async function groqGenerate(prompt, maxTokens = 500, temperature = 0.7) {
   const apiKey = process.env.GROQ_API_KEY;

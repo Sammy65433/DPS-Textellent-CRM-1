@@ -20,17 +20,19 @@ router.post("/campaign-copy", generateCampaignCopy);
 router.post("/search", naturalLanguageSearch);
 router.post("/follow-ups", smartFollowUps);
 router.post("/schedule", aiScheduleAppointment);
+router.post("/extract-document", extractDocumentData);
+
 router.get("/models", async (_req, res) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(503).json({ error: "GEMINI_API_KEY not set" });
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models", {
-      headers: { "X-goog-api-key": apiKey },
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: "GROQ_API_KEY not set" });
+    const response = await fetch("https://api.groq.com/openai/v1/models", {
+      headers: { "Authorization": `Bearer ${apiKey}` },
       signal: AbortSignal.timeout(15000),
     });
     const data = await response.json();
-    const models = (data.models || []).map((m) => m.name).filter((n) => n.includes("flash") || n.includes("pro"));
-    return res.json({ models, raw: data });
+    const models = (data.data || []).map((m) => m.id);
+    return res.json({ models });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
