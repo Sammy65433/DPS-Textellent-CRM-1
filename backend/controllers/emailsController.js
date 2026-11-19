@@ -15,7 +15,8 @@ const validEmail = (value) =>
 function renderTemplate(body, contact) {
   return body
     .replace(/{{firstName}}/g, contact?.firstName || "")
-    .replace(/{{lastName}}/g, contact?.lastName || "");
+    .replace(/{{lastName}}/g, contact?.lastName || "")
+    .replace(/{{fullName}}/g, `${contact?.firstName || ""} ${contact?.lastName || ""}`.trim());
 }
 
 export async function sendEmailMessage(req, res) {

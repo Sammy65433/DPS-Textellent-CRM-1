@@ -88,7 +88,8 @@ function CampaignForm({
 
         return raw
             .replace(/{{firstName}}/g, previewContact.firstName || "")
-            .replace(/{{lastName}}/g, previewContact.lastName || "");
+            .replace(/{{lastName}}/g, previewContact.lastName || "")
+            .replace(/{{fullName}}/g, `${previewContact.firstName || ""} ${previewContact.lastName || ""}`.trim());
     }, [selectedTemplate, previewContact]);
 
     const handleSelectAllFiltered = () => {

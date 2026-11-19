@@ -48,7 +48,8 @@ export async function sendMessage(req, res) {
 
     finalBody = finalBody
       .replace(/{{firstName}}/g, contact.firstName || "")
-      .replace(/{{lastName}}/g, contact.lastName || "");
+      .replace(/{{lastName}}/g, contact.lastName || "")
+      .replace(/{{fullName}}/g, `${contact.firstName || ""} ${contact.lastName || ""}`.trim());
 
     if (!finalBody || finalBody.length > 1600) {
       return res.status(400).json({ error: "Enter a valid message." });

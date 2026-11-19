@@ -1253,16 +1253,18 @@ async function sendAccountLinkInvitation(appointment) {
 
                                                     const s = data.suggestion;
                                                     if (s) {
-                                                        if (s.service && SERVICES.includes(s.service)) setService(s.service);
-                                                        if (s.preparer && PREPARERS.includes(s.preparer)) setPreparer(s.preparer);
-                                                        if (s.duration) setDuration(Number(s.duration));
-                                                        if (s.visitFormat) setVisitFormat(s.visitFormat);
-                                                        if (s.date) {
-                                                            setDay(s.date);
-                                                        }
-                                                        if (s.time) setTime(s.time);
+                                                        const applied = [];
+                                                        if (s.service && SERVICES.includes(s.service)) { setService(s.service); applied.push(`service: ${s.service}`); }
+                                                        if (s.preparer && PREPARERS.includes(s.preparer)) { setPreparer(s.preparer); applied.push(`preparer: ${s.preparer}`); }
+                                                        if (s.duration) { setDuration(Number(s.duration)); applied.push(`duration: ${s.duration}min`); }
+                                                        if (s.visitFormat) { setVisitFormat(s.visitFormat); applied.push(`visit: ${s.visitFormat}`); }
+                                                        if (s.date) { setDay(s.date); applied.push(`date: ${s.date}`); }
+                                                        if (s.time) { setTime(s.time); applied.push(`time: ${s.time}`); }
+                                                        if (s.clientName) applied.push(`client: ${s.clientName}`);
                                                         setAiScheduleMessage(
-                                                            `Applied: ${s.service || "?"} with ${s.preparer || "?"} on ${s.date || "?"} at ${s.time || "?"}`
+                                                            applied.length > 0
+                                                                ? `Applied → ${applied.join(", ")}. Fill in the rest and book.`
+                                                                : "Could not extract scheduling details. Please fill in manually."
                                                         );
                                                     } else {
                                                         setAiScheduleMessage(data.raw || "Could not parse the request.");
