@@ -62,7 +62,7 @@ const TOURS = {
     { selector: '[data-tour="analytics-services"]', title: "Bookings by Service", text: "Horizontal bar chart showing which services are most popular. Helps you understand demand." },
     { selector: '[data-tour="analytics-preparers"]', title: "Bookings by Preparer", text: "Shows workload distribution across preparers. Helps balance scheduling." },
     { selector: '[data-tour="analytics-activity"]', title: "SMS & Email Activity", text: "Area chart of outreach activity over time. Shows your communication volume." },
-    { selector: '[data-tour="analytics-followups"]', title: "AI Follow-Up Suggestions", text: "AI analyzes contacts and suggests follow-ups with priority levels. Click 'Refresh' to re-analyze." },
+    { selector: '[data-tour="analytics-insights"]', title: "AI Revenue Insights", text: "AI analyzes your booking data, contacts, campaigns, and emails to generate insights and recommendations. Click 'Refresh' to re-analyze." },
     { selector: null, title: "Done! 🎉", text: "Use these insights to optimize scheduling, balance workloads, and improve outreach." },
   ],
   "/staff": [

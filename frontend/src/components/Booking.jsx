@@ -1245,7 +1245,22 @@ async function sendAccountLinkInvitation(appointment) {
                                         {prepBrief && (
                                             <div className="booking-note mt-2">
                                                 <strong>Prep Brief</strong>
-                                                <p style={{ whiteSpace: "pre-wrap" }}>{prepBrief}</p>
+                                                <div className="prep-brief-content">
+                                                    {prepBrief.split("\n").map((line, i) => {
+                                                        const parts = line.split(/(\*\*[^*]+\*\*)/g);
+                                                        const rendered = parts.map((part, j) => {
+                                                            if (part.startsWith("**") && part.endsWith("**")) {
+                                                                return <strong key={j}>{part.slice(2, -2)}</strong>;
+                                                            }
+                                                            return part;
+                                                        });
+                                                        return (
+                                                            <p key={i} className="prep-brief-line">
+                                                                {rendered}
+                                                            </p>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         )}
                                     </div>

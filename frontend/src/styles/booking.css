@@ -1338,3 +1338,18 @@
   color: #64748b;
   font-weight: 600;
 }
+/* Prep brief formatting */
+.prep-brief-content {
+  margin-top: 0.5rem;
+}
+
+.prep-brief-line {
+  margin: 0.25rem 0;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.prep-brief-line:empty {
+  margin: 0;
+  height: 0.5rem;
+}

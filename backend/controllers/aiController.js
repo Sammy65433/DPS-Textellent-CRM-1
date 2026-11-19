@@ -495,7 +495,17 @@ export async function meetingPrepBrief(req, res) {
   try {
     const recentMsgs = messages.slice(-3).map((m) => `${m.direction}: ${m.body}`).join("\n");
 
-    const prompt = `You are a CRM assistant preparing a staff member for an upcoming appointment. Generate a brief prep sheet (3-5 bullet points) covering key facts and suggested talking points.
+    const prompt = `You are a CRM assistant preparing a staff member for an upcoming appointment. Generate a brief prep sheet with this exact structure:
+
+• **Client Situation**: [1-2 sentences about the client's circumstances]
+• **Key Topics**:
+  – [topic 1]
+  – [topic 2]
+  – [topic 3]
+• **Red Flags / Follow-ups**:
+  – [concern 1]
+  – [concern 2]
+  – [concern 3]
 
 Appointment:
 - Service: ${appointment.service}
@@ -515,7 +525,7 @@ ${contact?.notes ? `Notes: ${contact.notes}` : ""}
 Recent messages:
 ${recentMsgs || "none"}
 
-Return a concise prep brief with bullet points (use • for bullets). Include: client situation, key topics to cover, and any red flags or follow-ups needed. Keep it under 150 words.`;
+Keep each section concise. Use **bold** for labels. Use • and – for bullets.`;
 
     const text = await groqGenerate(prompt, 250, 0.5);
     return res.json({ brief: text || "No prep brief available." });

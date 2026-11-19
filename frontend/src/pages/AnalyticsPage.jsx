@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
-import { getSmartFollowUps } from "../api/api";
+import { getRevenueInsights } from "../api/api";
 
 function AnalyticsPage({
     theme,
@@ -29,8 +29,8 @@ function AnalyticsPage({
     const [bookingError, setBookingError] = useState("");
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [range, setRange] = useState("30");
-    const [followUps, setFollowUps] = useState([]);
-    const [loadingFollowUps, setLoadingFollowUps] = useState(false);
+    const [revenueInsights, setRevenueInsights] = useState([]);
+    const [loadingInsights, setLoadingInsights] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -82,11 +82,11 @@ function AnalyticsPage({
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) return;
-        setLoadingFollowUps(true);
-        getSmartFollowUps({ contacts, messages, emails, appointments: [] })
-            .then((data) => setFollowUps(Array.isArray(data?.suggestions) ? data.suggestions : []))
-            .catch(() => setFollowUps([]))
-            .finally(() => setLoadingFollowUps(false));
+        setLoadingInsights(true);
+        getRevenueInsights({ contacts, messages, emails, appointments: [] })
+            .then((data) => setRevenueInsights(Array.isArray(data?.insights) ? data.insights : []))
+            .catch(() => setRevenueInsights([]))
+            .finally(() => setLoadingInsights(false));
     }, []);
 
     const now = new Date();
@@ -417,41 +417,43 @@ function AnalyticsPage({
                 </Card.Body>
             </Card>
 
-            <Card className="crm-card border-0 mb-4 mt-4" data-tour="analytics-followups">
+            <Card className="crm-card border-0 mb-4 mt-4" data-tour="analytics-insights">
                 <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
-                    <span>✨ AI Follow-Up Suggestions</span>
+                    <span>📊 AI Revenue Insights</span>
                     <Button
                         size="sm"
                         variant="outline-primary"
-                        disabled={loadingFollowUps}
+                        disabled={loadingInsights}
                         onClick={() => {
-                            setLoadingFollowUps(true);
-                            getSmartFollowUps({ contacts, messages, emails, appointments })
-                                .then((data) => setFollowUps(Array.isArray(data?.suggestions) ? data.suggestions : []))
-                                .catch(() => setFollowUps([]))
-                                .finally(() => setLoadingFollowUps(false));
+                            setLoadingInsights(true);
+                            getRevenueInsights({ appointments, contacts, campaigns, emails })
+                                .then((data) => setRevenueInsights(Array.isArray(data?.insights) ? data.insights : []))
+                                .catch(() => setRevenueInsights([]))
+                                .finally(() => setLoadingInsights(false));
                         }}
                     >
-                        {loadingFollowUps ? "Analyzing..." : "Refresh"}
+                        {loadingInsights ? "Analyzing..." : "Refresh"}
                     </Button>
                 </Card.Header>
                 <Card.Body>
-                    {loadingFollowUps ? (
-                        <p className="text-muted mb-0">Analyzing contacts...</p>
-                    ) : followUps.length === 0 ? (
-                        <p className="text-muted mb-0">No follow-up suggestions right now.</p>
+                    {loadingInsights ? (
+                        <p className="text-muted mb-0">Analyzing data...</p>
+                    ) : revenueInsights.length === 0 ? (
+                        <p className="text-muted mb-0">No insights available yet.</p>
                     ) : (
                         <ListGroup variant="flush">
-                            {followUps.map((s, idx) => (
+                            {revenueInsights.map((insight, idx) => (
                                 <ListGroup.Item key={idx}>
                                     <div className="d-flex justify-content-between align-items-start gap-2">
                                         <div className="flex-grow-1">
-                                            <div className="fw-semibold">{s.contactName}</div>
-                                            <div className="small text-muted">{s.reason}</div>
-                                            <div className="small">{s.suggestedAction}</div>
+                                            <div className="fw-semibold">{insight.title}</div>
+                                            <div className="small">{insight.insight}</div>
+                                            <div className="small text-muted mt-1">
+                                                💡 {insight.recommendation}
+                                            </div>
                                         </div>
-                                        <Badge bg={s.priority === "high" ? "danger" : s.priority === "medium" ? "warning" : "secondary"}>
-                                            {s.priority}
+                                        <Badge bg={insight.priority === "high" ? "danger" : insight.priority === "medium" ? "warning" : "secondary"}>
+                                            {insight.priority}
                                         </Badge>
                                     </div>
                                 </ListGroup.Item>
