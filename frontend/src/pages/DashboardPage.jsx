@@ -58,6 +58,13 @@ function DashboardPage({
 
     const contactsMissingEmail = contacts.filter(contact => !contact.email).length;
     const draftCampaigns = campaigns.filter(campaign => campaign.status === "draft").length;
+    const newSignups = contacts.filter((contact) => {
+        const tags = String(contact.tags || "");
+        if (!tags.includes("DPS Client")) return false;
+        const created = new Date(contact.createdAt);
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        return created >= sevenDaysAgo;
+    });
 const [appointments, setAppointments] = useState([]);
     const [bookingError, setBookingError] = useState("");
     const navigate = useNavigate();
@@ -309,6 +316,15 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                 title="Dashboard"
                 subtitle="Overview of contacts, templates, messages, campaigns, and emails."
             />
+            {newSignups.length > 0 && (
+                <Alert variant="info" className="mb-3">
+                    <strong>{newSignups.length} new client{newSignups.length !== 1 ? "s" : ""} signed up</strong> in the last 7 days.
+                    {" "}
+                    <Link to="/contacts" className="alert-link">
+                        View contacts →
+                    </Link>
+                </Alert>
+            )}
             <Card className="crm-card border-0 mb-4" data-tour="dashboard-appointments">
                 <Card.Body className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div>
