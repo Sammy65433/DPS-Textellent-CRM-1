@@ -110,8 +110,15 @@ router.post("/contacts/:contactId/link-client", async (req, res) => {
       });
     }
 
-    contact.supabaseCustomerId = String(data.customer.id);
-    await contact.save();
+    const updated = await Contact.findOneAndUpdate(
+      { _id: req.params.contactId, userId: CONTACT_SCOPE, supabaseCustomerId: null },
+      { $set: { supabaseCustomerId: String(data.customer.id) } },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(409).json({ message: "Contact already linked to a client account." });
+    }
 
     return res.json({
       message: "Client account connected to this contact.",

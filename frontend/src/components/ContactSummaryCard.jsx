@@ -119,6 +119,7 @@ function ContactSummaryCard({
                             <Button
                                 size="sm"
                                 variant="outline-primary"
+                                data-tour="contacts-ai-summary"
                                 disabled={loadingSummary}
                                 onClick={async () => {
                                     setLoadingSummary(true);

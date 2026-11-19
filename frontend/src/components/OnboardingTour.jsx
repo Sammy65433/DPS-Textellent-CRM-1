@@ -19,6 +19,7 @@ const TOURS = {
     { selector: '[data-tour="contacts-search"]', title: "AI Search", text: "Type natural language like 'contacts missing email' and AI filters the list for you." },
     { selector: '[data-tour="contacts-list"]', title: "Contacts List", text: "Click a contact to view their details, messages, emails, and documents. Use the dropdown for quick selection." },
     { selector: '[data-tour="contacts-summary"]', title: "Contact Details", text: "View contact info, tags, notes, birthday, and recent activity. Click 'Generate AI Summary' for a quick brief." },
+    { selector: '[data-tour="contacts-ai-summary"]', title: "AI Summary", text: "Click 'Generate AI Summary' to get a 2-3 sentence brief of this contact based on their info, messages, and emails. Great for quick prep before reaching out." },
     { selector: '[data-tour="contacts-documents"]', title: "Client Documents", text: "If the contact is linked to a client account, their uploaded documents appear here. Click 'Connect client account' to link by email." },
     { selector: '[data-tour="contacts-add"]', title: "Add/Edit Contact", text: "Add new contacts or edit existing ones. Fill in name, phone, email, tags, notes, and birthday." },
     { selector: null, title: "Done! 🎉", text: "You can now manage contacts, send messages/emails, and track conversations." },
