@@ -1,4 +1,6 @@
-import { Card, Badge } from "react-bootstrap";
+import { useState } from "react";
+import { Card, Badge, Button, Spinner } from "react-bootstrap";
+import { generateContactSummary } from "../api/api";
 import {
     FaUser,
     FaPhone,
@@ -14,6 +16,9 @@ function ContactSummaryCard({
     conversation = [],
     emailMessages = [],
 }) {
+    const [aiSummary, setAiSummary] = useState("");
+    const [loadingSummary, setLoadingSummary] = useState(false);
+
     if (!selectedContact) {
         return (
             <Card className="crm-card page-panel-contacts-secondary border-0 mb-3">
@@ -107,6 +112,44 @@ function ContactSummaryCard({
                                 </div>
                             </div>
                         )}
+
+                        <div className="mb-3">
+                            <Button
+                                size="sm"
+                                variant="outline-primary"
+                                disabled={loadingSummary}
+                                onClick={async () => {
+                                    setLoadingSummary(true);
+                                    setAiSummary("");
+                                    try {
+                                        const result = await generateContactSummary({
+                                            contact: selectedContact,
+                                            messages: conversation,
+                                            emails: emailMessages,
+                                        });
+                                        setAiSummary(result.summary || "No summary available.");
+                                    } catch (error) {
+                                        setAiSummary("Could not generate summary.");
+                                    } finally {
+                                        setLoadingSummary(false);
+                                    }
+                                }}
+                            >
+                                {loadingSummary ? (
+                                    <>
+                                        <Spinner animation="border" size="sm" className="me-1" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    "✨ Generate AI Summary"
+                                )}
+                            </Button>
+                            {aiSummary && (
+                                <div className="contact-ai-summary mt-2 p-2 rounded bg-light small">
+                                    {aiSummary}
+                                </div>
+                            )}
+                        </div>
 
                         <div className="contact-activity-box">
                             <div className="fw-semibold d-flex align-items-center gap-2 mb-2">

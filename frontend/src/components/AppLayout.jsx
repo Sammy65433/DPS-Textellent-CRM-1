@@ -13,6 +13,7 @@ import {
   FaUserShield,
 } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
+import AIAssistant from "./AIAssistant";
 
 function AppLayout({ children, theme, onToggleTheme }) {
   const navigate = useNavigate();
@@ -203,6 +204,8 @@ function AppLayout({ children, theme, onToggleTheme }) {
       <Container fluid className="dashboard-shell">
         {children}
       </Container>
+
+      <AIAssistant />
     </>
   );
 }

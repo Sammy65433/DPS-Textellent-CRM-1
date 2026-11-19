@@ -196,6 +196,36 @@ export async function deleteTemplate(templateId) {
   );
 }
 
+export async function sendAIChat(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/chat`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function generateContactSummary(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/contact-summary`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function generateCampaignCopy(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/ai/campaign-copy`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
 export async function fetchCampaigns() {
   return apiResponse(
     await fetch(`${API}/api/campaigns`, { headers: staffHeaders() })

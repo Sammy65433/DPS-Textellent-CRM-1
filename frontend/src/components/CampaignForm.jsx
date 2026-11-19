@@ -1,5 +1,6 @@
-import { Card, Form, Button, Badge } from "react-bootstrap";
+import { Card, Form, Button, Badge, Spinner } from "react-bootstrap";
 import { useMemo, useState } from "react";
+import { generateCampaignCopy, createTemplate } from "../api/api";
 import {
     FaBullhorn,
     FaUsers,
@@ -19,6 +20,12 @@ function CampaignForm({
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [tagFilter, setTagFilter] = useState("");
+    const [showAI, setShowAI] = useState(false);
+    const [aiGoal, setAiGoal] = useState("");
+    const [aiAudience, setAiAudience] = useState("all contacts");
+    const [aiTone, setAiTone] = useState("professional and friendly");
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiMessage, setAiMessage] = useState("");
 
     const uniqueTags = useMemo(() => {
         const tags = contacts
@@ -162,6 +169,104 @@ function CampaignForm({
                                 }))
                             }
                         />
+                    )}
+
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                        <Button
+                            type="button"
+                            variant="outline-primary"
+                            size="sm"
+                            onClick={() => setShowAI((v) => !v)}
+                        >
+                            {showAI ? "Hide AI Generator" : "AI Generate Copy"}
+                        </Button>
+                    </div>
+
+                    {showAI && (
+                        <Card className="border-0 bg-light mb-3">
+                            <Card.Body>
+                                <Form.Group className="mb-2">
+                                    <Form.Label className="small fw-semibold">Campaign goal</Form.Label>
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={2}
+                                        placeholder="e.g. Remind clients about the April 15 tax deadline"
+                                        value={aiGoal}
+                                        onChange={(e) => setAiGoal(e.target.value)}
+                                    />
+                                </Form.Group>
+
+                                <div className="d-flex gap-2 mb-2">
+                                    <Form.Select
+                                        size="sm"
+                                        value={aiAudience}
+                                        onChange={(e) => setAiAudience(e.target.value)}
+                                    >
+                                        <option value="all contacts">All contacts</option>
+                                        <option value="recent clients">Recent clients</option>
+                                        <option value="inactive leads">Inactive leads</option>
+                                    </Form.Select>
+
+                                    <Form.Select
+                                        size="sm"
+                                        value={aiTone}
+                                        onChange={(e) => setAiTone(e.target.value)}
+                                    >
+                                        <option value="professional and friendly">Professional</option>
+                                        <option value="warm and casual">Warm & casual</option>
+                                        <option value="urgent">Urgent</option>
+                                    </Form.Select>
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    variant="primary"
+                                    size="sm"
+                                    className="w-100 mb-2"
+                                    disabled={aiLoading || !aiGoal.trim()}
+                                    onClick={async () => {
+                                        setAiLoading(true);
+                                        setAiMessage("");
+                                        try {
+                                            const result = await generateCampaignCopy({
+                                                audience: aiAudience,
+                                                goal: aiGoal.trim(),
+                                                tone: aiTone,
+                                            });
+                                            const created = await createTemplate({
+                                                userId: "user123",
+                                                name: `AI: ${aiGoal.trim().slice(0, 40)}`,
+                                                category: "general",
+                                                body: result.body || "",
+                                            });
+                                            setCampaignForm((prev) => ({
+                                                ...prev,
+                                                templateId: created._id,
+                                                subject: result.subject || prev.subject,
+                                            }));
+                                            setAiMessage("Template created and selected!");
+                                        } catch (error) {
+                                            setAiMessage(error.message || "Generation failed.");
+                                        } finally {
+                                            setAiLoading(false);
+                                        }
+                                    }}
+                                >
+                                    {aiLoading ? (
+                                        <>
+                                            <Spinner animation="border" size="sm" className="me-1" />
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        "Generate & Create Template"
+                                    )}
+                                </Button>
+
+                                {aiMessage && (
+                                    <div className="small text-muted">{aiMessage}</div>
+                                )}
+                            </Card.Body>
+                        </Card>
                     )}
 
                     <Form.Select
