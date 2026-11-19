@@ -47,7 +47,7 @@ export default function AIAssistant({ selectedContact, currentPage }) {
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: "Sorry, I couldn't get a response. Please try again." },
+        { role: "assistant", text: `Error: ${error.message || "Could not get a response. Please try again."}` },
       ]);
     } finally {
       setLoading(false);

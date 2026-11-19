@@ -1,24 +1,86 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+const GEMINI_MODEL = "gemini-flash-latest";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+async function geminiGenerate(prompt, maxTokens = 500, temperature = 0.7) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+
+  const response = await fetch(GEMINI_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-goog-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: maxTokens, temperature },
+    }),
+    signal: AbortSignal.timeout(30000),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => "");
+    throw new Error(`Gemini API error ${response.status}: ${errBody.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return text;
+}
+
+async function geminiVision(prompt, base64Data, mimeType, maxTokens = 500, temperature = 0.2) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+
+  const response = await fetch(GEMINI_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-goog-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType, data: base64Data } },
+          ],
+        },
+      ],
+      generationConfig: { maxOutputTokens: maxTokens, temperature },
+    }),
+    signal: AbortSignal.timeout(60000),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => "");
+    throw new Error(`Gemini API error ${response.status}: ${errBody.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  return text;
+}
 
 const DPS_SCOPE = "user123";
 
-const CRM_SYSTEM_PROMPT = `You are DPS CRM Assistant, a helpful AI guide for the DPS Professional Tax Services CRM (Textellent-based). You help staff members navigate the app and answer questions about how to use it.
+const CRM_SYSTEM_PROMPT = `You are DPS CRM Assistant, a helpful AI guide for the DPS Professional Tax Services CRM. You help staff members navigate the app and answer questions about how to use it.
 
 The CRM has these pages (accessible from the sidebar):
-- Dashboard: Overview of contacts, templates, messages, campaigns, emails. Shows today's appointments, this week's bookings, recent messages/emails, and front-page booking messages from the website. Has quick actions (manage contacts, send email, manage templates, create campaign, book appointment).
-- Contacts: Manage client contacts. Add/edit/delete contacts. Send SMS messages and emails. View conversation history. Upload and download documents (if client account is linked). Send account-link invitations.
+- Dashboard: Overview of contacts, templates, messages, campaigns, and emails. Shows today's appointments, this week's bookings, recent messages/emails, and front-page booking messages from the website. Has quick actions and AI follow-up suggestions.
+- Contacts: Manage client contacts. Add/edit/delete contacts. Send SMS messages and emails. View conversation history. Upload and download documents (if client account is linked). Send account-link invitations. AI search available.
 - Templates: Create/manage message and email templates with {{firstName}} and {{lastName}} placeholders.
-- Campaigns: Create and send campaigns to selected contacts. Email-only or SMS. Can schedule campaigns.
+- Campaigns: Create and send campaigns to selected contacts. Email-only or SMS. Can schedule campaigns. AI copy generator available.
 - Emails: View and send emails to contacts. Can use templates.
 - Messages: View SMS conversation history. Send individual SMS messages.
 - Analytics: Booking counts, contact stats, outreach trends.
-- Booking: Full calendar view (day/week/month). Create, edit, cancel appointments. Color-coded by preparer (Pierre=blue, Dalia=purple, Severe=green, Jean=orange, Ricot=pink). Real estate appointments show in teal (DPS Realty).
+- Booking: Full calendar view (day/week/month). Create, edit, and cancel appointments. Color-coded by preparer (Pierre=blue, Dalia=purple, Severe=green, Jean=orange, Ricot=pink). Real estate appointments show in teal (DPS Realty). AI scheduling available.
 - Staff Management (admin only): Invite new staff, deactivate/reactivate accounts.
 
 Key features:
 - Staff invite: Admin goes to Staff Management, enters name + email, sends invitation. Staff receives email with setup link, sets password, account becomes active.
 - Client account linking: Staff clicks "Connect client account" on a contact (by email match) OR sends an invitation email. Client signs up on DPS site, confirms email, then connects via invitation link.
-- Document upload: Clients upload docs on DPS site portal. Staff downloads from contact's Documents tab.
+- Document upload: Clients upload docs on DPS site portal. Staff downloads from contact's Documents tab. AI can extract data from uploaded documents.
 - Front-page booking messages: Messages from website booking forms appear on dashboard. Staff can delete them (with confirmation + audit log).
 - Birthday emails: Automatic daily birthday greetings sent at 9 AM ET. Staff can trigger manually via POST /api/birthdays/run.
 - Mock SMS mode: When MOCK_SMS=true, SMS are logged but not actually sent (for testing).
@@ -41,33 +103,20 @@ export async function chatWithAssistant(req, res) {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
     const contextStr = context
       ? `\n\nCurrent context: The user is on the "${context.page || "unknown"}" page. ${context.selectedContact ? `Selected contact: ${context.selectedContact.firstName} ${context.selectedContact.lastName} (${context.selectedContact.email}).` : ""} ${context.role ? `User role: ${context.role}.` : ""}`
       : "";
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: CRM_SYSTEM_PROMPT + contextStr + "\n\nUser question: " + message.trim() }],
-        },
-      ],
-      generationConfig: {
-        maxOutputTokens: 500,
-        temperature: 0.7,
-      },
-    });
-
-    const response = result.response;
-    const text = response.text();
+    const text = await geminiGenerate(
+      CRM_SYSTEM_PROMPT + contextStr + "\n\nUser question: " + message.trim(),
+      500,
+      0.7
+    );
 
     return res.json({ reply: text });
   } catch (error) {
     console.error("AI chat failed:", error);
-    return res.status(500).json({ error: "AI assistant is temporarily unavailable." });
+    return res.status(500).json({ error: "AI assistant is temporarily unavailable. " + error.message });
   }
 }
 
@@ -83,9 +132,6 @@ export async function generateContactSummary(req, res) {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
     const recentMsgs = messages.slice(0, 5).map((m) => `${m.direction}: ${m.body}`).join("\n");
     const recentEmails = emails.slice(0, 5).map((e) => `Subject: ${e.subject}`).join("\n");
 
@@ -106,15 +152,11 @@ ${recentEmails || "none"}
 
 Provide a brief, professional summary highlighting key facts and any suggested follow-up actions.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 200, temperature: 0.5 },
-    });
-
-    return res.json({ summary: result.response.text() });
+    const text = await geminiGenerate(prompt, 200, 0.5);
+    return res.json({ summary: text });
   } catch (error) {
     console.error("Contact summary failed:", error);
-    return res.status(500).json({ error: "Could not generate summary." });
+    return res.status(500).json({ error: "Could not generate summary. " + error.message });
   }
 }
 
@@ -130,9 +172,6 @@ export async function generateCampaignCopy(req, res) {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
     const prompt = `You are a marketing copywriter for DPS Professional Tax Services, a tax preparation and real estate services company in Maplewood, NJ.
 
 Write a short campaign message (SMS or email) for the following:
@@ -146,24 +185,20 @@ Return ONLY a JSON object with two fields:
 
 Do not include any explanation or markdown. Just the JSON.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 300, temperature: 0.8 },
-    });
-
-    const text = result.response.text().trim();
-    // Try to parse as JSON
+    const text = await geminiGenerate(prompt, 300, 0.8);
+    const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     try {
-      const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
+      const parsed = JSON.parse(cleaned);
       return res.json({ subject: parsed.subject, body: parsed.body });
     } catch {
       return res.json({ subject: "DPS Update", body: text });
     }
   } catch (error) {
     console.error("Campaign copy generation failed:", error);
-    return res.status(500).json({ error: "Could not generate campaign copy." });
+    return res.status(500).json({ error: "Could not generate campaign copy. " + error.message });
   }
 }
+
 export async function naturalLanguageSearch(req, res) {
   const { query, contacts } = req.body ?? {};
 
@@ -180,9 +215,6 @@ export async function naturalLanguageSearch(req, res) {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
     const contactList = contacts.map((c) => ({
       id: c._id || c.id,
       name: `${c.firstName || ""} ${c.lastName || ""}`.trim(),
@@ -203,12 +235,7 @@ Return ONLY a JSON object: { "matchedIds": ["id1", "id2", ...], "explanation": "
 If no contacts match, return { "matchedIds": [], "explanation": "No matching contacts found." }
 Do not include markdown or explanation outside the JSON.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 500, temperature: 0.2 },
-    });
-
-    const text = result.response.text().trim();
+    const text = await geminiGenerate(prompt, 500, 0.2);
     try {
       const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
       return res.json({
@@ -220,12 +247,12 @@ Do not include markdown or explanation outside the JSON.`;
     }
   } catch (error) {
     console.error("Natural language search failed:", error);
-    return res.status(500).json({ error: "Search failed." });
+    return res.status(500).json({ error: "Search failed. " + error.message });
   }
 }
 
 export async function smartFollowUps(req, res) {
-  const { contacts, messages = [], emails = [], appointments = [] } = req.body ?? {};
+  const { contacts, messages = [], emails = [] } = req.body ?? {};
 
   if (!Array.isArray(contacts) || contacts.length === 0) {
     return res.json({ suggestions: [] });
@@ -236,9 +263,6 @@ export async function smartFollowUps(req, res) {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
     const now = new Date().toISOString().slice(0, 10);
     const contactSummary = contacts.slice(0, 50).map((c) => {
       const msgs = messages.filter((m) => String(m.contactId?._id || m.contactId) === String(c._id));
@@ -276,12 +300,7 @@ Return ONLY a JSON array of suggestions (max 5):
 
 If no suggestions, return []. No markdown, just JSON.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 600, temperature: 0.6 },
-    });
-
-    const text = result.response.text().trim();
+    const text = await geminiGenerate(prompt, 600, 0.6);
     try {
       const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
       return res.json({ suggestions: Array.isArray(parsed) ? parsed : [] });
@@ -290,7 +309,7 @@ If no suggestions, return []. No markdown, just JSON.`;
     }
   } catch (error) {
     console.error("Smart follow-ups failed:", error);
-    return res.status(500).json({ error: "Follow-up analysis failed." });
+    return res.status(500).json({ error: "Follow-up analysis failed. " + error.message });
   }
 }
 
@@ -306,9 +325,6 @@ export async function aiScheduleAppointment(req, res) {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
     const today = new Date().toISOString().slice(0, 10);
 
     const prompt = `You are a scheduling assistant for DPS Professional Tax Services. Today is ${today}.
@@ -324,12 +340,7 @@ Parse the request and return ONLY a JSON object:
 
 If a field can't be determined, use null. Do not include markdown or explanation.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 300, temperature: 0.3 },
-    });
-
-    const text = result.response.text().trim();
+    const text = await geminiGenerate(prompt, 300, 0.3);
     try {
       const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
       return res.json({ suggestion: parsed });
@@ -338,7 +349,7 @@ If a field can't be determined, use null. Do not include markdown or explanation
     }
   } catch (error) {
     console.error("AI scheduling failed:", error);
-    return res.status(500).json({ error: "Scheduling analysis failed." });
+    return res.status(500).json({ error: "Scheduling analysis failed. " + error.message });
   }
 }
 
@@ -353,12 +364,7 @@ export async function extractDocumentData(req, res) {
     return res.status(503).json({ error: "AI assistant is not configured." });
   }
 
-  if (!process.env.DPS_API_URL || !process.env.DPS_STAFF_API_KEY) {
-    return res.status(503).json({ error: "DPS connection is not configured." });
-  }
-
   try {
-    // Load contact to get the linked DPS customer ID
     const Contact = (await import("../models/Contact.js")).default;
     const contact = await Contact.findOne({ _id: contactId, userId: "user123" }).select("+supabaseCustomerId");
 
@@ -368,7 +374,6 @@ export async function extractDocumentData(req, res) {
 
     const customerId = contact.supabaseCustomerId;
 
-    // Fetch the file from DPS
     const fileResponse = await fetch(
       `${process.env.DPS_API_URL}/api/staff/documents/${encodeURIComponent(customerId)}/${encodeURIComponent(documentId)}/download`,
       {
@@ -385,13 +390,9 @@ export async function extractDocumentData(req, res) {
     const buffer = await fileResponse.arrayBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
 
-    // Only process images and PDFs
     if (!mimeType.startsWith("image/") && mimeType !== "application/pdf") {
       return res.status(400).json({ error: "Only images and PDFs can be processed." });
     }
-
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     const prompt = `You are a document data extraction assistant for a tax preparation office. Extract the following information from this intake form/document:
 
@@ -411,25 +412,7 @@ Return ONLY a JSON object with these fields (use null for missing info):
 
 Do not include markdown or explanation. Just the JSON.`;
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType: mimeType === "application/pdf" ? "application/pdf" : mimeType,
-                data: base64,
-              },
-            },
-          ],
-        },
-      ],
-      generationConfig: { maxOutputTokens: 500, temperature: 0.2 },
-    });
-
-    const text = result.response.text().trim();
+    const text = await geminiVision(prompt, base64, mimeType, 500, 0.2);
     try {
       const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
       return res.json({ extracted: parsed });
@@ -438,6 +421,6 @@ Do not include markdown or explanation. Just the JSON.`;
     }
   } catch (error) {
     console.error("Document extraction failed:", error);
-    return res.status(500).json({ error: "Document extraction failed." });
+    return res.status(500).json({ error: "Document extraction failed. " + error.message });
   }
 }
