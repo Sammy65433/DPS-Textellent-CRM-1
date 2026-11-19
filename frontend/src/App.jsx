@@ -13,6 +13,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 
 import Booking from "./components/Booking";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { useAppHandlers } from "./handlers/useAppHandlers";
 import "./styles/App.css";
 import StaffManagementPage from "./pages/StaffManagementPage";
@@ -138,7 +139,8 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
+      <ErrorBoundary>
+        <Routes>
         
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
@@ -333,6 +335,7 @@ function App() {
           }
         />
       </Routes>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

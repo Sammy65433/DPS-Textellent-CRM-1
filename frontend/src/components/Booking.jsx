@@ -21,10 +21,21 @@ import {
 const CRM_API_URL = import.meta.env.VITE_API_URL;
 
 const SERVICES = [
-    "Tax Preparation",
-    "Copy & Fax Services",
+    "Tax Consultation",
+    "Personal Tax Preparation",
+    "Business Tax Preparation",
     "Notary Public",
-    "Translation Services",
+    "Mobile Notary Public",
+    "S Corporation",
+    "Amended Return",
+    "Partnership, LLC & Form 8825",
+    "Return for Estates and Trusts",
+    "Tax Return Pickup",
+    "Translation",
+    "Form Preparation Support",
+    "Copy & Fax",
+    "Other Services",
+    "Business Services",
 ];
 
 const REALTY_SERVICES = [
@@ -32,7 +43,7 @@ const REALTY_SERVICES = [
     "Selling a Home",
     "Renting",
     "Investment Property",
-    "General Consultation",
+    "Real Estate Consultation",
 ];
 
 const REALTY_PREPARER = "DPS Realty";
