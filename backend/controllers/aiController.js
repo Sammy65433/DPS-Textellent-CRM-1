@@ -1,11 +1,35 @@
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODELS = ["gemma2-9b-it", "llama3-8b-8192", "llama3-70b-8192"];
+const GROQ_MODELS_URL = "https://api.groq.com/openai/v1/models";
+
+async function getAvailableModels(apiKey) {
+  try {
+    const response = await fetch(GROQ_MODELS_URL, {
+      headers: { "Authorization": `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await response.json();
+    // Filter out non-chat models (whisper, tts, guard, etc.)
+    return (data.data || [])
+      .map((m) => m.id)
+      .filter((id) => !id.includes("whisper") && !id.includes("tts") && !id.includes("guard") && !id.includes("compound"));
+  } catch (error) {
+    console.error("Failed to fetch available models:", error.message);
+    return [];
+  }
+}
 
 async function groqGenerate(prompt, maxTokens = 500, temperature = 0.7) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY not set");
 
-  for (const model of GROQ_MODELS) {
+  // Fetch available models dynamically
+  let models = await getAvailableModels(apiKey);
+  if (models.length === 0) {
+    models = ["llama-3.3-70b-versatile"];
+  }
+  console.log("Available Groq models:", models.join(", "));
+
+  for (const model of models) {
     try {
       console.log("Groq request: model=" + model);
 
@@ -28,20 +52,19 @@ async function groqGenerate(prompt, maxTokens = 500, temperature = 0.7) {
 
       if (!response.ok) {
         console.error(`Groq ${model} error:`, response.status, responseText.slice(0, 200));
-        if (response.status === 429 || response.status === 503) continue;
-        throw new Error(`Groq API error ${response.status}: ${responseText.slice(0, 200)}`);
+        continue; // Try next model
       }
 
       let data;
       try { data = JSON.parse(responseText); } catch {
-        throw new Error("Invalid JSON response from Groq: " + responseText.slice(0, 200));
+        console.error("Invalid JSON from Groq:", responseText.slice(0, 200));
+        continue;
       }
 
       const text = data?.choices?.[0]?.message?.content || "";
       if (text) return text;
     } catch (error) {
       console.error(`Model ${model} failed:`, error.message.slice(0, 100));
-      if (model === GROQ_MODELS[GROQ_MODELS.length - 1]) throw error;
     }
   }
   return "I'm currently experiencing high demand. Please try again in a few moments.";
@@ -71,7 +94,6 @@ Key features:
 - Mock SMS mode: When MOCK_SMS=true, SMS are logged but not actually sent (for testing).
 
 When answering, be concise, friendly, and specific. Reference exact page names and button labels. If you don't know something, say so. Never make up features that don't exist.`;
-
 export async function chatWithAssistant(req, res) {
   const { message, context } = req.body ?? {};
 
