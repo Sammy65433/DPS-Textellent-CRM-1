@@ -6,15 +6,23 @@ const CRM_API = (import.meta.env.VITE_API_URL || "http://localhost:5002").replac
 
 export default function AIAssistant({ selectedContact, currentPage }) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      text: "Hi! I'm the DPS CRM Assistant. Ask me anything about how to use the app — like \"How do I send a campaign?\" or \"Where are uploaded documents?\"",
-    },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("ai_chat_messages") || "null");
+      return Array.isArray(saved) && saved.length > 0 ? saved : [
+        { role: "assistant", text: "Hi! I'm the DPS CRM Assistant. Ask me anything about how to use the app — like \"How do I send a campaign?\" or \"Where are uploaded documents?\"" },
+      ];
+    } catch {
+      return [{ role: "assistant", text: "Hi! I'm the DPS CRM Assistant. Ask me anything about how to use the app." }];
+    }
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    try { localStorage.setItem("ai_chat_messages", JSON.stringify(messages)); } catch { /* ignore */ }
+  }, [messages]);
 
   function formatMessage(text) {
     // Convert **bold** to <strong>, newlines to <br>
@@ -93,6 +101,20 @@ export default function AIAssistant({ selectedContact, currentPage }) {
           <div className="ai-assistant-header">
             <FaRobot className="me-2" />
             <strong>DPS CRM Assistant</strong>
+            <button
+              type="button"
+              className="ai-assistant-clear"
+              onClick={() => {
+                setMessages([
+                  { role: "assistant", text: "Hi! I'm the DPS CRM Assistant. Ask me anything about how to use the app." },
+                ]);
+                localStorage.removeItem("ai_chat_messages");
+              }}
+              aria-label="Clear chat"
+              title="Clear chat"
+            >
+              Clear
+            </button>
             <button
               type="button"
               className="ai-assistant-close"

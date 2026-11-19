@@ -173,6 +173,20 @@ function CampaignForm({
                         />
                     )}
 
+                    <Form.Control
+                        className="mb-2"
+                        as="textarea"
+                        rows={3}
+                        placeholder="Or type your message directly (overrides template)"
+                        value={campaignForm.body || ""}
+                        onChange={e =>
+                            setCampaignForm(prev => ({
+                                ...prev,
+                                body: e.target.value,
+                            }))
+                        }
+                    />
+
                     <div className="d-flex justify-content-between align-items-center mb-2" data-tour="campaigns-ai">
                         <Button
                             type="button"
