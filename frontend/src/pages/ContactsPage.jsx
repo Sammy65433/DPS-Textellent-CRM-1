@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import ContactsList from "../components/ContactsList";
@@ -42,6 +42,19 @@ function ContactsPage({
     const [sendingInvite, setSendingInvite] = useState(false);
     const [inviteFeedback, setInviteFeedback] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const templateId = location.state?.templateId;
+        if (templateId) {
+            const tpl = templates.find((t) => t._id === templateId);
+            setMessageForm((prev) => ({
+                ...prev,
+                templateId,
+                body: tpl ? tpl.body : prev.body,
+            }));
+        }
+    }, [location.state?.templateId, templates]);
 
     const uniqueTags = useMemo(() => {
         const tags = contacts.flatMap((contact) =>

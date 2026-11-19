@@ -171,7 +171,7 @@ function getDisplayTimes(dateValue, duration) {
     const closes = date.getDay() === 6 ? 18 * 60 : 17 * 60;
     const times = [];
 
-    for (let start = opens; start + duration <= closes; start += 30) {
+    for (let start = opens; start + duration <= closes; start += 15) {
         times.push(formatTime(start));
     }
 

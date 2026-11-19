@@ -1,6 +1,7 @@
 import { Alert, Row, Col, Card, Button, Badge, Form } from "react-bootstrap";
-import { FaFileAlt, FaTags, FaEye, FaLightbulb, FaMagic } from "react-icons/fa";
+import { FaFileAlt, FaTags, FaEye, FaLightbulb, FaMagic, FaBullhorn, FaEnvelope, FaCommentDots, FaCalendarCheck } from "react-icons/fa";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import { generateCampaignCopy } from "../api/api";
@@ -15,6 +16,7 @@ function TemplatesPage({
     onCreateTemplate,
     onDeleteTemplate,
 }) {
+    const navigate = useNavigate();
     const [showAI, setShowAI] = useState(false);
     const [aiGoal, setAiGoal] = useState("");
     const [aiTone, setAiTone] = useState("professional and friendly");
@@ -238,13 +240,48 @@ function TemplatesPage({
                                                         </p>
                                                     </div>
 
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline-danger"
-                                                        onClick={() => onDeleteTemplate(template._id)}
-                                                    >
-                                                        Delete
-                                                    </Button>
+                                                    <div className="d-flex gap-1 flex-wrap">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline-primary"
+                                                            title="Use for Campaign"
+                                                            onClick={() => navigate("/campaigns", { state: { templateId: template._id } })}
+                                                        >
+                                                            <FaBullhorn />
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline-success"
+                                                            title="Send as SMS"
+                                                            onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "sms" } })}
+                                                        >
+                                                            <FaCommentDots />
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline-info"
+                                                            title="Send as Email"
+                                                            onClick={() => navigate("/emails", { state: { templateId: template._id } })}
+                                                        >
+                                                            <FaEnvelope />
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline-warning"
+                                                            title="Booking Reminder"
+                                                            onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "reminder" } })}
+                                                        >
+                                                            <FaCalendarCheck />
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline-danger"
+                                                            title="Delete"
+                                                            onClick={() => onDeleteTemplate(template._id)}
+                                                        >
+                                                            ×
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </Card.Body>
                                         </Card>

@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Card, Col, Row, Spinner } from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import ContactsList from "../components/ContactsList";
@@ -37,6 +37,14 @@ function EmailsPage({
     const [sendingInvite, setSendingInvite] = useState(false);
     const [inviteFeedback, setInviteFeedback] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const templateId = location.state?.templateId;
+        if (templateId) {
+            setEmailForm((prev) => ({ ...prev, templateId }));
+        }
+    }, [location.state?.templateId]);
 
     const filteredContacts = useMemo(() => {
         const search = searchTerm.toLowerCase();

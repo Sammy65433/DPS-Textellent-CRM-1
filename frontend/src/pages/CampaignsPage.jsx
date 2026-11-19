@@ -1,5 +1,6 @@
 import { Alert, Row, Col, Modal, Form, Button, Card, Badge } from "react-bootstrap";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import CampaignForm from "../components/CampaignForm";
@@ -31,6 +32,14 @@ function CampaignsPage({
         scheduledAt: "",
         status: "draft",
     });
+    const location = useLocation();
+
+    useEffect(() => {
+        const templateId = location.state?.templateId;
+        if (templateId) {
+            setCampaignForm((prev) => ({ ...prev, templateId }));
+        }
+    }, [location.state?.templateId]);
 
     const selectedEditTemplate = useMemo(() => {
         return templates.find(template => template._id === editForm.templateId);
