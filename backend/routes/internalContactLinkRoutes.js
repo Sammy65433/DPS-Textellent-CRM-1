@@ -148,4 +148,67 @@ router.post("/redeem", async (req, res) => {
     }
 });
 
+// Auto-register/upsert a contact when a client creates an account on the DPS site.
+// Called by the DPS backend after customer registration.
+router.post("/upsert-client", async (req, res) => {
+    if (!validServerKey(req)) {
+        return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const { email, firstName, lastName, phone, birthday, customerId } = req.body ?? {};
+
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        return res.status(400).json({ message: "Valid email required." });
+    }
+
+    try {
+        let contact = await Contact.findOne({
+            userId: CONTACT_SCOPE,
+            email: normalizedEmail,
+        });
+
+        if (contact) {
+            const update = {};
+            if (firstName && !contact.firstName) update.firstName = String(firstName).trim();
+            if (lastName && !contact.lastName) update.lastName = String(lastName).trim();
+            if (phone && !contact.phone) update.phone = String(phone).replace(/\D/g, "");
+            if (birthday && !contact.birthday) update.birthday = new Date(birthday);
+            if (customerId && !contact.supabaseCustomerId) update.supabaseCustomerId = String(customerId);
+
+            if (Object.keys(update).length > 0) {
+                await Contact.updateOne({ _id: contact._id }, { $set: update });
+            }
+
+            return res.json({
+                message: "Contact updated.",
+                contactId: contact._id,
+                linked: !!contact.supabaseCustomerId || !!customerId,
+            });
+        }
+
+        const newContact = await Contact.create({
+            userId: CONTACT_SCOPE,
+            firstName: String(firstName || "").trim(),
+            lastName: String(lastName || "").trim(),
+            phone: String(phone || "").replace(/\D/g, ""),
+            email: normalizedEmail,
+            birthday: birthday ? new Date(birthday) : null,
+            tags: "DPS Client",
+            notes: "Auto-created from DPS client account registration.",
+            supabaseCustomerId: customerId ? String(customerId) : null,
+        });
+
+        return res.status(201).json({
+            message: "Contact created.",
+            contactId: newContact._id,
+            linked: !!customerId,
+        });
+    } catch (error) {
+        console.error("Upsert client contact failed:", error);
+        return res.status(500).json({ message: "Could not register client contact." });
+    }
+});
+
 export default router;
