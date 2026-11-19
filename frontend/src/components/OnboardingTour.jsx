@@ -54,6 +54,17 @@ const TOURS = {
     { selector: '[data-tour="booking-form"]', title: "Book Appointment", text: "Select service, preparer, date, time, and visit format. Fill in client details (name, phone, email). Click 'Book Your Appointment' to create. Real estate services are handled by DPS Realty." },
     { selector: null, title: "Done! 🎉", text: "Appointments sync with the DPS website. Clients can manage their appointments via the emailed 'Manage My Appointment' link." },
   ],
+  "/analytics": [
+    { selector: null, title: "Analytics Page", text: "View booking trends, contact growth, and outreach activity. Use the date range selector to filter data." },
+    { selector: '[data-tour="analytics-range"]', title: "Date Range", text: "Filter all appointment data by the last 7, 30, or 90 days. Metrics and charts update automatically." },
+    { selector: '[data-tour="analytics-kpis"]', title: "Key Metrics", text: "Quick stats: Booked, Confirmed, Cancelled appointments, Contacts Added, Campaigns Sent, SMS count, Emails count, and Templates count." },
+    { selector: '[data-tour="analytics-trend"]', title: "Appointments by Date", text: "Area chart showing appointment volume over time. Helps you spot busy periods and trends." },
+    { selector: '[data-tour="analytics-services"]', title: "Bookings by Service", text: "Horizontal bar chart showing which services are most popular. Helps you understand demand." },
+    { selector: '[data-tour="analytics-preparers"]', title: "Bookings by Preparer", text: "Shows workload distribution across preparers. Helps balance scheduling." },
+    { selector: '[data-tour="analytics-activity"]', title: "SMS & Email Activity", text: "Area chart of outreach activity over time. Shows your communication volume." },
+    { selector: '[data-tour="analytics-followups"]', title: "AI Follow-Up Suggestions", text: "AI analyzes contacts and suggests follow-ups with priority levels. Click 'Refresh' to re-analyze." },
+    { selector: null, title: "Done! 🎉", text: "Use these insights to optimize scheduling, balance workloads, and improve outreach." },
+  ],
   "/staff": [
     { selector: null, title: "Staff Management", text: "Admin-only page to invite and manage staff accounts." },
     { selector: '[data-tour="staff-invite"]', title: "Invite Staff", text: "Enter first name, last name, and email. An invitation email is sent with a one-time setup link (expires in 24 hours). Staff set their own password." },

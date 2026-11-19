@@ -896,3 +896,142 @@
   border-color: rgba(71, 85, 105, 0.8);
   color: #f8fafc;
 }
+
+/* === Professional DPS-Brand Redesign: Templates, Campaigns, Emails, Dashboard === */
+
+/* Templates page — amber/orange DPS accent */
+.page-panel-templates {
+  background: linear-gradient(180deg, #fffaf2 0%, #fff2da 100%) !important;
+  border-top: 4px solid #0f5c54 !important;
+}
+
+.page-panel-templates-secondary {
+  background: linear-gradient(180deg, #f5f0ff 0%, #ede9fe 100%) !important;
+  border-top: 4px solid #6e4483 !important;
+}
+
+/* Campaigns page — orange/red DPS accent */
+.page-panel-campaigns {
+  background: linear-gradient(180deg, #f5faf9 0%, #eaf6f4 100%) !important;
+  border-top: 4px solid #0f5c54 !important;
+}
+
+.page-panel-campaigns-secondary {
+  background: linear-gradient(180deg, #f5f0ff 0%, #ede9fe 100%) !important;
+  border-top: 4px solid #6e4483 !important;
+}
+
+/* Emails page — cyan/teal DPS accent */
+.page-panel-emails {
+  background: linear-gradient(180deg, #f5faf9 0%, #eaf6f4 100%) !important;
+  border-top: 4px solid #146d73 !important;
+}
+
+.page-panel-emails-secondary {
+  background: linear-gradient(180deg, #f5f0ff 0%, #ede9fe 100%) !important;
+  border-top: 4px solid #6e4483 !important;
+}
+
+/* Dashboard panels — DPS branded */
+.panel-actions {
+  background: linear-gradient(180deg, #f5faf9 0%, #eaf6f4 100%) !important;
+  border-top: 4px solid #0f5c54 !important;
+}
+
+.panel-tasks {
+  background: linear-gradient(180deg, #f5f0ff 0%, #ede9fe 100%) !important;
+  border-top: 4px solid #6e4483 !important;
+}
+
+.panel-messages {
+  background: linear-gradient(180deg, #f5faf9 0%, #eaf6f4 100%) !important;
+  border-top: 4px solid #146d73 !important;
+}
+
+.panel-emails {
+  background: linear-gradient(180deg, #f5f0ff 0%, #ede9fe 100%) !important;
+  border-top: 4px solid #6e4483 !important;
+}
+
+/* Dark theme overrides for new panel colors */
+[data-theme="dark"] .page-panel-templates,
+[data-theme="dark"] .page-panel-contacts {
+  background: linear-gradient(180deg, #0f172a 0%, #172554 100%) !important;
+  border-top: 4px solid #60a5fa !important;
+}
+
+[data-theme="dark"] .page-panel-templates-secondary,
+[data-theme="dark"] .page-panel-contacts-secondary,
+[data-theme="dark"] .page-panel-emails-secondary,
+[data-theme="dark"] .page-panel-campaigns-secondary {
+  background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%) !important;
+  border-top: 4px solid #8b5cf6 !important;
+}
+
+[data-theme="dark"] .page-panel-emails,
+[data-theme="dark"] .page-panel-campaigns {
+  background: linear-gradient(180deg, #0f172a 0%, #134e4a 100%) !important;
+  border-top: 4px solid #2dd4bf !important;
+}
+
+[data-theme="dark"] .panel-actions {
+  background: linear-gradient(180deg, #0f172a 0%, #134e4a 100%) !important;
+  border-top: 4px solid #2dd4bf !important;
+}
+
+[data-theme="dark"] .panel-tasks {
+  background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%) !important;
+  border-top: 4px solid #8b5cf6 !important;
+}
+
+[data-theme="dark"] .panel-messages {
+  background: linear-gradient(180deg, #0f172a 0%, #134e4a 100%) !important;
+  border-top: 4px solid #2dd4bf !important;
+}
+
+[data-theme="dark"] .panel-emails {
+  background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%) !important;
+  border-top: 4px solid #8b5cf6 !important;
+}
+
+/* Enhance card hover for all CRM cards */
+.crm-card {
+  transition: all 0.25s ease, transform 0.2s ease;
+}
+
+.crm-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 92, 84, 0.1) !important;
+}
+
+[data-theme="dark"] .crm-card:hover {
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15) !important;
+}
+
+/* Professional form inputs across all pages */
+.page-panel-contacts .form-control,
+.page-panel-templates .form-control,
+.page-panel-campaigns .form-control,
+.page-panel-emails .form-control {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 0.65rem 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.page-panel-contacts .form-control:focus,
+.page-panel-templates .form-control:focus,
+.page-panel-campaigns .form-control:focus,
+.page-panel-emails .form-control:focus {
+  border-color: #0f5c54;
+  box-shadow: 0 0 0 3px rgba(15, 92, 84, 0.1);
+}
+
+[data-theme="dark"] .page-panel-contacts .form-control,
+[data-theme="dark"] .page-panel-templates .form-control,
+[data-theme="dark"] .page-panel-campaigns .form-control,
+[data-theme="dark"] .page-panel-emails .form-control {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(71, 85, 105, 0.8);
+  color: #f8fafc;
+}

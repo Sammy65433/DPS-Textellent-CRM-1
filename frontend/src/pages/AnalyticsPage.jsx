@@ -228,6 +228,7 @@ function AnalyticsPage({
                 </label>
                 <select
                     id="analytics-range"
+                    data-tour="analytics-range"
                     className="form-select"
                     style={{ maxWidth: 180 }}
                     value={range}
@@ -239,7 +240,7 @@ function AnalyticsPage({
                 </select>
             </div>
 
-            <Row className="g-4 mb-4">
+            <Row className="g-4 mb-4" data-tour="analytics-kpis">
                 {metrics.map(([label, value, color]) => (
                     <Col md={6} xl={3} key={label}>
                         <Card className={`analytics-kpi analytics-kpi-${color} h-100`}>
@@ -259,7 +260,7 @@ function AnalyticsPage({
 
             <Row className="g-4 mb-4">
                 <Col xl={7}>
-                    <Card className="crm-card analytics-panel analytics-trend-panel border-0">
+                    <Card className="crm-card analytics-panel analytics-trend-panel border-0" data-tour="analytics-trend">
                         <Card.Header className="card-header-clean">
                             Active Appointments by Date
                         </Card.Header>
@@ -288,7 +289,7 @@ function AnalyticsPage({
                 </Col>
 
                 <Col xl={5}>
-                    <Card className="crm-card analytics-panel analytics-status-panel border-0">
+                    <Card className="crm-card analytics-panel analytics-status-panel border-0" data-tour="analytics-services">
                         <Card.Header className="card-header-clean">
                             Bookings by Service
                         </Card.Header>
@@ -326,7 +327,7 @@ function AnalyticsPage({
 
             <Row className="g-4 mb-4">
                 <Col xl={6}>
-                    <Card className="crm-card analytics-panel analytics-email-panel border-0">
+                    <Card className="crm-card analytics-panel analytics-email-panel border-0" data-tour="analytics-preparers">
                         <Card.Header className="card-header-clean">
                             Bookings by Preparer
                         </Card.Header>
@@ -362,7 +363,7 @@ function AnalyticsPage({
                 </Col>
 
                 <Col xl={6}>
-                    <Card className="crm-card analytics-panel analytics-tags-panel border-0">
+                    <Card className="crm-card analytics-panel analytics-tags-panel border-0" data-tour="analytics-activity">
                         <Card.Header className="card-header-clean">
                             Campaign Status, All Time
                         </Card.Header>
@@ -416,7 +417,7 @@ function AnalyticsPage({
                 </Card.Body>
             </Card>
 
-            <Card className="crm-card border-0 mb-4 mt-4">
+            <Card className="crm-card border-0 mb-4 mt-4" data-tour="analytics-followups">
                 <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                     <span>✨ AI Follow-Up Suggestions</span>
                     <Button
