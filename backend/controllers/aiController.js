@@ -1,89 +1,80 @@
-const GEMINI_MODEL = "gemini-flash-latest";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const GEMINI_MODELS = ["gemini-2.0-flash", "gemini-flash-latest", "gemini-1.5-flash"];
+const GEMINI_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
-async function geminiGenerate(prompt, maxTokens = 500, temperature = 0.7) {
+async function callGemini(model, prompt, maxTokens, temperature, base64Data, mimeType) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
-  console.log("Gemini request: model=" + GEMINI_MODEL + ", keyPrefix=" + apiKey.slice(0, 8) + "...");
+  const url = `${GEMINI_URL_BASE}/${model}:generateContent`;
 
-  const response = await fetch(GEMINI_URL, {
+  const parts = [{ text: prompt }];
+  if (base64Data && mimeType) {
+    parts.push({ inlineData: { mimeType, data: base64Data } });
+  }
+
+  const body = JSON.stringify({
+    contents: [{ parts }],
+    generationConfig: { maxOutputTokens: maxTokens, temperature },
+  });
+
+  // Try X-goog-api-key first
+  let response = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-goog-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: maxTokens, temperature },
-    }),
+    headers: { "Content-Type": "application/json", "X-goog-api-key": apiKey },
+    body,
     signal: AbortSignal.timeout(25000),
   });
+
+  // If auth key, try Authorization: Bearer as fallback
+  if (!response.ok && apiKey.startsWith("AQ.") && (response.status === 400 || response.status === 401 || response.status === 403)) {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      body,
+      signal: AbortSignal.timeout(25000),
+    });
+  }
 
   const responseText = await response.text();
 
   if (!response.ok) {
-    console.error("Gemini API error:", response.status, responseText.slice(0, 300));
+    console.error(`Gemini ${model} error:`, response.status, responseText.slice(0, 200));
     throw new Error(`Gemini API error ${response.status}: ${responseText.slice(0, 200)}`);
   }
 
   let data;
-  try {
-    data = JSON.parse(responseText);
-  } catch {
+  try { data = JSON.parse(responseText); } catch {
     throw new Error("Invalid JSON response from Gemini: " + responseText.slice(0, 200));
   }
 
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  if (!text) {
-    console.error("Gemini returned empty text. Full response:", responseText.slice(0, 500));
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+async function geminiGenerate(prompt, maxTokens = 500, temperature = 0.7) {
+  for (const model of GEMINI_MODELS) {
+    try {
+      console.log("Gemini request: model=" + model + ", keyPrefix=" + process.env.GEMINI_API_KEY.slice(0, 8) + "...");
+      const text = await callGemini(model, prompt, maxTokens, temperature, null, null);
+      if (text) return text;
+    } catch (error) {
+      console.error(`Model ${model} failed:`, error.message.slice(0, 100));
+      if (model === GEMINI_MODELS[GEMINI_MODELS.length - 1]) throw error;
+    }
   }
-  return text;
+  return "";
 }
 
 async function geminiVision(prompt, base64Data, mimeType, maxTokens = 500, temperature = 0.2) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY not set");
-
-  const response = await fetch(GEMINI_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-goog-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType, data: base64Data } },
-          ],
-        },
-      ],
-      generationConfig: { maxOutputTokens: maxTokens, temperature },
-    }),
-    signal: AbortSignal.timeout(25000),
-  });
-
-  const responseText = await response.text();
-
-  if (!response.ok) {
-    console.error("Gemini Vision API error:", response.status, responseText.slice(0, 300));
-    throw new Error(`Gemini API error ${response.status}: ${responseText.slice(0, 200)}`);
+  for (const model of GEMINI_MODELS) {
+    try {
+      const text = await callGemini(model, prompt, maxTokens, temperature, base64Data, mimeType);
+      if (text) return text;
+    } catch (error) {
+      console.error(`Model ${model} vision failed:`, error.message.slice(0, 100));
+      if (model === GEMINI_MODELS[GEMINI_MODELS.length - 1]) throw error;
+    }
   }
-
-  let data;
-  try {
-    data = JSON.parse(responseText);
-  } catch {
-    throw new Error("Invalid JSON response from Gemini: " + responseText.slice(0, 200));
-  }
-
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  if (!text) {
-    console.error("Gemini Vision returned empty text. Full response:", responseText.slice(0, 500));
-  }
-  return text;
+  return "";
 }
 
 const DPS_SCOPE = "user123";
@@ -110,7 +101,6 @@ Key features:
 - Mock SMS mode: When MOCK_SMS=true, SMS are logged but not actually sent (for testing).
 
 When answering, be concise, friendly, and specific. Reference exact page names and button labels. If you don't know something, say so. Never make up features that don't exist.`;
-
 export async function chatWithAssistant(req, res) {
   const { message, context } = req.body ?? {};
 
@@ -137,7 +127,7 @@ export async function chatWithAssistant(req, res) {
       0.7
     );
 
-    return res.json({ reply: text });
+    return res.json({ reply: text || "I couldn't generate a response. Please try again." });
   } catch (error) {
     console.error("AI chat failed:", error);
     return res.status(500).json({ error: "AI assistant is temporarily unavailable. " + error.message });
@@ -177,7 +167,7 @@ ${recentEmails || "none"}
 Provide a brief, professional summary highlighting key facts and any suggested follow-up actions.`;
 
     const text = await geminiGenerate(prompt, 200, 0.5);
-    return res.json({ summary: text });
+    return res.json({ summary: text || "No summary available." });
   } catch (error) {
     console.error("Contact summary failed:", error);
     return res.status(500).json({ error: "Could not generate summary. " + error.message });
