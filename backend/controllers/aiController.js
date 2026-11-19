@@ -8,10 +8,28 @@ async function getAvailableModels(apiKey) {
       signal: AbortSignal.timeout(10000),
     });
     const data = await response.json();
-    // Filter out non-chat models (whisper, tts, guard, etc.)
-    return (data.data || [])
-      .map((m) => m.id)
-      .filter((id) => !id.includes("whisper") && !id.includes("tts") && !id.includes("guard") && !id.includes("compound"));
+    const all = (data.data || []).map((m) => m.id);
+    console.log("All Groq models:", all.join(", "));
+
+    // Prioritize chat/text models, exclude TTS, guard, whisper, etc.
+    const chatModels = all.filter((id) => {
+      const lower = id.toLowerCase();
+      if (lower.includes("whisper") || lower.includes("tts") || lower.includes("guard") ||
+          lower.includes("compound") || lower.includes("orpheus") || lower.includes("allam")) {
+        return false;
+      }
+      return lower.includes("gpt") || lower.includes("llama") || lower.includes("qwen") ||
+             lower.includes("gemma") || lower.includes("mixtral") || lower.includes("deepseek");
+    });
+
+    // Sort: prefer gpt-oss-20b (fastest), then qwen, then others
+    const priority = ["openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"];
+    const sorted = [
+      ...priority.filter((m) => chatModels.includes(m)),
+      ...chatModels.filter((m) => !priority.includes(m)),
+    ];
+
+    return sorted.length > 0 ? sorted : chatModels;
   } catch (error) {
     console.error("Failed to fetch available models:", error.message);
     return [];
