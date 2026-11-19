@@ -173,7 +173,7 @@ function CampaignForm({
                         />
                     )}
 
-                    <div className="d-flex justify-content-between align-items-center mb-2">
+                    <div className="d-flex justify-content-between align-items-center mb-2" data-tour="campaigns-ai">
                         <Button
                             type="button"
                             variant="outline-primary"
@@ -388,7 +388,7 @@ function CampaignForm({
                         )}
                     </div>
 
-                    <Card className="live-preview-card border-0 mb-3" data-tour="campaigns-ai">
+                    <Card className="live-preview-card border-0 mb-3">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-2 mb-2">
                                 <FaEye className="text-primary" />

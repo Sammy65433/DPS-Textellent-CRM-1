@@ -203,7 +203,7 @@ function EmailsPage({
                             contactId={selectedContact?._id}
                         />
 
-                        <Card className="email-history-card page-panel-emails border-0">
+                        <Card className="email-history-card page-panel-emails border-0" data-tour="emails-list">
                             <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                                 <span>Email History</span>
                                 {selectedContact && emailMessages.length > 0 && (
@@ -278,7 +278,7 @@ function EmailsPage({
                     </Col>
 
                     <Col md={4}>
-                        <div className="crm-card page-panel-emails border-0" data-tour="emails-list">
+                        <div className="crm-card page-panel-emails border-0">
                             <AddContactForm
                                 contactForm={contactForm}
                                 setContactForm={setContactForm}
