@@ -385,3 +385,195 @@ export async function extractDocumentData(req, res) {
     },
   });
 }
+export async function smartReplySuggestions(req, res) {
+  const { contact, messages = [] } = req.body ?? {};
+
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(503).json({ error: "AI assistant is not configured." });
+  }
+
+  try {
+    const recentMsgs = messages.slice(-6).map((m) => `${m.direction}: ${m.body}`).join("\n");
+    const name = contact ? `${contact.firstName || ""} ${contact.lastName || ""}`.trim() : "the client";
+
+    const prompt = `You are a CRM assistant for DPS Professional Tax Services. Suggest 3 short reply messages a staff member could send to this client. Keep each under 160 characters (SMS-friendly). Be professional and helpful.
+
+Client: ${name}
+${contact?.email ? `Email: ${contact.email}` : ""}
+${contact?.phone ? `Phone: ${contact.phone}` : ""}
+
+Recent conversation:
+${recentMsgs || "No messages yet."}
+
+Return ONLY a JSON array of 3 strings (the suggested replies). No markdown, just JSON.
+Example: ["Thanks for reaching out! We'll get back to you shortly.", "Your documents have been received. We'll review them by Friday.", "Let's schedule a follow-up call. What time works for you?"]`;
+
+    const text = await groqGenerate(prompt, 300, 0.7);
+    try {
+      const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
+      return res.json({ suggestions: Array.isArray(parsed) ? parsed : [] });
+    } catch {
+      // Try to extract array from text
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[0]);
+          return res.json({ suggestions: Array.isArray(parsed) ? parsed : [] });
+        } catch { /* fall through */ }
+      }
+      return res.json({ suggestions: [text] });
+    }
+  } catch (error) {
+    console.error("Smart reply failed:", error);
+    return res.status(500).json({ error: "Could not generate replies. " + error.message });
+  }
+}
+
+export async function autoTagContact(req, res) {
+  const { contact, messages = [], emails = [] } = req.body ?? {};
+
+  if (!contact) {
+    return res.status(400).json({ error: "Contact data is required." });
+  }
+
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(503).json({ error: "AI assistant is not configured." });
+  }
+
+  try {
+    const recentMsgs = messages.slice(-5).map((m) => `${m.direction}: ${m.body}`).join("\n");
+    const recentEmails = emails.slice(-5).map((e) => `Subject: ${e.subject}`).join("\n");
+
+    const prompt = `You are a CRM assistant. Analyze this contact and suggest relevant tags (comma-separated, lowercase, no spaces within tags use hyphens). Tags should describe the client's situation, needs, or status.
+
+Contact: ${contact.firstName} ${contact.lastName}
+Email: ${contact.email || "none"}
+Phone: ${contact.phone || "none"}
+Current tags: ${contact.tags || "none"}
+Notes: ${contact.notes || "none"}
+
+Recent messages:
+${recentMsgs || "none"}
+
+Recent emails:
+${recentEmails || "none"}
+
+Return ONLY a JSON array of suggested tags (3-6 tags max). Use short, descriptive tags.
+Example: ["new-client", "1099-filer", "needs-follow-up", "real-estate"]
+No markdown, just JSON array.`;
+
+    const text = await groqGenerate(prompt, 150, 0.5);
+    try {
+      const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
+      return res.json({ tags: Array.isArray(parsed) ? parsed : [] });
+    } catch {
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[0]);
+          return res.json({ tags: Array.isArray(parsed) ? parsed : [] });
+        } catch { /* fall through */ }
+      }
+      return res.json({ tags: [] });
+    }
+  } catch (error) {
+    console.error("Auto-tag failed:", error);
+    return res.status(500).json({ error: "Could not suggest tags. " + error.message });
+  }
+}
+
+export async function meetingPrepBrief(req, res) {
+  const { appointment, contact, messages = [] } = req.body ?? {};
+
+  if (!appointment) {
+    return res.status(400).json({ error: "Appointment data is required." });
+  }
+
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(503).json({ error: "AI assistant is not configured." });
+  }
+
+  try {
+    const recentMsgs = messages.slice(-3).map((m) => `${m.direction}: ${m.body}`).join("\n");
+
+    const prompt = `You are a CRM assistant preparing a staff member for an upcoming appointment. Generate a brief prep sheet (3-5 bullet points) covering key facts and suggested talking points.
+
+Appointment:
+- Service: ${appointment.service}
+- Preparer: ${appointment.tax_preparer}
+- Date: ${appointment.appointment_date}
+- Time: ${appointment.appointment_time}
+- Duration: ${appointment.duration_minutes} min
+- Visit format: ${appointment.visit_format || "not specified"}
+- Client message: ${appointment.message || "none"}
+
+Client: ${contact ? `${contact.firstName} ${contact.lastName}` : "Unknown"}
+${contact?.email ? `Email: ${contact.email}` : ""}
+${contact?.phone ? `Phone: ${contact.phone}` : ""}
+${contact?.tags ? `Tags: ${contact.tags}` : ""}
+${contact?.notes ? `Notes: ${contact.notes}` : ""}
+
+Recent messages:
+${recentMsgs || "none"}
+
+Return a concise prep brief with bullet points (use • for bullets). Include: client situation, key topics to cover, and any red flags or follow-ups needed. Keep it under 150 words.`;
+
+    const text = await groqGenerate(prompt, 250, 0.5);
+    return res.json({ brief: text || "No prep brief available." });
+  } catch (error) {
+    console.error("Meeting prep failed:", error);
+    return res.status(500).json({ error: "Could not generate prep brief. " + error.message });
+  }
+}
+
+export async function revenueInsights(req, res) {
+  const { appointments = [], contacts = [], campaigns = [], emails = [] } = req.body ?? {};
+
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(503).json({ error: "AI assistant is not configured." });
+  }
+
+  try {
+    const totalAppts = appointments.length;
+    const confirmed = appointments.filter((a) => a.status === "confirmed").length;
+    const booked = appointments.filter((a) => a.status === "booked").length;
+    const cancelled = appointments.filter((a) => a.status === "cancelled").length;
+    const services = {};
+    appointments.forEach((a) => {
+      const s = a.service || "Unknown";
+      services[s] = (services[s] || 0) + 1;
+    });
+    const preparers = {};
+    appointments.forEach((a) => {
+      const p = a.tax_preparer || "Unknown";
+      preparers[p] = (preparers[p] || 0) + 1;
+    });
+
+    const prompt = `You are a business analytics advisor for DPS Professional Tax Services. Analyze this data and provide 3-5 key insights and recommendations.
+
+Data summary:
+- Total appointments: ${totalAppts}
+- Confirmed: ${confirmed}, Booked: ${booked}, Cancelled: ${cancelled}
+- Total contacts: ${contacts.length}
+- Total campaigns: ${campaigns.length}
+- Total emails sent: ${emails.length}
+- Services breakdown: ${JSON.stringify(services)}
+- Preparer workload: ${JSON.stringify(preparers)}
+
+Return a JSON array of insights (max 5):
+[{ "title": "short title", "insight": "1-2 sentence insight", "recommendation": "actionable suggestion", "priority": "high|medium|low" }]
+
+No markdown, just JSON.`;
+
+    const text = await groqGenerate(prompt, 600, 0.6);
+    try {
+      const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
+      return res.json({ insights: Array.isArray(parsed) ? parsed : [] });
+    } catch {
+      return res.json({ insights: [] });
+    }
+  } catch (error) {
+    console.error("Revenue insights failed:", error);
+    return res.status(500).json({ error: "Could not generate insights. " + error.message });
+  }
+}
