@@ -782,3 +782,117 @@
   background: rgba(96, 165, 250, 0.12);
   color: #f8fafc;
 }
+
+/* === Professional Contacts Page Redesign (DPS Brand) === */
+
+/* Contact avatar — DPS teal/purple gradient */
+.contact-avatar {
+  background: linear-gradient(135deg, #0f5c54, #6e4483) !important;
+  color: #f5d36c !important;
+  box-shadow: 0 4px 12px rgba(15, 92, 84, 0.3) !important;
+}
+
+/* Contact list items — cleaner hover */
+.contact-item {
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.contact-item:hover {
+  background: rgba(15, 92, 84, 0.04) !important;
+  border-left-color: #0f5c54;
+  transform: translateX(2px);
+}
+
+.contact-item.active {
+  background: linear-gradient(135deg, rgba(15, 92, 84, 0.1), rgba(110, 68, 131, 0.1)) !important;
+  border-left-color: #6e4483;
+}
+
+/* Metric boxes — DPS branded */
+.contact-metric-box {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.contact-metric-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 92, 84, 0.1);
+}
+
+.contact-metric-value {
+  color: #0f5c54 !important;
+  font-family: "Libre Baskerville", Georgia, serif;
+}
+
+/* Notes & activity boxes — cleaner */
+.contact-notes-box,
+.contact-activity-box {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Tag badges — DPS purple */
+.contact-tag-badge {
+  background: linear-gradient(135deg, #6e4483, #8b5cf6) !important;
+  color: #fff !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Contact list search */
+.contacts-column-compact .form-control {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.contacts-column-compact .form-control:focus {
+  border-color: #0f5c54;
+  box-shadow: 0 0 0 3px rgba(15, 92, 84, 0.1);
+}
+
+/* Add contact form — cleaner inputs */
+.page-panel-contacts .form-control {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 0.65rem 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.page-panel-contacts .form-control:focus {
+  border-color: #0f5c54;
+  box-shadow: 0 0 0 3px rgba(15, 92, 84, 0.1);
+}
+
+/* Dark theme overrides for contacts */
+[data-theme="dark"] .contact-avatar {
+  background: linear-gradient(135deg, #146d73, #8b5cf6) !important;
+  color: #f5d36c !important;
+}
+
+[data-theme="dark"] .contact-metric-box {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(71, 85, 105, 0.8);
+}
+
+[data-theme="dark"] .contact-metric-value {
+  color: #f5d36c !important;
+}
+
+[data-theme="dark"] .contact-notes-box,
+[data-theme="dark"] .contact-activity-box {
+  background: rgba(15, 23, 42, 0.5);
+  border-color: rgba(71, 85, 105, 0.8);
+}
+
+[data-theme="dark"] .page-panel-contacts .form-control {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(71, 85, 105, 0.8);
+  color: #f8fafc;
+}

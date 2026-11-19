@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Card, Col, Row } from "react-bootstrap";
+import { Alert, Badge, Card, Col, ListGroup, Row } from "react-bootstrap";
 import {
     Area,
     AreaChart,
@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
+import { getSmartFollowUps } from "../api/api";
 
 function AnalyticsPage({
     theme,
@@ -28,6 +29,8 @@ function AnalyticsPage({
     const [bookingError, setBookingError] = useState("");
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [range, setRange] = useState("30");
+    const [followUps, setFollowUps] = useState([]);
+    const [loadingFollowUps, setLoadingFollowUps] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -74,6 +77,16 @@ function AnalyticsPage({
 
         loadAppointments();
         return () => controller.abort();
+    }, []);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        setLoadingFollowUps(true);
+        getSmartFollowUps({ contacts, messages, emails, appointments: [] })
+            .then((data) => setFollowUps(Array.isArray(data?.suggestions) ? data.suggestions : []))
+            .catch(() => setFollowUps([]))
+            .finally(() => setLoadingFollowUps(false));
     }, []);
 
     const now = new Date();
@@ -402,6 +415,51 @@ function AnalyticsPage({
                     )}
                 </Card.Body>
             </Card>
+
+            <Card className="crm-card border-0 mb-4 mt-4">
+                <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                    <span>✨ AI Follow-Up Suggestions</span>
+                    <Button
+                        size="sm"
+                        variant="outline-primary"
+                        disabled={loadingFollowUps}
+                        onClick={() => {
+                            setLoadingFollowUps(true);
+                            getSmartFollowUps({ contacts, messages, emails, appointments })
+                                .then((data) => setFollowUps(Array.isArray(data?.suggestions) ? data.suggestions : []))
+                                .catch(() => setFollowUps([]))
+                                .finally(() => setLoadingFollowUps(false));
+                        }}
+                    >
+                        {loadingFollowUps ? "Analyzing..." : "Refresh"}
+                    </Button>
+                </Card.Header>
+                <Card.Body>
+                    {loadingFollowUps ? (
+                        <p className="text-muted mb-0">Analyzing contacts...</p>
+                    ) : followUps.length === 0 ? (
+                        <p className="text-muted mb-0">No follow-up suggestions right now.</p>
+                    ) : (
+                        <ListGroup variant="flush">
+                            {followUps.map((s, idx) => (
+                                <ListGroup.Item key={idx}>
+                                    <div className="d-flex justify-content-between align-items-start gap-2">
+                                        <div className="flex-grow-1">
+                                            <div className="fw-semibold">{s.contactName}</div>
+                                            <div className="small text-muted">{s.reason}</div>
+                                            <div className="small">{s.suggestedAction}</div>
+                                        </div>
+                                        <Badge bg={s.priority === "high" ? "danger" : s.priority === "medium" ? "warning" : "secondary"}>
+                                            {s.priority}
+                                        </Badge>
+                                    </div>
+                                </ListGroup.Item>
+                            ))}
+                        </ListGroup>
+                    )}
+                </Card.Body>
+            </Card>
+
         </AppLayout>
     );
 }
