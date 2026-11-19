@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import messageRoutes from "./routes/messages.js";
 import contactRoutes from "./routes/contacts.js";
 import templateRoutes from "./routes/templates.js";
+import campaignRoutes from "./routes/campaigns.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import emailRoutes from "./routes/emails.js";
 import authRoutes from "./routes/authRoutes.js";
