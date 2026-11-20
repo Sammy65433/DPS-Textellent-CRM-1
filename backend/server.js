@@ -32,26 +32,10 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "http://localhost:5174",
-  "http://127.0.0.1:5174",
-  "https://dps-textellent-frontend.onrender.com",
-  "https://dps-crm.com",
-  "https://www.dps-crm.com",
-  "https://dps-crm-1.onrender.com",
-];
-
 app.use(
   cors({
-    origin(origin, callback) {
-      // Server-to-server requests do not send a browser Origin header.
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Origin not allowed by CORS"));
-    },
+    origin: true, // reflect request origin (allows all browser origins)
+    credentials: true,
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })

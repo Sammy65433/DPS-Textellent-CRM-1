@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Container, Navbar, Nav, Button } from "react-bootstrap";
+import { Container, Navbar, Nav, Button, Dropdown } from "react-bootstrap";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaColumns,
@@ -102,123 +102,50 @@ function AppLayout({ children, theme, onToggleTheme }) {
           />
 
           <Navbar.Collapse id="crm-navbar-menu">
-            <Nav className="ms-auto align-items-lg-center flex-wrap">
-              <Nav.Link
-                as={NavLink}
-                to="/dashboard"
-                end
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaColumns className="me-2" />
-                Dashboard
-              </Nav.Link>
-
-              <Nav.Link
-                as={NavLink}
-                to="/contacts"
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaUsers className="me-2" />
-                Contacts
-              </Nav.Link>
-
-              <Nav.Link
-                as={NavLink}
-                to="/templates"
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaFileAlt className="me-2" />
-                Templates
-              </Nav.Link>
-
-              <Nav.Link
-                as={NavLink}
-                to="/campaigns"
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaBullhorn className="me-2" />
-                Campaigns
-              </Nav.Link>
-
-              <Nav.Link
-                as={NavLink}
-                to="/emails"
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaEnvelope className="me-2" />
-                Emails
-              </Nav.Link>
-
-              <Nav.Link
-                as={NavLink}
-                to="/media"
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaImage className="me-2" />
-                Media
-              </Nav.Link>
-
-              <Nav.Link
-                as={NavLink}
-                to="/drip-campaigns"
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaPaperPlane className="me-2" />
-                Drip Campaigns
-              </Nav.Link>
-
-              <Nav.Link
-                as={NavLink}
-                to="/analytics"
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaChartBar className="me-2" />
-                Analytics
-              </Nav.Link>
-
-              <Nav.Link
-                as={NavLink}
-                to="/booking"
-                className="nav-router-link"
-                onClick={closeMenu}
-              >
-                <FaCalendarCheck className="me-2" />
-                Booking
-              </Nav.Link>
-
-              {role === "admin" && (
-                <Nav.Link
-                  as={NavLink}
-                  to="/staff"
-                  className="nav-router-link"
-                  onClick={closeMenu}
-                >
-                  <FaUserShield className="me-2" />
-                  Staff Management
-                </Nav.Link>
-              )}
-
-              <Button
-                variant="light"
-                size="sm"
-                className="logout-btn ms-lg-3 me-2"
-                onClick={handleLogout}
-              >
-                <FaSignOutAlt className="me-2" />
-                Logout
-              </Button>
-
-              <div className="ms-lg-1">
-                <ThemeToggle theme={theme} onToggle={onToggleTheme} />
-              </div>
+            <Nav className="ms-auto align-items-lg-center">
+              <Dropdown align="end">
+                <Dropdown.Toggle variant="outline-light" size="sm" id="crm-menu-dropdown">
+                  ☰ Menu
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item as={NavLink} to="/dashboard" onClick={closeMenu}>
+                    <FaColumns className="me-2" /> Dashboard
+                  </Dropdown.Item>
+                  <Dropdown.Item as={NavLink} to="/contacts" onClick={closeMenu}>
+                    <FaUsers className="me-2" /> Contacts
+                  </Dropdown.Item>
+                  <Dropdown.Item as={NavLink} to="/templates" onClick={closeMenu}>
+                    <FaFileAlt className="me-2" /> Templates
+                  </Dropdown.Item>
+                  <Dropdown.Item as={NavLink} to="/campaigns" onClick={closeMenu}>
+                    <FaBullhorn className="me-2" /> Campaigns
+                  </Dropdown.Item>
+                  <Dropdown.Item as={NavLink} to="/emails" onClick={closeMenu}>
+                    <FaEnvelope className="me-2" /> Emails
+                  </Dropdown.Item>
+                  <Dropdown.Item as={NavLink} to="/media" onClick={closeMenu}>
+                    <FaImage className="me-2" /> Media
+                  </Dropdown.Item>
+                  <Dropdown.Item as={NavLink} to="/drip-campaigns" onClick={closeMenu}>
+                    <FaPaperPlane className="me-2" /> Drip Campaigns
+                  </Dropdown.Item>
+                  <Dropdown.Item as={NavLink} to="/analytics" onClick={closeMenu}>
+                    <FaChartBar className="me-2" /> Analytics
+                  </Dropdown.Item>
+                  <Dropdown.Item as={NavLink} to="/booking" onClick={closeMenu}>
+                    <FaCalendarCheck className="me-2" /> Booking
+                  </Dropdown.Item>
+                  {role === "admin" && (
+                    <Dropdown.Item as={NavLink} to="/staff" onClick={closeMenu}>
+                      <FaUserShield className="me-2" /> Staff Management
+                    </Dropdown.Item>
+                  )}
+                  <Dropdown.Divider />
+                  <Dropdown.Item onClick={handleLogout}>
+                    <FaSignOutAlt className="me-2" /> Logout
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             </Nav>
           </Navbar.Collapse>
         </Container>
