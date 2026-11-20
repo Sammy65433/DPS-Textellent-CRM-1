@@ -434,7 +434,7 @@ export default function Booking({ theme, onToggleTheme }) {
             .map((appointment) => ({
                 ...appointment,
                 tax_preparer: appointment.tax_preparer || "DPS Realty",
-                duration_minutes: appointment.duration_minutes || 60,
+                duration_minutes: appointment.duration_minutes || 30,
                 visit_format: appointment.visit_format || "in_person",
             })),
     ];
