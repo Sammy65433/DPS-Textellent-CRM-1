@@ -112,26 +112,12 @@ function AppLayout({ children, theme, onToggleTheme }) {
 
         {sidebarOpen && <div className="crm-sidebar__section">ACCELERATE</div>}
         <NavItem to="/media" icon={FaImage} label="Media" />
-        <div className="sidebar-dropdown-group">
-          <button
-            type="button"
-            className="sidebar-dropdown-toggle"
-            onClick={() => setAutoOpen((v) => !v)}
-          >
-            <FaBullhorn className="sidebar-nav-icon" />
-            {sidebarOpen && <span className="sidebar-nav-label">Automations</span>}
-            {sidebarOpen && <span className="sidebar-dropdown-arrow">{autoOpen ? "▲" : "▼"}</span>}
-          </button>
-          {autoOpen && sidebarOpen && (
-            <div className="sidebar-dropdown-items">
-              <NavItem to="/campaigns" icon={FaBullhorn} label="Text Blasts" />
-              <NavItem to="/drip-campaigns" icon={FaPaperPlane} label="Drip Campaigns" />
-              <NavItem to="/automations" icon={FaClock} label="Birthday Greeting" />
-              <NavItem to="/automations" icon={FaClock} label="Out-of-Office" />
-              <NavItem to="/automations" icon={FaClock} label="After-Hours" />
-            </div>
-          )}
-        </div>
+        {sidebarOpen && <div className="crm-sidebar__section">AUTOMATIONS</div>}
+        <NavItem to="/campaigns" icon={FaBullhorn} label="Text Blasts" />
+        <NavItem to="/drip-campaigns" icon={FaPaperPlane} label="Drip Campaigns" />
+        <NavItem to="/automations" icon={FaClock} label="Birthday Greeting" />
+        <NavItem to="/automations" icon={FaClock} label="Out-of-Office" />
+        <NavItem to="/automations" icon={FaClock} label="After-Hours" />
         <NavItem to="/booking" icon={FaCalendarCheck} label="Booking" />
 
         {sidebarOpen && <div className="crm-sidebar__section">ANALYZE</div>}
