@@ -193,6 +193,7 @@ export default function Booking({ theme, onToggleTheme }) {
 
     const [view, setView] = useState("month");
     const [day, setDay] = useState(() => dateKey(new Date()));
+
     const [openedAppointmentId, setOpenedAppointmentId] = useState(null);
     const [selectedAppointmentIds, setSelectedAppointmentIds] = useState([]);
 
@@ -238,6 +239,13 @@ export default function Booking({ theme, onToggleTheme }) {
     const [editError, setEditError] = useState("");
     const [editSuccess, setEditSuccess] = useState("");
     const editFormRef = useRef(null);
+    const sidePanelRef = useRef(null);
+
+    useEffect(() => {
+        if (window.innerWidth <= 1050 && sidePanelRef.current) {
+            sidePanelRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, [day]);
 
     const [cancellingId, setCancellingId] = useState(null);
     const [cancelMessage, setCancelMessage] = useState("");
@@ -1131,7 +1139,7 @@ async function sendAccountLinkInvitation(appointment) {
                         )}
                     </section>
 
-                    <aside className="booking-panel booking-side-panel">
+                    <aside className="booking-panel booking-side-panel" ref={sidePanelRef}>
                         <div className="booking-day-appointments">
                             <h2>Appointments on {formatDate(day)}</h2>
                             <p className="booking-muted">
