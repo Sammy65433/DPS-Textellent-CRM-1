@@ -31,6 +31,7 @@ function AnalyticsPage({
     const [range, setRange] = useState("30");
     const [revenueInsights, setRevenueInsights] = useState([]);
     const [loadingInsights, setLoadingInsights] = useState(false);
+    const [activeTab, setActiveTab] = useState("dashboard");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -240,7 +241,7 @@ function AnalyticsPage({
                 </select>
             </div>
 
-            <Tabs defaultActiveKey="dashboard" className="mb-3" id="analytics-tabs">
+            <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-3" id="analytics-tabs">
                 <Tab eventKey="dashboard" title="Dashboard">
             <Row className="g-4 mb-4" data-tour="analytics-kpis">
                 {metrics.map(([label, value, color]) => (
