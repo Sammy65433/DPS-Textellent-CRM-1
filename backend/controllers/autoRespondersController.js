@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import AutoResponder from "../models/AutoResponder.js";
 
 const DPS_SCOPE = "user123";
-const TYPES = ["out_of_office", "after_hours"];
+const TYPES = ["out_of_office", "after_hours", "birthday"];
 
 export async function getAutoResponders(_req, res) {
   try {
@@ -33,11 +33,14 @@ export async function updateAutoResponder(req, res) {
     if (!item) item = await AutoResponder.create({ userId: DPS_SCOPE, type });
     if (req.body?.active !== undefined) item.active = !!req.body.active;
     if (req.body?.message !== undefined) item.message = String(req.body.message ?? "").trim();
+    if (req.body?.smsMessage !== undefined) item.smsMessage = String(req.body.smsMessage ?? "").trim();
+    if (req.body?.emailMessage !== undefined) item.emailMessage = String(req.body.emailMessage ?? "").trim();
     if (req.body?.startDate !== undefined) item.startDate = req.body.startDate ? new Date(req.body.startDate) : null;
     if (req.body?.endDate !== undefined) item.endDate = req.body.endDate ? new Date(req.body.endDate) : null;
     if (req.body?.startTime !== undefined) item.startTime = String(req.body.startTime ?? "").trim();
     if (req.body?.endTime !== undefined) item.endTime = String(req.body.endTime ?? "").trim();
     if (Array.isArray(req.body?.weekdays)) item.weekdays = req.body.weekdays;
+    if (req.body?.sendTime !== undefined) item.sendTime = String(req.body.sendTime ?? "").trim();
     await item.save();
     return res.json(item);
   } catch (error) {
