@@ -28,6 +28,7 @@ function CampaignsPage({
     const [editForm, setEditForm] = useState({
         name: "",
         subject: "",
+        body: "",
         type: "sms",
         templateId: "",
         scheduledAt: "",
@@ -47,13 +48,12 @@ function CampaignsPage({
     }, [templates, editForm.templateId]);
 
     const previewEditBody = useMemo(() => {
-        if (!selectedEditTemplate) return "";
+        let body = editForm.body || (selectedEditTemplate ? selectedEditTemplate.body : "");
+        if (!body) return "";
         const sampleContact =
             editingCampaign?.contactIds?.[0] && typeof editingCampaign.contactIds[0] === "object"
                 ? editingCampaign.contactIds[0]
                 : null;
-
-        let body = selectedEditTemplate.body;
 
         if (sampleContact) {
             body = body
@@ -62,13 +62,14 @@ function CampaignsPage({
         }
 
         return body;
-    }, [selectedEditTemplate, editingCampaign]);
+    }, [editForm.body, selectedEditTemplate, editingCampaign]);
 
     const handleOpenEdit = campaign => {
         setEditingCampaign(campaign);
         setEditForm({
             name: campaign.name || "",
             subject: campaign.subject || "",
+            body: campaign.body || "",
             type: campaign.type || "sms",
             templateId: campaign.templateId?._id || campaign.templateId || "",
             scheduledAt: campaign.scheduledAt
@@ -273,6 +274,22 @@ function CampaignsPage({
                                         </option>
                                     ))}
                                 </Form.Select>
+                            </Col>
+
+                            <Col md={12}>
+                                <Form.Label className="fw-semibold">Message Body (overrides template)</Form.Label>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={4}
+                                    placeholder="Or type your message directly"
+                                    value={editForm.body}
+                                    onChange={e =>
+                                        setEditForm(prev => ({
+                                            ...prev,
+                                            body: e.target.value,
+                                        }))
+                                    }
+                                />
                             </Col>
 
                             {selectedEditTemplate && (
