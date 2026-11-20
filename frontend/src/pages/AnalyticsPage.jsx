@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Button, Card, Col, ListGroup, Row } from "react-bootstrap";
+import { Alert, Badge, Button, Card, Col, ListGroup, Nav, Row, Tab, Tabs } from "react-bootstrap";
 import {
     Area,
     AreaChart,
@@ -240,6 +240,8 @@ function AnalyticsPage({
                 </select>
             </div>
 
+            <Tabs defaultActiveKey="dashboard" className="mb-3" id="analytics-tabs">
+                <Tab eventKey="dashboard" title="Dashboard">
             <Row className="g-4 mb-4" data-tour="analytics-kpis">
                 {metrics.map(([label, value, color]) => (
                     <Col md={6} xl={3} key={label}>
@@ -463,6 +465,54 @@ function AnalyticsPage({
                 </Card.Body>
             </Card>
 
+                </Tab>
+
+                <Tab eventKey="messages" title="Messages">
+                    <Card className="crm-card border-0 mb-3">
+                        <Card.Header className="card-header-clean">Message Volume</Card.Header>
+                        <Card.Body>
+                            <p className="text-muted small mb-2">Total messages: {messages.length} · Emails: {emails.length}</p>
+                            <p className="text-muted small">Use the Contacts page to view individual conversations.</p>
+                        </Card.Body>
+                    </Card>
+                </Tab>
+
+                <Tab eventKey="blasts" title="Text Blast">
+                    <Card className="crm-card border-0 mb-3">
+                        <Card.Header className="card-header-clean">Campaigns</Card.Header>
+                        <Card.Body>
+                            {campaigns.length === 0 ? (
+                                <p className="text-muted small">No campaigns yet.</p>
+                            ) : (
+                                campaigns.map((c) => (
+                                    <div key={c._id} className="d-flex justify-content-between align-items-center border-bottom py-2">
+                                        <span className="small">{c.name}</span>
+                                        <Badge bg={c.status === "sent" ? "success" : c.status === "scheduled" ? "warning" : "secondary"}>{c.status}</Badge>
+                                    </div>
+                                ))
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Tab>
+
+                <Tab eventKey="automations" title="Automations">
+                    <Card className="crm-card border-0 mb-3">
+                        <Card.Header className="card-header-clean">Drip Campaigns</Card.Header>
+                        <Card.Body>
+                            <p className="text-muted small">Manage drip campaigns from the Drip Campaigns page.</p>
+                        </Card.Body>
+                    </Card>
+                </Tab>
+
+                <Tab eventKey="autoresponders" title="Auto Responders">
+                    <Card className="crm-card border-0 mb-3">
+                        <Card.Header className="card-header-clean">Auto Responders</Card.Header>
+                        <Card.Body>
+                            <p className="text-muted small">Configure out-of-office and after-hours responders from the Automations page.</p>
+                        </Card.Body>
+                    </Card>
+                </Tab>
+            </Tabs>
         </AppLayout>
     );
 }
