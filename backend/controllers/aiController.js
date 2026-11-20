@@ -368,12 +368,21 @@ Parse the request and return ONLY a JSON object:
 If a field can't be determined, use null. Do not include markdown or explanation.`;
 
     const text = await groqGenerate(prompt, 300, 0.3);
+    let parsed = null;
+    const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     try {
-      const parsed = JSON.parse(text.replace(/```json\n?/g, "").replace(/```\n?/g, ""));
-      return res.json({ suggestion: parsed });
+      parsed = JSON.parse(cleaned);
     } catch {
-      return res.json({ suggestion: null, raw: text });
+      // Try to extract a JSON object from the text
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) {
+        try { parsed = JSON.parse(match[0]); } catch { parsed = null; }
+      }
     }
+    if (parsed && typeof parsed === "object") {
+      return res.json({ suggestion: parsed });
+    }
+    return res.json({ suggestion: null, raw: text });
   } catch (error) {
     console.error("AI scheduling failed:", error);
     return res.status(500).json({ error: "Scheduling analysis failed. " + error.message });

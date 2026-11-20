@@ -1352,7 +1352,13 @@ async function sendAccountLinkInvitation(appointment) {
                                                     const data = await response.json().catch(() => ({}));
                                                     if (!response.ok) throw new Error(data.error || "Scheduling failed.");
 
-                                                    const s = data.suggestion;
+                                                    let s = data.suggestion;
+                                                    if (!s && data.raw) {
+                                                        try {
+                                                            const m = String(data.raw).match(/\{[\s\S]*\}/);
+                                                            if (m) s = JSON.parse(m[0]);
+                                                        } catch { s = null; }
+                                                    }
                                                     if (s) {
                                                         const applied = [];
                                                         const chosenService = s.service && SERVICES.includes(s.service) ? s.service : null;
