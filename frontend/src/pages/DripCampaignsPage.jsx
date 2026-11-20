@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Alert, Button, Card, Col, Form, Row, Spinner } from "react-bootstrap";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
-import { fetchDripCampaigns, createDripCampaign, deleteDripCampaign, enrollDripCampaign } from "../api/api";
+import { fetchDripCampaigns, createDripCampaign, deleteDripCampaign, enrollDripCampaign, generateCampaignCopy, fetchTemplates } from "../api/api";
 
 function DripCampaignsPage({ theme, onToggleTheme, alert, contacts = [] }) {
     const [drips, setDrips] = useState([]);
@@ -12,6 +12,11 @@ function DripCampaignsPage({ theme, onToggleTheme, alert, contacts = [] }) {
     const [steps, setSteps] = useState([{ delayDays: 0, subject: "", body: "" }]);
     const [selectedContacts, setSelectedContacts] = useState([]);
     const [creating, setCreating] = useState(false);
+    const [templates, setTemplates] = useState([]);
+    const [aiGoal, setAiGoal] = useState("");
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiStepIdx, setAiStepIdx] = useState(0);
+    const [aiMessage, setAiMessage] = useState("");
 
     async function load() {
         setLoading(true);
@@ -26,7 +31,7 @@ function DripCampaignsPage({ theme, onToggleTheme, alert, contacts = [] }) {
         }
     }
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => { load(); fetchTemplates().then((d) => setTemplates(Array.isArray(d) ? d : [])).catch(() => {}); }, []);
 
     function addStep() {
         setSteps((prev) => [...prev, { delayDays: 3, subject: "", body: "" }]);
@@ -38,6 +43,27 @@ function DripCampaignsPage({ theme, onToggleTheme, alert, contacts = [] }) {
 
     function removeStep(idx) {
         setSteps((prev) => prev.filter((_, i) => i !== idx));
+    }
+
+    async function handleAiGenerate() {
+        if (!aiGoal.trim()) return;
+        setAiLoading(true);
+        setAiMessage("");
+        try {
+            const result = await generateCampaignCopy({
+                audience: "drip campaign contacts",
+                goal: aiGoal.trim(),
+                tone: "professional and friendly",
+            });
+            setSteps((prev) => prev.map((st, i) =>
+                i === aiStepIdx ? { ...st, subject: result.subject || st.subject, body: result.body || st.body } : st
+            ));
+            setAiMessage("Generated! Review and edit before saving.");
+        } catch (e) {
+            setAiMessage(e.message || "Generation failed.");
+        } finally {
+            setAiLoading(false);
+        }
     }
 
     async function handleCreate(e) {
@@ -90,6 +116,32 @@ function DripCampaignsPage({ theme, onToggleTheme, alert, contacts = [] }) {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                 />
+                                <div className="mb-2 p-2 border rounded bg-light">
+                                    <div className="small fw-semibold mb-1">✨ AI Generate Step</div>
+                                    <div className="d-flex gap-2 mb-1">
+                                        <Form.Control
+                                            size="sm"
+                                            placeholder="Step index (1-based)"
+                                            type="number"
+                                            min={1}
+                                            max={steps.length}
+                                            value={aiStepIdx + 1}
+                                            onChange={(e) => setAiStepIdx(Math.max(0, Number(e.target.value) - 1))}
+                                        />
+                                    </div>
+                                    <Form.Control
+                                        size="sm"
+                                        className="mb-1"
+                                        placeholder="What should this step say? (e.g. welcome new clients)"
+                                        value={aiGoal}
+                                        onChange={(e) => setAiGoal(e.target.value)}
+                                    />
+                                    <Button size="sm" variant="primary" disabled={aiLoading || !aiGoal.trim()} onClick={handleAiGenerate}>
+                                        {aiLoading ? "Generating..." : "Generate"}
+                                    </Button>
+                                    {aiMessage && <div className="small text-muted mt-1">{aiMessage}</div>}
+                                </div>
+
                                 {steps.map((step, idx) => (
                                     <div key={idx} className="border rounded p-2 mb-2">
                                         <div className="d-flex justify-content-between mb-1">
@@ -108,6 +160,19 @@ function DripCampaignsPage({ theme, onToggleTheme, alert, contacts = [] }) {
                                             value={step.delayDays}
                                             onChange={(e) => updateStep(idx, "delayDays", Number(e.target.value))}
                                         />
+                                        <Form.Select
+                                            className="mb-1"
+                                            value=""
+                                            onChange={(e) => {
+                                                const tpl = templates.find((t) => t._id === e.target.value);
+                                                if (tpl) updateStep(idx, "body", tpl.body);
+                                            }}
+                                        >
+                                            <option value="">Use a template (optional)</option>
+                                            {templates.map((t) => (
+                                                <option key={t._id} value={t._id}>{t.name}</option>
+                                            ))}
+                                        </Form.Select>
                                         <Form.Control
                                             className="mb-1"
                                             placeholder="Subject"
