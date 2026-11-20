@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Container, Navbar, Nav, Button } from "react-bootstrap";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   FaColumns,
   FaCalendarCheck,
@@ -26,9 +26,16 @@ import OnboardingTour from "./OnboardingTour";
 
 function AppLayout({ children, theme, onToggleTheme }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [autoOpen, setAutoOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.pathname.startsWith("/automations") || location.pathname.startsWith("/drip-campaigns") || location.pathname.startsWith("/campaigns")) {
+      setAutoOpen(true);
+    }
+  }, [location.pathname]);
   const [role, setRole] = useState(
     () => JSON.parse(localStorage.getItem("user") || "null")?.role || null
   );
