@@ -28,6 +28,7 @@ function CampaignForm({
     const [aiTone, setAiTone] = useState("professional and friendly");
     const [aiLoading, setAiLoading] = useState(false);
     const [aiMessage, setAiMessage] = useState("");
+    const [submitAttempted, setSubmitAttempted] = useState(false);
 
     const uniqueTags = useMemo(() => {
         const tags = contacts
@@ -143,11 +144,12 @@ function CampaignForm({
             </Card.Header>
 
             <Card.Body>
-                <Form onSubmit={onCreateCampaign}>
+                <Form onSubmit={(e) => { setSubmitAttempted(true); onCreateCampaign(e); }}>
                     <Form.Control
                         className="mb-2"
                         placeholder="Campaign name"
                         value={campaignForm.name}
+                        isInvalid={submitAttempted && !campaignForm.name?.trim()}
                         onChange={e =>
                             setCampaignForm(prev => ({
                                 ...prev,
@@ -155,6 +157,9 @@ function CampaignForm({
                             }))
                         }
                     />
+                    {submitAttempted && !campaignForm.name?.trim() && (
+                        <div className="invalid-feedback d-block">Campaign name is required.</div>
+                    )}
 
                     <Form.Select
                         className="mb-2"
@@ -192,6 +197,7 @@ function CampaignForm({
                         rows={3}
                         placeholder="Or type your message directly (overrides template)"
                         value={campaignForm.body || ""}
+                        isInvalid={submitAttempted && !(campaignForm.body?.trim()) && !campaignForm.templateId}
                         onChange={e =>
                             setCampaignForm(prev => ({
                                 ...prev,
@@ -199,6 +205,9 @@ function CampaignForm({
                             }))
                         }
                     />
+                    {submitAttempted && !(campaignForm.body?.trim()) && !campaignForm.templateId && (
+                        <div className="invalid-feedback d-block">Enter a message or choose a template.</div>
+                    )}
 
                     <div className="d-flex justify-content-between align-items-center mb-2" data-tour="campaigns-ai">
                         <Button
@@ -399,6 +408,9 @@ function CampaignForm({
                             <FaUsers />
                             Contacts ({filteredContacts.length} shown)
                         </small>
+                        {submitAttempted && (!campaignForm.contactIds || campaignForm.contactIds.length === 0) && (
+                            <div className="text-danger small">Select at least one contact.</div>
+                        )}
 
                         <Button
                             type="button"

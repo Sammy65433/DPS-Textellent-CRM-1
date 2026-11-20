@@ -9,9 +9,10 @@ import { generateCampaignCopy } from "../api/api";
 const COMPANY_INFO = {
     name: "DPS Professional Tax Services",
     phone: "(973) 327-2340",
-    email: "info@dpsprofessionaltax.com",
-    address: "1811 Springfield Ave, Maplewood, NJ 07040",
-    website: "https://www.dpsprofessionaltax.com",
+    email: "info@DPStaxpro.com",
+    email2: "DpsTax1@gmail.com",
+    address: "1811 Springfield Ave, Maplewood, NJ",
+    website: "https://www.dpstaxpro.com",
 };
 
 function TemplatesPage({
@@ -123,6 +124,7 @@ function TemplatesPage({
                                         <div><strong>Name:</strong> {COMPANY_INFO.name}</div>
                                         <div><strong>Phone:</strong> {COMPANY_INFO.phone}</div>
                                         <div><strong>Email:</strong> {COMPANY_INFO.email}</div>
+                                        <div><strong>Email 2:</strong> {COMPANY_INFO.email2}</div>
                                         <div><strong>Address:</strong> {COMPANY_INFO.address}</div>
                                         <div><strong>Website:</strong> {COMPANY_INFO.website}</div>
                                     </div>

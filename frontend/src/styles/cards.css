@@ -341,7 +341,17 @@
     border-radius: 18px !important;
     background: var(--bg-card) !important;
     box-shadow: var(--shadow-sm) !important;
+    overflow: visible !important;
     transition: all 0.2s ease;
+}
+
+.template-list-card {
+    overflow: visible !important;
+}
+
+.template-list-card .dropdown-menu,
+.template-item-card .dropdown-menu {
+    z-index: 1080;
 }
 
 .template-item-card:hover {

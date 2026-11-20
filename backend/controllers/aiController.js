@@ -208,7 +208,7 @@ Return ONLY a JSON object with two fields:
 - "subject": a short email subject line (max 60 chars)
 - "body": the message body (max 300 chars for SMS, or up to 500 for email). Use {{firstName}}, {{lastName}}, {{fullName}}, {{companyName}}, {{companyPhone}}, {{companyEmail}}, {{companyAddress}}, {{companyWebsite}} placeholders where appropriate for personalization.
 
-Company info (use when relevant): DPS Professional Tax Services, 1811 Springfield Ave, Maplewood, NJ 07040, (973) 327-2340, info@dpsprofessionaltax.com, https://www.dpsprofessionaltax.com.
+Company info (use when relevant): DPS Professional Tax Services, Trusted tax and support services in Maplewood, NJ. 1811 Springfield Ave, Maplewood, NJ. Phone: (973) 327-2340. Emails: info@DPStaxpro.com, DpsTax1@gmail.com. Website: https://www.dpstaxpro.com.
 
 Do not include any explanation or markdown. Just the JSON.`;
 
