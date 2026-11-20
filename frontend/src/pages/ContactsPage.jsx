@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import ContactsList from "../components/ContactsList";
+import ContactsTable from "../components/ContactsTable";
 import ContactSummaryCard from "../components/ContactSummaryCard";
 import ContactDocuments from "../components/ContactDocuments";
 import ConversationPanel from "../components/ConversationPanel";
@@ -373,8 +374,8 @@ function ContactsPage({
             </div>
 
             <Row className="g-4">
-                <Col md={3} className="contacts-column-compact" data-tour="contacts-list">
-                    <ContactsList
+                <Col md={12} data-tour="contacts-list">
+                    <ContactsTable
                         contacts={filteredContacts}
                         selectedContact={selectedContact}
                         onSelectContact={handleSelectContact}
@@ -385,7 +386,7 @@ function ContactsPage({
                     />
                 </Col>
 
-                <Col md={5}>
+                <Col md={8}>
                     <ConversationPanel
                         selectedContact={selectedContact}
                         conversation={conversation}
