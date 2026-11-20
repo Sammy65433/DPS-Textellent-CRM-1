@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Container, Navbar, Nav, Button, Dropdown } from "react-bootstrap";
+import { Container, Navbar, Nav, Button } from "react-bootstrap";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaColumns,
@@ -13,6 +13,11 @@ import {
   FaChartBar,
   FaSignOutAlt,
   FaUserShield,
+  FaBars,
+  FaTimes,
+  FaChevronLeft,
+  FaChevronRight,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
 import AIAssistant from "./AIAssistant";
@@ -20,7 +25,8 @@ import OnboardingTour from "./OnboardingTour";
 
 function AppLayout({ children, theme, onToggleTheme }) {
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [role, setRole] = useState(
     () => JSON.parse(localStorage.getItem("user") || "null")?.role || null
   );
@@ -49,124 +55,127 @@ function AppLayout({ children, theme, onToggleTheme }) {
       .catch(() => {});
   }, []);
 
-  const closeMenu = () => setMenuOpen(false);
+  const closeMobile = () => setMobileOpen(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    closeMenu();
+    setMobileOpen(false);
     navigate("/login");
   };
 
+  const NavItem = ({ to, icon: Icon, label, end }) => (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        `sidebar-nav-item${isActive ? " active" : ""}`
+      }
+      onClick={closeMobile}
+    >
+      <Icon className="sidebar-nav-icon" />
+      {sidebarOpen && <span className="sidebar-nav-label">{label}</span>}
+    </NavLink>
+  );
+
+  const sidebar = (
+    <aside className={`crm-sidebar ${sidebarOpen ? "open" : "collapsed"} ${mobileOpen ? "mobile-open" : ""}`}>
+      <div className="crm-sidebar__header">
+        <img src="/dps-logo.png" alt="DPS" className="crm-sidebar__logo" />
+        {sidebarOpen && <span className="crm-sidebar__brand">DPS CRM</span>}
+        <button
+          type="button"
+          className="crm-sidebar__toggle"
+          onClick={() => setSidebarOpen((v) => !v)}
+          aria-label="Toggle sidebar"
+        >
+          {sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
+        </button>
+      </div>
+
+      <nav className="crm-sidebar__nav">
+        {sidebarOpen && <div className="crm-sidebar__section">MAIN</div>}
+        <NavItem to="/dashboard" icon={FaColumns} label="Dashboard" end />
+        <NavItem to="/contacts" icon={FaUsers} label="Contacts" />
+        <NavItem to="/templates" icon={FaFileAlt} label="Templates" />
+        <NavItem to="/campaigns" icon={FaBullhorn} label="Campaigns" />
+        <NavItem to="/emails" icon={FaEnvelope} label="Emails" />
+
+        {sidebarOpen && <div className="crm-sidebar__section">ACCELERATE</div>}
+        <NavItem to="/media" icon={FaImage} label="Media" />
+        <NavItem to="/drip-campaigns" icon={FaPaperPlane} label="Drip Campaigns" />
+        <NavItem to="/booking" icon={FaCalendarCheck} label="Booking" />
+
+        {sidebarOpen && <div className="crm-sidebar__section">ANALYZE</div>}
+        <NavItem to="/analytics" icon={FaChartBar} label="Analytics" />
+
+        {role === "admin" && (
+          <>
+            {sidebarOpen && <div className="crm-sidebar__section">ADMIN</div>}
+            <NavItem to="/staff" icon={FaUserShield} label="Staff Management" />
+          </>
+        )}
+      </nav>
+
+      <div className="crm-sidebar__footer">
+        {sidebarOpen && (
+          <>
+            <div className="crm-sidebar__user">
+              <div className="crm-sidebar__avatar">
+                {(userName?.[0] || "U").toUpperCase()}
+              </div>
+              <div className="crm-sidebar__user-info">
+                <div className="crm-sidebar__user-name">{userName || "User"}</div>
+                <div className="crm-sidebar__user-role">
+                  {role === "admin" ? "Admin" : "Staff"}
+                </div>
+              </div>
+            </div>
+            <div className="crm-sidebar__extra-links">
+              <button type="button" className="crm-sidebar__extra-link" onClick={() => { navigate("/staff"); closeMobile(); }}>
+                <FaUserShield className="me-2" /> Settings
+              </button>
+              <button type="button" className="crm-sidebar__extra-link" onClick={() => { window.open("https://textellent.com/knowledge-base", "_blank"); }}>
+                <FaQuestionCircle className="me-2" /> Help
+              </button>
+            </div>
+          </>
+        )}
+        <button type="button" className="crm-sidebar__logout" onClick={handleLogout}>
+          <FaSignOutAlt className="me-2" />
+          {sidebarOpen && "Logout"}
+        </button>
+      </div>
+    </aside>
+  );
+
   return (
     <>
-      <Navbar
-        bg="dark"
-        variant="dark"
-        expand="lg"
-        expanded={menuOpen}
-        className="crm-navbar shadow-sm mb-4"
-      >
-        <Container fluid>
-          <Navbar.Brand className="fw-bold d-flex align-items-center gap-2">
-              <img src="/dps-logo.png" alt="DPS" width={36} height={36} style={{ borderRadius: 8 }} />
-              <span style={{ fontFamily: '"Libre Baskerville", Georgia, serif' }}>DPS CRM</span>
-            </Navbar.Brand>
+      {/* Mobile top bar */}
+      <div className="crm-mobile-topbar d-lg-none">
+        <button
+          type="button"
+          className="crm-mobile-topbar__toggle"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label="Toggle menu"
+        >
+          <FaBars />
+        </button>
+        <img src="/dps-logo.png" alt="DPS" width={28} height={28} style={{ borderRadius: 6 }} />
+        <span className="crm-mobile-topbar__brand">DPS CRM</span>
+      </div>
 
-          {["staff", "admin"].includes(role) && (
-            <div className="d-flex align-items-center gap-2 ms-2">
-              {userName && (
-                <span
-                  className="fw-semibold d-none d-md-inline"
-                  style={{ color: "#f97316", fontSize: "0.9rem" }}
-                >
-                  Welcome, {userName}
-                </span>
-              )}
-              <span
-                className="px-2 py-1 rounded-pill fw-bold"
-                style={{
-                  backgroundColor: "#fbbf24",
-                  color: "#111827",
-                  fontSize: "0.75rem",
-                }}
-              >
-                {role === "admin" ? "Admin" : "Staff"}
-              </span>
-            </div>
-          )}
+      {mobileOpen && (
+        <div className="crm-sidebar-backdrop d-lg-none" onClick={closeMobile} />
+      )}
 
-          <Navbar.Toggle
-            aria-controls="crm-navbar-menu"
-            onClick={() => setMenuOpen((open) => !open)}
-          />
+      {sidebar}
 
-          <Navbar.Collapse id="crm-navbar-menu">
-            <Nav className="ms-auto align-items-lg-center">
-              <Dropdown align="end">
-                <Dropdown.Toggle
-                  variant="primary"
-                  size="sm"
-                  id="crm-menu-dropdown"
-                  style={{
-                    background: "linear-gradient(135deg, #0f5c54, #6e42a8)",
-                    border: "none",
-                    fontWeight: 700,
-                    boxShadow: "0 4px 12px rgba(15,92,84,0.35)",
-                  }}
-                >
-                  ☰ Menu
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item as={NavLink} to="/dashboard" onClick={closeMenu}>
-                    <FaColumns className="me-2" /> Dashboard
-                  </Dropdown.Item>
-                  <Dropdown.Item as={NavLink} to="/contacts" onClick={closeMenu}>
-                    <FaUsers className="me-2" /> Contacts
-                  </Dropdown.Item>
-                  <Dropdown.Item as={NavLink} to="/templates" onClick={closeMenu}>
-                    <FaFileAlt className="me-2" /> Templates
-                  </Dropdown.Item>
-                  <Dropdown.Item as={NavLink} to="/campaigns" onClick={closeMenu}>
-                    <FaBullhorn className="me-2" /> Campaigns
-                  </Dropdown.Item>
-                  <Dropdown.Item as={NavLink} to="/emails" onClick={closeMenu}>
-                    <FaEnvelope className="me-2" /> Emails
-                  </Dropdown.Item>
-                  <Dropdown.Item as={NavLink} to="/media" onClick={closeMenu}>
-                    <FaImage className="me-2" /> Media
-                  </Dropdown.Item>
-                  <Dropdown.Item as={NavLink} to="/drip-campaigns" onClick={closeMenu}>
-                    <FaPaperPlane className="me-2" /> Drip Campaigns
-                  </Dropdown.Item>
-                  <Dropdown.Item as={NavLink} to="/analytics" onClick={closeMenu}>
-                    <FaChartBar className="me-2" /> Analytics
-                  </Dropdown.Item>
-                  <Dropdown.Item as={NavLink} to="/booking" onClick={closeMenu}>
-                    <FaCalendarCheck className="me-2" /> Booking
-                  </Dropdown.Item>
-                  {role === "admin" && (
-                    <Dropdown.Item as={NavLink} to="/staff" onClick={closeMenu}>
-                      <FaUserShield className="me-2" /> Staff Management
-                    </Dropdown.Item>
-                  )}
-                  <Dropdown.Divider />
-                  <Dropdown.Item onClick={handleLogout}>
-                    <FaSignOutAlt className="me-2" /> Logout
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
-
-      <Container fluid className="dashboard-shell">
+      <div className={`crm-main ${sidebarOpen ? "sidebar-open" : "sidebar-collapsed"}`}>
         {children}
-      </Container>
+      </div>
 
       <AIAssistant />
-
       <OnboardingTour />
     </>
   );
