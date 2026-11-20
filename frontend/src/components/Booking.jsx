@@ -222,6 +222,34 @@ export default function Booking({ theme, onToggleTheme }) {
         ...(location.state?.customer || {}),
     }));
     const [notes, setNotes] = useState("");
+    const [contactSearch, setContactSearch] = useState("");
+    const [contactResults, setContactResults] = useState([]);
+    const [contactSearching, setContactSearching] = useState(false);
+
+    async function searchContacts(q) {
+        if (!q || q.trim().length < 2) {
+            setContactResults([]);
+            return;
+        }
+        setContactSearching(true);
+        try {
+            const res = await fetch(`${CRM_API_URL}/api/contacts`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
+            const data = await res.json().catch(() => ([]));
+            const list = Array.isArray(data) ? data : (data.contacts || []);
+            const ql = q.toLowerCase().trim();
+            const filtered = list.filter((c) => {
+                const name = `${c.firstName || ""} ${c.lastName || ""}`.toLowerCase();
+                return name.includes(ql) || (c.phone || "").includes(ql) || (c.email || "").toLowerCase().includes(ql);
+            }).slice(0, 8);
+            setContactResults(filtered);
+        } catch {
+            setContactResults([]);
+        } finally {
+            setContactSearching(false);
+        }
+    }
 
     const [submitting, setSubmitting] = useState(false);
     const [bookingError, setBookingError] = useState("");
@@ -1778,6 +1806,46 @@ async function sendAccountLinkInvitation(appointment) {
                                                     ? `${service} (DPS Realty)`
                                                     : `${preparer} · ${duration} minutes`}
                                             </p>
+
+                                            <div className="booking-contact-search mb-3">
+                                                <label className="booking-field">
+                                                    Find existing contact (optional)
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Search by name, phone, or email..."
+                                                        value={contactSearch}
+                                                        onChange={(e) => {
+                                                            setContactSearch(e.target.value);
+                                                            searchContacts(e.target.value);
+                                                        }}
+                                                    />
+                                                </label>
+                                                {contactSearching && <p className="booking-muted small">Searching...</p>}
+                                                {contactResults.length > 0 && (
+                                                    <div className="booking-contact-results">
+                                                        {contactResults.map((c) => (
+                                                            <button
+                                                                key={c._id}
+                                                                type="button"
+                                                                className="booking-contact-result"
+                                                                onClick={() => {
+                                                                    setCustomer({
+                                                                        first_name: c.firstName || "",
+                                                                        last_name: c.lastName || "",
+                                                                        phone: c.phone || "",
+                                                                        email: c.email || "",
+                                                                    });
+                                                                    setContactSearch(`${c.firstName} ${c.lastName}`);
+                                                                    setContactResults([]);
+                                                                }}
+                                                            >
+                                                                <strong>{c.firstName} {c.lastName}</strong>
+                                                                <span className="booking-muted small"> · {c.phone} {c.email ? `· ${c.email}` : ""}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
 
                                             <form
                                                 className="booking-customer-form"
