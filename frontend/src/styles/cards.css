@@ -345,11 +345,16 @@
     transition: all 0.2s ease;
 }
 
-.template-list-card {
+.template-list-card,
+.page-panel-templates,
+.page-panel-templates-secondary,
+.template-item-card {
     overflow: visible !important;
 }
 
 .template-list-card .dropdown-menu,
+.page-panel-templates .dropdown-menu,
+.page-panel-templates-secondary .dropdown-menu,
 .template-item-card .dropdown-menu {
     z-index: 1080;
 }

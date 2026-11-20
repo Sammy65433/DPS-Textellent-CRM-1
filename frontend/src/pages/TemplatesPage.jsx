@@ -273,7 +273,7 @@ function TemplatesPage({
                                                         <Dropdown.Toggle size="sm" variant="outline-secondary">
                                                             Actions
                                                         </Dropdown.Toggle>
-                                                        <Dropdown.Menu>
+                                                        <Dropdown.Menu popperConfig={{ strategy: "fixed" }}>
                                                             <Dropdown.Item onClick={() => navigate("/campaigns", { state: { templateId: template._id } })}>
                                                                 <FaBullhorn className="me-2" /> Use for Campaign
                                                             </Dropdown.Item>
