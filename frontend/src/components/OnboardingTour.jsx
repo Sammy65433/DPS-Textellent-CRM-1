@@ -74,6 +74,20 @@ const TOURS = {
     { selector: '[data-tour="staff-list"]', title: "Staff List", text: "View all staff accounts with their role and status. Use Deactivate/Reactivate to manage access. You cannot deactivate your own account." },
     { selector: null, title: "Done! 🎉", text: "Staff log in with their email + password. Accounts must be active to access the CRM. Admins can invite new staff anytime." },
   ],
+  "/media": [
+    { selector: null, title: "Media Library", text: "Upload and manage media files (images, PDFs, etc.) for use in campaigns and emails." },
+    { selector: null, title: "Upload", text: "Click 'Upload File' to add a file (max 5MB). Images are previewed in the grid. Copy the file URL to use in campaigns/emails." },
+    { selector: null, title: "Manage", text: "Delete files you no longer need. Uploaded files are stored securely and accessible via their URL." },
+    { selector: null, title: "Done! 🎉", text: "Media files can be referenced in email/campaign bodies by their URL." },
+  ],
+  "/drip-campaigns": [
+    { selector: null, title: "Drip Campaigns", text: "Create timed email sequences (drips) that send automatically to enrolled contacts at scheduled intervals." },
+    { selector: null, title: "Create", text: "Name your drip, add steps (each with a delay in days, subject, and body). Use {{firstName}}/{{lastName}} placeholders. Enroll contacts from the list." },
+    { selector: null, title: "AI Generate", text: "Use the 'AI Generate Step' panel to have AI draft a subject + body for any step from a goal description." },
+    { selector: null, title: "Templates", text: "Each step has a 'Use a template' dropdown to pull in an existing template's body." },
+    { selector: null, title: "Enroll", text: "Select contacts to enroll. The scheduler sends emails automatically based on each step's delay and advances to the next step." },
+    { selector: null, title: "Done! 🎉", text: "Drip campaigns run in the background. Check the list for status and step counts." },
+  ],
 };
 
 const DEFAULT_TOUR = [
