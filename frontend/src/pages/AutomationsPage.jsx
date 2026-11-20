@@ -79,6 +79,14 @@ function AutomationsPage({ theme, onToggleTheme, alert }) {
                                         <Form.Control type="date" value={ooo?.endDate ? new Date(ooo.endDate).toISOString().slice(0, 10) : ""} onChange={(e) => save("out_of_office", { endDate: e.target.value || null })} />
                                     </Form.Group>
                                     <Form.Group className="mb-2">
+                                        <Form.Label className="small fw-semibold">Channels</Form.Label>
+                                        <Form.Select value={ooo?.channels || "both"} onChange={(e) => save("out_of_office", { channels: e.target.value })}>
+                                            <option value="sms">SMS only</option>
+                                            <option value="email">Email only</option>
+                                            <option value="both">SMS + Email</option>
+                                        </Form.Select>
+                                    </Form.Group>
+                                    <Form.Group className="mb-2">
                                         <Form.Label className="small fw-semibold">SMS Message</Form.Label>
                                         <Form.Control as="textarea" rows={2} value={ooo?.smsMessage || ""} onChange={(e) => save("out_of_office", { smsMessage: e.target.value })} placeholder="We are out of the office. We'll get back to you soon." />
                                     </Form.Group>
@@ -111,6 +119,14 @@ function AutomationsPage({ theme, onToggleTheme, alert }) {
                                     <Form.Group className="mb-2">
                                         <Form.Label className="small fw-semibold">End Time (before this hour)</Form.Label>
                                         <Form.Control type="time" value={ah?.endTime || "09:00"} onChange={(e) => save("after_hours", { endTime: e.target.value })} />
+                                    </Form.Group>
+                                    <Form.Group className="mb-2">
+                                        <Form.Label className="small fw-semibold">Channels</Form.Label>
+                                        <Form.Select value={ah?.channels || "both"} onChange={(e) => save("after_hours", { channels: e.target.value })}>
+                                            <option value="sms">SMS only</option>
+                                            <option value="email">Email only</option>
+                                            <option value="both">SMS + Email</option>
+                                        </Form.Select>
                                     </Form.Group>
                                     <Form.Group className="mb-2">
                                         <Form.Label className="small fw-semibold">SMS Message</Form.Label>
@@ -146,6 +162,14 @@ function AutomationsPage({ theme, onToggleTheme, alert }) {
                                             </Form.Group>
                                         </Col>
                                         <Col md={8}>
+                                            <Form.Group className="mb-2">
+                                                <Form.Label className="small fw-semibold">Channels</Form.Label>
+                                                <Form.Select value={bd?.channels || "both"} onChange={(e) => save("birthday", { channels: e.target.value })}>
+                                                    <option value="sms">SMS only</option>
+                                                    <option value="email">Email only</option>
+                                                    <option value="both">SMS + Email</option>
+                                                </Form.Select>
+                                            </Form.Group>
                                             <Form.Group className="mb-2">
                                                 <Form.Label className="small fw-semibold">SMS Message</Form.Label>
                                                 <Form.Control as="textarea" rows={2} value={bd?.smsMessage || ""} onChange={(e) => save("birthday", { smsMessage: e.target.value })} placeholder="Happy Birthday {{firstName}}! 🎉" />

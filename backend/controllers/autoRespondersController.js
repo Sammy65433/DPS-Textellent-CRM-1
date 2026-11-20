@@ -32,6 +32,7 @@ export async function updateAutoResponder(req, res) {
     let item = await AutoResponder.findOne({ userId: DPS_SCOPE, type });
     if (!item) item = await AutoResponder.create({ userId: DPS_SCOPE, type });
     if (req.body?.active !== undefined) item.active = !!req.body.active;
+    if (req.body?.channels !== undefined && ["sms","email","both"].includes(req.body.channels)) item.channels = req.body.channels;
     if (req.body?.message !== undefined) item.message = String(req.body.message ?? "").trim();
     if (req.body?.smsMessage !== undefined) item.smsMessage = String(req.body.smsMessage ?? "").trim();
     if (req.body?.emailMessage !== undefined) item.emailMessage = String(req.body.emailMessage ?? "").trim();

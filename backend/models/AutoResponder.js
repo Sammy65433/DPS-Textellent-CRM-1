@@ -5,6 +5,7 @@ const autoResponderSchema = new mongoose.Schema(
     userId: { type: String, required: true, default: "user123" },
     type: { type: String, enum: ["out_of_office", "after_hours", "birthday"], required: true },
     active: { type: Boolean, default: false },
+    channels: { type: String, enum: ["sms", "email", "both"], default: "both" },
     // separate messages per channel
     smsMessage: { type: String, trim: true, default: "" },
     emailMessage: { type: String, trim: true, default: "" },
