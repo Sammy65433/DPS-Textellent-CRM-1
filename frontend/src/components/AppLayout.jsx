@@ -104,6 +104,7 @@ function AppLayout({ children, theme, onToggleTheme }) {
         {sidebarOpen && <div className="crm-sidebar__section">ACCELERATE</div>}
         <NavItem to="/media" icon={FaImage} label="Media" />
         <NavItem to="/drip-campaigns" icon={FaPaperPlane} label="Drip Campaigns" />
+        <NavItem to="/automations" icon={FaBullhorn} label="Automations" />
         <NavItem to="/booking" icon={FaCalendarCheck} label="Booking" />
 
         {sidebarOpen && <div className="crm-sidebar__section">ANALYZE</div>}

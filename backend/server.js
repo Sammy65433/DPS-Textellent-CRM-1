@@ -7,6 +7,7 @@ import contactRoutes from "./routes/contacts.js";
 import contactListRoutes from "./routes/contactLists.js";
 import mediaRoutes from "./routes/media.js";
 import dripRoutes from "./routes/dripCampaigns.js";
+import autoResponderRoutes from "./routes/autoResponders.js";
 import { processDripEnrollments } from "./controllers/dripCampaignsController.js";
 import templateRoutes from "./routes/templates.js";
 import campaignRoutes from "./routes/campaigns.js";
@@ -110,6 +111,7 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/contact-lists", contactListRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/drip-campaigns", dripRoutes);
+app.use("/api/auto-responders", autoResponderRoutes);
 app.use("/api/staff", staffDocumentRoutes);
 
 // Block time proxy (staff only)

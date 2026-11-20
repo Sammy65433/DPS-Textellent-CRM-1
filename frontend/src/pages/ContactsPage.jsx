@@ -306,6 +306,9 @@ function ContactsPage({
             </Card>
 
             <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                <Button size="sm" variant="primary" onClick={() => navigate("/contacts/new")}>
+                    + Add Contact
+                </Button>
                 <select
                     className="form-select form-select-sm"
                     style={{ maxWidth: 160 }}

@@ -167,6 +167,20 @@ export async function enrollDripCampaign(id, contactIds) {
   );
 }
 
+export async function fetchAutoResponders() {
+  return apiResponse(await fetch(`${API}/api/auto-responders`, { headers: staffHeaders() }));
+}
+
+export async function updateAutoResponder(type, payload) {
+  return apiResponse(
+    await fetch(`${API}/api/auto-responders/${encodeURIComponent(type)}`, {
+      method: "PATCH",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
 export async function fetchContactDocuments(contactId) {
   const data = await apiResponse(
     await fetch(

@@ -3,11 +3,13 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import DashboardPage from "./pages/DashboardPage";
 import ContactsPage from "./pages/ContactsPage";
+import AddContactPage from "./pages/AddContactPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import CampaignsPage from "./pages/CampaignsPage";
 import EmailsPage from "./pages/EmailsPage";
 import MediaLibraryPage from "./pages/MediaLibraryPage";
 import DripCampaignsPage from "./pages/DripCampaignsPage";
+import AutomationsPage from "./pages/AutomationsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import LoginPage from "./pages/LoginPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
@@ -180,6 +182,22 @@ function App() {
         />
 
         <Route
+          path="/contacts/new"
+          element={
+            <ProtectedRoute>
+              <AddContactPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                contactForm={contactForm}
+                setContactForm={setContactForm}
+                onCreateContact={(event) => handleCreateContact(event, contactForm)}
+              />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/contacts"
           element={
             <ProtectedRoute>
@@ -299,6 +317,19 @@ function App() {
                 onCancelEditContact={handleCancelEditContact}
                 onDeleteEmail={handleDeleteEmail}
                 onDeleteEmailConversation={handleDeleteEmailConversation}
+              />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/automations"
+          element={
+            <ProtectedRoute>
+              <AutomationsPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
               />
             </ProtectedRoute>
           }
