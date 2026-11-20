@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import ContactsList from "../components/ContactsList";
+import ContactsTable from "../components/ContactsTable";
 import AddContactForm from "../components/AddContactForm";
 import EmailComposer from "../components/EmailComposer";
 import ContactDocuments from "../components/ContactDocuments";
@@ -156,8 +157,8 @@ function EmailsPage({
                 )}
 
                 <Row className="g-4">
-                    <Col md={3} className="contacts-column-compact">
-                        <ContactsList
+                    <Col md={12} className="contacts-column-compact">
+                        <ContactsTable
                             contacts={filteredContacts}
                             selectedContact={selectedContact}
                             onSelectContact={handleSelectContact}
@@ -168,7 +169,9 @@ function EmailsPage({
                         />
                     </Col>
 
-                    <Col md={5} className="panel-column">
+                </Row>
+                <Row className="g-4">
+                    <Col md={8} className="panel-column">
                         <Card className="email-history-card page-panel-emails border-0" data-tour="emails-list">
                             <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                                 <span>Email History</span>
