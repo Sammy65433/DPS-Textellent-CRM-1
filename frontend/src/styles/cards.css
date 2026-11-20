@@ -1092,3 +1092,20 @@
     color: #ffffff;
     border-color: #dc2626;
 }
+
+.page-panel-campaigns-secondary .list-group {
+    max-height: 55vh;
+    overflow-y: auto;
+}
+
+.page-panel-campaigns .card-body,
+.page-panel-campaigns-secondary .card-body {
+    padding: 1.25rem;
+}
+
+@media (min-width: 768px) {
+    .page-panel-campaigns {
+        position: sticky;
+        top: 1rem;
+    }
+}
