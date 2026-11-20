@@ -25,6 +25,7 @@ function CampaignsPage({
 }) {
     const [editingCampaign, setEditingCampaign] = useState(null);
     const [campaignFilter, setCampaignFilter] = useState("all");
+    const [campaignSearch, setCampaignSearch] = useState("");
     const [editForm, setEditForm] = useState({
         name: "",
         subject: "",
@@ -104,6 +105,7 @@ function CampaignsPage({
                 : "dark";
 
     const filteredCampaigns = useMemo(() => {
+        const q = campaignSearch.toLowerCase().trim();
         const now = Date.now();
         const dayMs = 24 * 60 * 60 * 1000;
         return campaigns.filter((c) => {
@@ -117,9 +119,10 @@ function CampaignsPage({
             if (campaignFilter === "active") {
                 return !!created && (now - created.getTime()) <= 90 * dayMs;
             }
+            if (q && !(c.name || "").toLowerCase().includes(q)) return false;
             return true;
         });
-    }, [campaigns, campaignFilter]);
+    }, [campaigns, campaignFilter, campaignSearch]);
 
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
@@ -144,10 +147,17 @@ function CampaignsPage({
                 </Col>
 
                 <Col md={7}>
-                    <div className="mb-2">
+                    <div className="d-flex gap-2 mb-2 flex-wrap">
+                        <input
+                            className="form-control form-control-sm"
+                            style={{ maxWidth: 220 }}
+                            placeholder="Search campaigns..."
+                            value={campaignSearch}
+                            onChange={(e) => setCampaignSearch(e.target.value)}
+                        />
                         <select
                             className="form-select form-select-sm"
-                            style={{ maxWidth: 200 }}
+                            style={{ maxWidth: 160 }}
                             value={campaignFilter}
                             onChange={(e) => setCampaignFilter(e.target.value)}
                         >
