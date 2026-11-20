@@ -105,7 +105,12 @@ The CRM has these pages (accessible from the sidebar):
 - Messages: View SMS conversation history. Send individual SMS messages.
 - Analytics: Booking counts, contact stats, outreach trends.
 - Booking: Full calendar view (day/week/month). Create, edit, and cancel appointments. Color-coded by preparer (Pierre=blue, Dalia=purple, Severe=green, Jean=orange, Ricot=pink). Real estate appointments show in teal (DPS Realty). AI scheduling available.
-- Staff Management (admin only): Invite new staff, deactivate/reactivate accounts.
+- Staff Management (admin only): Invite staff (email + one-time setup link, 24h expiry), deactivate/reactivate accounts.
+- Media Library: Upload/manage media files (images, PDFs, max 5MB). Reference by URL in campaigns/emails.
+- Drip Campaigns: Multi-step timed email sequences. Enroll contacts; emails send automatically in background.
+- Automations: Configure Out-of-Office, After-Hours, and Birthday auto-responders (SMS and/or Email).
+- Settings: Account and app settings.
+- Help: Guides for every CRM feature.
 
 Key features:
 - Staff invite: Admin goes to Staff Management, enters name + email, sends invitation. Staff receives email with setup link, sets password, account becomes active.
@@ -114,6 +119,21 @@ Key features:
 - Front-page booking messages: Messages from website booking forms appear on dashboard. Staff can delete them (with confirmation + audit log).
 - Birthday emails: Automatic daily birthday greetings sent at 9 AM ET. Staff can trigger manually via POST /api/birthdays/run.
 - Mock SMS mode: When MOCK_SMS=true, SMS are logged but not actually sent (for testing).
+- CSV import: Bulk-import contacts from a CSV file (must include 'phone' column). Duplicates by phone skipped.
+- Contact lists: Group contacts into named lists; filter contacts by list.
+- Custom fields: Add arbitrary key/value fields to any contact (e.g., Date of Birth).
+- Save AI Summary to Notes: After generating an AI summary, click 'Save to Notes' to persist it.
+- Drip campaigns: Multi-step timed email sequences. Create steps with delays, subjects, bodies. Enroll contacts. Scheduler runs every minute. AI generate per step + template selector. Load sample drip available.
+- Automations: Out-of-Office (date range + SMS/Email messages), After-Hours (time window + SMS/Email), Birthday (daily at 9 AM ET). Each supports SMS only, Email only, or Both channels.
+- Media library: Upload images/PDFs, view grid, delete, reference by URL.
+- Templates editable: Edit template name/body after creation.
+- Campaigns editable: Edit name, type, status, subject, template, body, scheduled time.
+- Analytics tabs: Dashboard, Messages, Text Blast, Automations, Auto Responders.
+- Contacts table view: Textellent-style table with columns, search, filter, bulk select.
+- AI in emails: AI Generate Email (subject+body from goal) + Suggest Replies.
+- AI in booking: AI Schedule (natural language → auto-fill + auto-book), find existing contact + auto-fill.
+- Onboarding tour: Each page has a guided tour. Click ? button anytime.
+- Mobile: Responsive sidebar, tables, and booking calendar.
 - CSV import: Staff can bulk-import contacts from a CSV file (must include a phone column). Duplicates by phone are skipped.
 - Contact lists: Group contacts into named lists and filter by list.
 - Custom fields: Add arbitrary key/value fields to any contact.

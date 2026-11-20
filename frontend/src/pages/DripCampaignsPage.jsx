@@ -208,6 +208,22 @@ function DripCampaignsPage({ theme, onToggleTheme, alert, contacts = [] }) {
                                     ))}
                                 </div>
 
+                                <Button
+                                    type="button"
+                                    variant="outline-secondary"
+                                    className="w-100 mb-2"
+                                    onClick={() => {
+                                        setName("Welcome Series");
+                                        setSteps([
+                                            { delayDays: 0, subject: "Welcome to DPS Professional Tax Services!", body: "Hi {{firstName}}, welcome! We're glad to have you. Reply to this email or call (973) 327-2340 to schedule your appointment. – DPS Team" },
+                                            { delayDays: 3, subject: "Don't forget your tax documents", body: "Hi {{firstName}}, just a reminder to gather your W-2s, 1099s, and other tax documents. Upload them securely via our portal. Questions? Call (973) 327-2340." },
+                                            { delayDays: 7, subject: "Ready to file? Book your appointment", body: "Hi {{firstName}}, your documents are ready to review. Book your appointment at https://www.dpstaxpro.com/booking or call (973) 327-2340. – DPS Professional Tax Services" },
+                                        ]);
+                                    }}
+                                >
+                                    Load Sample Drip
+                                </Button>
+
                                 <Button type="submit" variant="success" className="w-100" disabled={creating}>
                                     {creating ? "Creating..." : "Create & Enroll"}
                                 </Button>
