@@ -10,6 +10,7 @@ const TOURS = {
     { selector: '[data-tour="dashboard-appointments"]', title: "Today's Appointments", text: "Appointments scheduled for today appear here. Click 'View Calendar' to open the full booking calendar." },
     { selector: '[data-tour="dashboard-week"]', title: "This Week's Bookings", text: "A quick view of all bookings this week, color-coded by preparer (blue=Pierre, purple=Dalia, green=Severe, orange=Jean, pink=Ricot). Real estate shows in teal (DPS Realty)." },
     { selector: '[data-tour="dashboard-followups"]', title: "AI Follow-Up Suggestions", text: "AI analyzes your contacts and suggests follow-ups based on days since last contact, missing info, and tags. Click 'Refresh' to re-analyze. Click a suggestion to act on it." },
+    { selector: '[data-tour="dashboard-insights"]', title: "📊 AI Revenue Insights", text: "AI reviews your appointments, contacts, campaigns, and emails to surface revenue trends, busy periods, top services, preparer workload balance, and outreach gaps. Each insight includes a priority (high/medium/low) and a recommended action. Click 'Refresh' to re-analyze with the latest data." },
     { selector: '[data-tour="dashboard-messages"]', title: "Front-Page Booking Messages", text: "Messages submitted from the DPS website booking form appear here. Staff can delete them (with a confirmation prompt and audit log). Use the × button or bulk-select checkboxes." },
     { selector: '[data-tour="dashboard-quick-actions"]', title: "Quick Actions", text: "Use this dropdown to quickly navigate to Contacts, Emails, Templates, Campaigns, or Booking. Keeps you one click away from any section." },
     { selector: null, title: "AI Chat (bottom-right)", text: "Click the robot button (🤖) to open the DPS CRM Assistant. Ask anything: 'How do I send a campaign?', 'Where are uploaded documents?', 'How do I invite staff?'." },
@@ -64,7 +65,7 @@ const TOURS = {
     { selector: '[data-tour="analytics-services"]', title: "Bookings by Service", text: "Horizontal bar chart showing which services are most popular. Helps you understand demand." },
     { selector: '[data-tour="analytics-preparers"]', title: "Bookings by Preparer", text: "Shows workload distribution across preparers. Helps balance scheduling." },
     { selector: '[data-tour="analytics-activity"]', title: "SMS & Email Activity", text: "Area chart of outreach activity over time. Shows your communication volume." },
-    { selector: '[data-tour="analytics-insights"]', title: "AI Revenue Insights", text: "AI analyzes your booking data, contacts, campaigns, and emails to generate insights and recommendations. Click 'Refresh' to re-analyze." },
+    { selector: '[data-tour="analytics-insights"]', title: "📊 AI Revenue Insights", text: "AI reviews your appointments, contacts, campaigns, and emails to surface revenue trends, busy periods, top services, preparer workload balance, and outreach gaps. Each insight includes a priority (high/medium/low) and a recommended action. Click 'Refresh' to re-analyze with the latest data." },
     { selector: null, title: "Done! 🎉", text: "Use these insights to optimize scheduling, balance workloads, and improve outreach." },
   ],
   "/staff": [

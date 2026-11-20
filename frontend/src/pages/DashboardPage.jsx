@@ -556,7 +556,7 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
 
             <Row className="g-4 section-spacer">
                 <Col md={12}>
-                    <Card className="crm-card border-0">
+                    <Card className="crm-card border-0" data-tour="dashboard-insights">
                         <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                             <span>📊 AI Revenue Insights</span>
                             <Button
