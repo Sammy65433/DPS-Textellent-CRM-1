@@ -7,6 +7,7 @@ import contactRoutes from "./routes/contacts.js";
 import contactListRoutes from "./routes/contactLists.js";
 import mediaRoutes from "./routes/media.js";
 import dripRoutes from "./routes/dripCampaigns.js";
+import { processDripEnrollments } from "./controllers/dripCampaignsController.js";
 import templateRoutes from "./routes/templates.js";
 import campaignRoutes from "./routes/campaigns.js";
 import aiRoutes from "./routes/aiRoutes.js";
