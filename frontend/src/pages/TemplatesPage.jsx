@@ -1,10 +1,18 @@
-import { Alert, Row, Col, Card, Button, Badge, Form } from "react-bootstrap";
+import { Alert, Row, Col, Card, Button, Badge, Form, Dropdown } from "react-bootstrap";
 import { FaFileAlt, FaTags, FaEye, FaLightbulb, FaMagic, FaBullhorn, FaEnvelope, FaCommentDots, FaCalendarCheck } from "react-icons/fa";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import { generateCampaignCopy } from "../api/api";
+
+const COMPANY_INFO = {
+    name: "DPS Professional Tax Services",
+    phone: "(973) 327-2340",
+    email: "info@dpsprofessionaltax.com",
+    address: "1811 Springfield Ave, Maplewood, NJ 07040",
+    website: "https://www.dpsprofessionaltax.com",
+};
 
 function TemplatesPage({
     theme,
@@ -97,7 +105,26 @@ function TemplatesPage({
                                     <div className="small">
                                         <code>{"{{firstName}}"}</code>{" "}
                                         <code>{"{{lastName}}"}</code>{" "}
-                                        <code>{"{{fullName}}"}</code>
+                                        <code>{"{{fullName}}"}</code>{" "}
+                                        <code>{"{{companyName}}"}</code>{" "}
+                                        <code>{"{{companyPhone}}"}</code>{" "}
+                                        <code>{"{{companyEmail}}"}</code>{" "}
+                                        <code>{"{{companyAddress}}"}</code>{" "}
+                                        <code>{"{{companyWebsite}}"}</code>
+                                    </div>
+                                </div>
+
+                                <div className="template-helper-box mb-3">
+                                    <div className="fw-semibold d-flex align-items-center gap-2 mb-2">
+                                        <FaLightbulb className="text-warning" />
+                                        Company Info (DPS)
+                                    </div>
+                                    <div className="small">
+                                        <div><strong>Name:</strong> {COMPANY_INFO.name}</div>
+                                        <div><strong>Phone:</strong> {COMPANY_INFO.phone}</div>
+                                        <div><strong>Email:</strong> {COMPANY_INFO.email}</div>
+                                        <div><strong>Address:</strong> {COMPANY_INFO.address}</div>
+                                        <div><strong>Website:</strong> {COMPANY_INFO.website}</div>
                                     </div>
                                 </div>
 
@@ -240,48 +267,29 @@ function TemplatesPage({
                                                         </p>
                                                     </div>
 
-                                                    <div className="d-flex gap-1 flex-wrap">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline-primary"
-                                                            title="Use for Campaign"
-                                                            onClick={() => navigate("/campaigns", { state: { templateId: template._id } })}
-                                                        >
-                                                            <FaBullhorn />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline-success"
-                                                            title="Send as SMS"
-                                                            onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "sms" } })}
-                                                        >
-                                                            <FaCommentDots />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline-info"
-                                                            title="Send as Email"
-                                                            onClick={() => navigate("/emails", { state: { templateId: template._id } })}
-                                                        >
-                                                            <FaEnvelope />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline-warning"
-                                                            title="Booking Reminder"
-                                                            onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "reminder" } })}
-                                                        >
-                                                            <FaCalendarCheck />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline-danger"
-                                                            title="Delete"
-                                                            onClick={() => onDeleteTemplate(template._id)}
-                                                        >
-                                                            ×
-                                                        </Button>
-                                                    </div>
+                                                    <Dropdown align="end">
+                                                        <Dropdown.Toggle size="sm" variant="outline-secondary">
+                                                            Actions
+                                                        </Dropdown.Toggle>
+                                                        <Dropdown.Menu>
+                                                            <Dropdown.Item onClick={() => navigate("/campaigns", { state: { templateId: template._id } })}>
+                                                                <FaBullhorn className="me-2" /> Use for Campaign
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "sms" } })}>
+                                                                <FaCommentDots className="me-2" /> Send as SMS
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item onClick={() => navigate("/emails", { state: { templateId: template._id } })}>
+                                                                <FaEnvelope className="me-2" /> Send as Email
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "reminder" } })}>
+                                                                <FaCalendarCheck className="me-2" /> Booking Reminder
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Divider />
+                                                            <Dropdown.Item className="text-danger" onClick={() => onDeleteTemplate(template._id)}>
+                                                                Delete
+                                                            </Dropdown.Item>
+                                                        </Dropdown.Menu>
+                                                    </Dropdown>
                                                 </div>
                                             </Card.Body>
                                         </Card>

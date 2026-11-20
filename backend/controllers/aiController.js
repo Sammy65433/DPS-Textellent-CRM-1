@@ -95,7 +95,7 @@ const CRM_SYSTEM_PROMPT = `You are DPS CRM Assistant, a helpful AI guide for the
 The CRM has these pages (accessible from the sidebar):
 - Dashboard: Overview of contacts, templates, messages, campaigns, and emails. Shows today's appointments, this week's bookings, recent messages/emails, and front-page booking messages from the website. Has quick actions and AI follow-up suggestions.
 - Contacts: Manage client contacts. Add/edit/delete contacts. Send SMS messages and emails. View conversation history. Upload and download documents (if client account is linked). Send account-link invitations. AI search available.
-- Templates: Create/manage message and email templates with {{firstName}} and {{lastName}} placeholders.
+- Templates: Create/manage message and email templates with {{firstName}}, {{lastName}}, {{fullName}}, {{companyName}}, {{companyPhone}}, {{companyEmail}}, {{companyAddress}}, {{companyWebsite}} placeholders.
 - Campaigns: Create and send campaigns to selected contacts. Email-only or SMS. Can schedule campaigns. AI copy generator available.
 - Emails: View and send emails to contacts. Can use templates.
 - Messages: View SMS conversation history. Send individual SMS messages.
@@ -206,7 +206,9 @@ Write a short campaign message (SMS or email) for the following:
 
 Return ONLY a JSON object with two fields:
 - "subject": a short email subject line (max 60 chars)
-- "body": the message body (max 300 chars for SMS, or up to 500 for email). Use {{firstName}} placeholder for personalization.
+- "body": the message body (max 300 chars for SMS, or up to 500 for email). Use {{firstName}}, {{lastName}}, {{fullName}}, {{companyName}}, {{companyPhone}}, {{companyEmail}}, {{companyAddress}}, {{companyWebsite}} placeholders where appropriate for personalization.
+
+Company info (use when relevant): DPS Professional Tax Services, 1811 Springfield Ave, Maplewood, NJ 07040, (973) 327-2340, info@dpsprofessionaltax.com, https://www.dpsprofessionaltax.com.
 
 Do not include any explanation or markdown. Just the JSON.`;
 

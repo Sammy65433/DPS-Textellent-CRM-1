@@ -24,6 +24,7 @@ function CampaignsPage({
     onUpdateCampaign,
 }) {
     const [editingCampaign, setEditingCampaign] = useState(null);
+    const [campaignFilter, setCampaignFilter] = useState("all");
     const [editForm, setEditForm] = useState({
         name: "",
         subject: "",
@@ -101,6 +102,24 @@ function CampaignsPage({
                 ? "info"
                 : "dark";
 
+    const filteredCampaigns = useMemo(() => {
+        const now = Date.now();
+        const dayMs = 24 * 60 * 60 * 1000;
+        return campaigns.filter((c) => {
+            const created = c.createdAt ? new Date(c.createdAt) : null;
+            if (campaignFilter === "recent") {
+                return !!created && (now - created.getTime()) <= 30 * dayMs;
+            }
+            if (campaignFilter === "inactive") {
+                return !created || (now - created.getTime()) > 90 * dayMs || c.status === "draft";
+            }
+            if (campaignFilter === "active") {
+                return !!created && (now - created.getTime()) <= 90 * dayMs;
+            }
+            return true;
+        });
+    }, [campaigns, campaignFilter]);
+
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <PageHeader
@@ -124,9 +143,22 @@ function CampaignsPage({
                 </Col>
 
                 <Col md={7}>
+                    <div className="mb-2">
+                        <select
+                            className="form-select form-select-sm"
+                            style={{ maxWidth: 200 }}
+                            value={campaignFilter}
+                            onChange={(e) => setCampaignFilter(e.target.value)}
+                        >
+                            <option value="all">All campaigns</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="recent">Recent</option>
+                        </select>
+                    </div>
                     <CampaignList
                         data-tour="campaigns-list"
-                        campaigns={campaigns}
+                        campaigns={filteredCampaigns}
                         onSendCampaign={onSendCampaign}
                         onDeleteCampaign={onDeleteCampaign}
                         onEditCampaign={handleOpenEdit}

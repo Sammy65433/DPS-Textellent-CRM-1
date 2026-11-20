@@ -39,6 +39,7 @@ function ContactsPage({
     const [aiSearchLoading, setAiSearchLoading] = useState(false);
     const [aiSearchResult, setAiSearchResult] = useState(null);
     const [activeTag, setActiveTag] = useState("");
+    const [contactStatusFilter, setContactStatusFilter] = useState("all");
     const [sendingInvite, setSendingInvite] = useState(false);
     const [inviteFeedback, setInviteFeedback] = useState(null);
     const navigate = useNavigate();
@@ -93,7 +94,19 @@ function ContactsPage({
                     .includes(activeTag.toLowerCase())
                 : true;
 
-            return matchesSearch && matchesTag;
+            const created = contact.createdAt ? new Date(contact.createdAt) : null;
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+            let matchesStatus = true;
+            if (contactStatusFilter === "recent") {
+                matchesStatus = !!created && (now - created.getTime()) <= 30 * dayMs;
+            } else if (contactStatusFilter === "inactive") {
+                matchesStatus = !created || (now - created.getTime()) > 90 * dayMs;
+            } else if (contactStatusFilter === "active") {
+                matchesStatus = !!created && (now - created.getTime()) <= 90 * dayMs;
+            }
+
+            return matchesSearch && matchesTag && matchesStatus;
         });
 
         if (aiSearchResult && Array.isArray(aiSearchResult.matchedIds)) {
@@ -102,7 +115,7 @@ function ContactsPage({
         }
 
         return base;
-    }, [contacts, searchTerm, activeTag, aiSearchResult]);
+    }, [contacts, searchTerm, activeTag, aiSearchResult, contactStatusFilter]);
 
     async function handleSendAccountLinkInvitation() {
         if (!selectedContact?._id || sendingInvite) return;
@@ -255,13 +268,24 @@ function ContactsPage({
                 </Card.Body>
             </Card>
 
-            <div className="d-flex flex-wrap gap-2 mb-3">
+            <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                <select
+                    className="form-select form-select-sm"
+                    style={{ maxWidth: 160 }}
+                    value={contactStatusFilter}
+                    onChange={(e) => setContactStatusFilter(e.target.value)}
+                >
+                    <option value="all">All contacts</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="recent">Recent</option>
+                </select>
                 <Button
                     size="sm"
                     variant={activeTag === "" ? "dark" : "outline-secondary"}
                     onClick={() => setActiveTag("")}
                 >
-                    All
+                    All tags
                 </Button>
 
                 {uniqueTags.map((tag) => (

@@ -21,6 +21,7 @@ function CampaignForm({
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [tagFilter, setTagFilter] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
     const [showAI, setShowAI] = useState(false);
     const [aiGoal, setAiGoal] = useState("");
     const [aiAudience, setAiAudience] = useState("all contacts");
@@ -58,9 +59,21 @@ function CampaignForm({
                 ? tags.split(",").map(tag => tag.trim()).includes(tagFilter.toLowerCase())
                 : true;
 
-            return matchesSearch && matchesTag;
+            const created = contact.createdAt ? new Date(contact.createdAt) : null;
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+            let matchesStatus = true;
+            if (statusFilter === "recent") {
+                matchesStatus = !!created && (now - created.getTime()) <= 30 * dayMs;
+            } else if (statusFilter === "inactive") {
+                matchesStatus = !created || (now - created.getTime()) > 90 * dayMs;
+            } else if (statusFilter === "active") {
+                matchesStatus = !!created && (now - created.getTime()) <= 90 * dayMs;
+            }
+
+            return matchesSearch && matchesTag && matchesStatus;
         });
-    }, [contacts, searchTerm, tagFilter]);
+    }, [contacts, searchTerm, tagFilter, statusFilter]);
 
     const allFilteredSelected =
         filteredContacts.length > 0 &&
@@ -356,6 +369,17 @@ function CampaignForm({
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
+
+                    <Form.Select
+                        className="mb-2"
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value)}
+                    >
+                        <option value="all">All contacts</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="recent">Recent</option>
+                    </Form.Select>
 
                     <Form.Select
                         className="mb-3"

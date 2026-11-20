@@ -195,10 +195,17 @@ export function useAppHandlers({
 
     const handleCreateTemplate = async (e, templateForm) => {
         e.preventDefault();
-        await createTemplate(templateForm);
-        resetTemplateForm();
-        await loadData();
-        showAlert("success", "Template created");
+        try {
+            const created = await createTemplate(templateForm);
+            if (created && created._id) {
+                setTemplates((prev) => [created, ...prev.filter((t) => t._id !== created._id)]);
+            }
+            resetTemplateForm();
+            await loadData();
+            showAlert("success", "Template created");
+        } catch (error) {
+            showAlert("danger", error.message || "Could not create template.");
+        }
     };
 
     const handleCreateContact = async (e, contactForm) => {
@@ -263,10 +270,17 @@ export function useAppHandlers({
 
     const handleCreateCampaign = async (e, campaignForm) => {
         e.preventDefault();
-        await createCampaign(campaignForm);
-        resetCampaignForm();
-        await loadData();
-        showAlert("success", "Campaign created");
+        try {
+            const created = await createCampaign(campaignForm);
+            if (created && created._id) {
+                setCampaigns((prev) => [created, ...prev.filter((c) => c._id !== created._id)]);
+            }
+            resetCampaignForm();
+            await loadData();
+            showAlert("success", "Campaign created");
+        } catch (error) {
+            showAlert("danger", error.message || "Could not create campaign.");
+        }
     };
 
     const handleUpdateCampaign = async (campaignId, payload) => {
