@@ -1,4 +1,7 @@
 .crm-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
   background: linear-gradient(
     90deg,
     var(--nav-bg) 0%,
@@ -248,4 +251,14 @@ button.logout-btn {
   .page-subtitle {
     font-size: 0.95rem;
   }
+}
+
+
+.crm-navbar .dropdown-menu {
+  z-index: 1080;
+  min-width: 220px;
+}
+
+.crm-navbar .dropdown-toggle {
+  white-space: nowrap;
 }

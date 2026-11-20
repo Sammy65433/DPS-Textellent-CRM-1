@@ -312,6 +312,7 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
 
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
+            <div className="dashboard-page-tight">
             <PageHeader
                 title="Dashboard"
                 subtitle="Overview of contacts, templates, messages, campaigns, and emails."
@@ -790,6 +791,7 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                 </Col>
             </Row>
 
+            </div>
         </AppLayout>
     );
 }
