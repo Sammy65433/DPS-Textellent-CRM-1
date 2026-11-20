@@ -18,6 +18,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaQuestionCircle,
+  FaClock,
 } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
 import AIAssistant from "./AIAssistant";
@@ -27,6 +28,7 @@ function AppLayout({ children, theme, onToggleTheme }) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [autoOpen, setAutoOpen] = useState(false);
   const [role, setRole] = useState(
     () => JSON.parse(localStorage.getItem("user") || "null")?.role || null
   );
@@ -103,8 +105,25 @@ function AppLayout({ children, theme, onToggleTheme }) {
 
         {sidebarOpen && <div className="crm-sidebar__section">ACCELERATE</div>}
         <NavItem to="/media" icon={FaImage} label="Media" />
-        <NavItem to="/drip-campaigns" icon={FaPaperPlane} label="Drip Campaigns" />
-        <NavItem to="/automations" icon={FaBullhorn} label="Automations" />
+        <div className="sidebar-dropdown-group">
+          <button
+            type="button"
+            className="sidebar-dropdown-toggle"
+            onClick={() => setAutoOpen((v) => !v)}
+          >
+            <FaBullhorn className="sidebar-nav-icon" />
+            {sidebarOpen && <span className="sidebar-nav-label">Automations</span>}
+            {sidebarOpen && <span className="sidebar-dropdown-arrow">{autoOpen ? "▲" : "▼"}</span>}
+          </button>
+          {autoOpen && sidebarOpen && (
+            <div className="sidebar-dropdown-items">
+              <NavItem to="/drip-campaigns" icon={FaPaperPlane} label="Drip Campaigns" />
+              <NavItem to="/automations" icon={FaClock} label="Birthday Greeting" />
+              <NavItem to="/automations" icon={FaClock} label="Out-of-Office" />
+              <NavItem to="/automations" icon={FaClock} label="After-Hours" />
+            </div>
+          )}
+        </div>
         <NavItem to="/booking" icon={FaCalendarCheck} label="Booking" />
 
         {sidebarOpen && <div className="crm-sidebar__section">ANALYZE</div>}
