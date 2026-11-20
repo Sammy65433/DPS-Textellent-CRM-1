@@ -1050,3 +1050,45 @@
   border-color: rgba(71, 85, 105, 0.8);
   color: #f8fafc;
 }
+
+.template-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.template-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light, #d1d5db);
+    background: var(--bg-card, #ffffff);
+    color: var(--text-soft, #374151);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.template-action-btn:hover {
+    background: var(--accent, #0f5c54);
+    color: #ffffff;
+    border-color: var(--accent, #0f5c54);
+    transform: translateY(-1px);
+}
+
+.template-action-delete {
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.template-action-delete:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+}

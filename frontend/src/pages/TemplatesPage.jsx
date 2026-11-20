@@ -269,29 +269,48 @@ function TemplatesPage({
                                                         </p>
                                                     </div>
 
-                                                    <Dropdown align="end">
-                                                        <Dropdown.Toggle size="sm" variant="outline-secondary">
-                                                            Actions
-                                                        </Dropdown.Toggle>
-                                                        <Dropdown.Menu popperConfig={{ strategy: "fixed" }}>
-                                                            <Dropdown.Item onClick={() => navigate("/campaigns", { state: { templateId: template._id } })}>
-                                                                <FaBullhorn className="me-2" /> Use for Campaign
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "sms" } })}>
-                                                                <FaCommentDots className="me-2" /> Send as SMS
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item onClick={() => navigate("/emails", { state: { templateId: template._id } })}>
-                                                                <FaEnvelope className="me-2" /> Send as Email
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "reminder" } })}>
-                                                                <FaCalendarCheck className="me-2" /> Booking Reminder
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Divider />
-                                                            <Dropdown.Item className="text-danger" onClick={() => onDeleteTemplate(template._id)}>
-                                                                Delete
-                                                            </Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                    <div className="template-actions">
+                                                        <button
+                                                            type="button"
+                                                            className="template-action-btn"
+                                                            title="Use for Campaign"
+                                                            onClick={() => navigate("/campaigns", { state: { templateId: template._id } })}
+                                                        >
+                                                            <FaBullhorn />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="template-action-btn"
+                                                            title="Send as SMS"
+                                                            onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "sms" } })}
+                                                        >
+                                                            <FaCommentDots />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="template-action-btn"
+                                                            title="Send as Email"
+                                                            onClick={() => navigate("/emails", { state: { templateId: template._id } })}
+                                                        >
+                                                            <FaEnvelope />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="template-action-btn"
+                                                            title="Booking Reminder"
+                                                            onClick={() => navigate("/contacts", { state: { templateId: template._id, channel: "reminder" } })}
+                                                        >
+                                                            <FaCalendarCheck />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="template-action-btn template-action-delete"
+                                                            title="Delete"
+                                                            onClick={() => onDeleteTemplate(template._id)}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </Card.Body>
                                         </Card>
