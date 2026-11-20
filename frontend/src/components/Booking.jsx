@@ -1345,12 +1345,12 @@ async function sendAccountLinkInvitation(appointment) {
                                                         const chosenDate = s.date || day;
                                                         const chosenTime = s.time || null;
 
-                                                        if (chosenService) { setService(chosenService); applied.push(`service: ${chosenService}`); }
-                                                        if (chosenPreparer) { setPreparer(chosenPreparer); applied.push(`preparer: ${chosenPreparer}`); }
-                                                        if (s.duration) { setDuration(chosenDuration); applied.push(`duration: ${chosenDuration}min`); }
-                                                        if (s.visitFormat) { setVisitFormat(chosenVisit); applied.push(`visit: ${chosenVisit}`); }
-                                                        if (s.date) { setDay(chosenDate); applied.push(`date: ${chosenDate}`); }
-                                                        if (s.time) { setTime(chosenTime); applied.push(`time: ${chosenTime}`); }
+                                                        if (chosenService) { setService(chosenService); applied.push(`📋 Service: ${chosenService}`); }
+                                                        if (chosenPreparer) { setPreparer(chosenPreparer); applied.push(`👤 Preparer: ${chosenPreparer}`); }
+                                                        if (s.duration) { setDuration(chosenDuration); applied.push(`⏱ Duration: ${chosenDuration} min`); }
+                                                        if (s.visitFormat) { setVisitFormat(chosenVisit); applied.push(`📍 Visit: ${chosenVisit}`); }
+                                                        if (s.date) { setDay(chosenDate); applied.push(`📅 Date: ${chosenDate}`); }
+                                                        if (s.time) { setTime(chosenTime); applied.push(`🕐 Time: ${chosenTime}`); }
 
                                                         // Look up client details from contacts
                                                         let clientFirst = "";
@@ -1358,7 +1358,7 @@ async function sendAccountLinkInvitation(appointment) {
                                                         let clientPhone = "";
                                                         let clientEmail = "";
                                                         if (s.clientName) {
-                                                            applied.push(`client: ${s.clientName}`);
+                                                            applied.push(`🙋 Client: ${s.clientName}`);
                                                             try {
                                                                 const cRes = await fetch(`${CRM_API_URL}/api/contacts`, {
                                                                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -1419,17 +1419,17 @@ async function sendAccountLinkInvitation(appointment) {
                                                                 const bookData = await bookRes.json().catch(() => ({}));
                                                                 if (!bookRes.ok) throw new Error(bookData.message || "Auto-booking failed.");
                                                                 setStatus({ message: `Appointment booked for ${clientFirst} ${clientLast} on ${chosenDate} at ${chosenTime}.`, type: "success" });
-                                                                setAiScheduleMessage(`✅ Booked → ${clientFirst} ${clientLast}, ${chosenService}, ${chosenPreparer}, ${chosenDate} ${chosenTime}`);
+                                                                setAiScheduleMessage(`✅ Booked!\n🙋 ${clientFirst} ${clientLast}\n📋 ${chosenService}\n👤 ${chosenPreparer}\n📅 ${chosenDate} at ${chosenTime}`);
                                                                 setAiScheduleRequest("");
                                                             } catch (bookErr) {
-                                                                setAiScheduleMessage(`Applied → ${applied.join(", ")}. Auto-booking failed: ${bookErr.message}. Fill in the rest and click Book Now.`);
+                                                                setAiScheduleMessage(`⚠️ Auto-booking failed: ${bookErr.message}\n\nApplied:\n${applied.join("\n")}\n\nFill in the rest and click Book Now.`);
                                                             } finally {
                                                                 setSubmitting(false);
                                                             }
                                                         } else {
                                                             setAiScheduleMessage(
                                                                 applied.length > 0
-                                                                    ? `Applied → ${applied.join(", ")}. Fill in the rest and click Book Now.`
+                                                                    ? `✨ Applied:\n${applied.join("\n")}\n\nFill in the rest and click Book Now.`
                                                                     : "Could not extract scheduling details. Please fill in manually."
                                                             );
                                                         }
@@ -1446,7 +1446,7 @@ async function sendAccountLinkInvitation(appointment) {
                                             {aiScheduleLoading ? "Analyzing..." : "AI Schedule"}
                                         </button>
                                         {aiScheduleMessage && (
-                                            <div className="small text-muted mt-1">{aiScheduleMessage}</div>
+                                            <div className="small text-muted mt-1" style={{ whiteSpace: "pre-line", lineHeight: 1.6 }}>{aiScheduleMessage}</div>
                                         )}
 
                                         {aiScheduleMessage && aiScheduleMessage.startsWith("Applied") && (

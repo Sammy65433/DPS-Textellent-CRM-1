@@ -1353,3 +1353,46 @@
   margin: 0;
   height: 0.5rem;
 }
+
+/* ---- Mobile polish ---- */
+@media (max-width: 480px) {
+  .booking-time-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+  .booking-time-slot {
+    min-height: 40px;
+    font-size: 0.78rem;
+    padding: 0.4rem 0.15rem;
+  }
+  .booking-calendar {
+    font-size: 0.85rem;
+  }
+  .booking-day {
+    min-height: 56px;
+    padding: 4px;
+  }
+  .booking-form-section {
+    padding: 12px;
+  }
+  .booking-ai-schedule-panel textarea {
+    font-size: 0.9rem;
+  }
+  .booking-workspace {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 700px) {
+  .booking-time-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .booking-view-switch button {
+    flex: 1;
+    min-height: 40px;
+  }
+  .booking-month-controls button {
+    min-height: 36px;
+    padding: 4px 8px;
+  }
+}
