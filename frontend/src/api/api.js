@@ -124,6 +124,49 @@ export async function deleteMedia(mediaId) {
   );
 }
 
+export async function fetchDripCampaigns() {
+  return apiResponse(await fetch(`${API}/api/drip-campaigns`, { headers: staffHeaders() }));
+}
+
+export async function createDripCampaign(payload) {
+  return apiResponse(
+    await fetch(`${API}/api/drip-campaigns`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function updateDripCampaign(id, payload) {
+  return apiResponse(
+    await fetch(`${API}/api/drip-campaigns/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function deleteDripCampaign(id) {
+  return apiResponse(
+    await fetch(`${API}/api/drip-campaigns/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: staffHeaders(),
+    })
+  );
+}
+
+export async function enrollDripCampaign(id, contactIds) {
+  return apiResponse(
+    await fetch(`${API}/api/drip-campaigns/${encodeURIComponent(id)}/enroll`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify({ contactIds }),
+    })
+  );
+}
+
 export async function fetchContactDocuments(contactId) {
   const data = await apiResponse(
     await fetch(

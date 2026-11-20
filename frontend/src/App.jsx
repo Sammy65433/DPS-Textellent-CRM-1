@@ -7,6 +7,7 @@ import TemplatesPage from "./pages/TemplatesPage";
 import CampaignsPage from "./pages/CampaignsPage";
 import EmailsPage from "./pages/EmailsPage";
 import MediaLibraryPage from "./pages/MediaLibraryPage";
+import DripCampaignsPage from "./pages/DripCampaignsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import LoginPage from "./pages/LoginPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
@@ -298,6 +299,20 @@ function App() {
                 onCancelEditContact={handleCancelEditContact}
                 onDeleteEmail={handleDeleteEmail}
                 onDeleteEmailConversation={handleDeleteEmailConversation}
+              />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/drip-campaigns"
+          element={
+            <ProtectedRoute>
+              <DripCampaignsPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                contacts={contacts}
               />
             </ProtectedRoute>
           }

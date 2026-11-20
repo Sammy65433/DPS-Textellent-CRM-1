@@ -6,6 +6,7 @@ import messageRoutes from "./routes/messages.js";
 import contactRoutes from "./routes/contacts.js";
 import contactListRoutes from "./routes/contactLists.js";
 import mediaRoutes from "./routes/media.js";
+import dripRoutes from "./routes/dripCampaigns.js";
 import templateRoutes from "./routes/templates.js";
 import campaignRoutes from "./routes/campaigns.js";
 import aiRoutes from "./routes/aiRoutes.js";
@@ -61,6 +62,7 @@ app.use(express.json({ limit: "1mb" }));
 connectDB();
 startCampaignScheduler();
 startBirthdayScheduler();
+setInterval(() => { processDripEnrollments(); }, 60 * 1000);
 
 app.get("/", (_req, res) => {
   res.send("Textellent backend running");
@@ -112,6 +114,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/contact-lists", contactListRoutes);
 app.use("/api/media", mediaRoutes);
+app.use("/api/drip-campaigns", dripRoutes);
 app.use("/api/staff", staffDocumentRoutes);
 
 // Block time proxy (staff only)

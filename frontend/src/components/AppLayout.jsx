@@ -8,6 +8,7 @@ import {
   FaFileAlt,
   FaBullhorn,
   FaEnvelope,
+  FaPaperPlane,
   FaImage,
   FaChartBar,
   FaSignOutAlt,
@@ -161,6 +162,16 @@ function AppLayout({ children, theme, onToggleTheme }) {
               >
                 <FaImage className="me-2" />
                 Media
+              </Nav.Link>
+
+              <Nav.Link
+                as={NavLink}
+                to="/drip-campaigns"
+                className="nav-router-link"
+                onClick={closeMenu}
+              >
+                <FaPaperPlane className="me-2" />
+                Drip Campaigns
               </Nav.Link>
 
               <Nav.Link
