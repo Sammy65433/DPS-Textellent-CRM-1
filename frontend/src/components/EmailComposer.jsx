@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Card, Form, Button } from "react-bootstrap";
-import { FaEnvelope } from "react-icons/fa";
+import { FaEnvelope, FaMagic } from "react-icons/fa";
+import { generateCampaignCopy, getSmartReplies } from "../api/api";
 
 function EmailComposer({
     selectedContact,
@@ -7,10 +9,75 @@ function EmailComposer({
     setEmailForm,
     templates,
     onSendEmail,
+    emailMessages = [],
 }) {
+    const [showAI, setShowAI] = useState(false);
+    const [aiGoal, setAiGoal] = useState("");
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiMessage, setAiMessage] = useState("");
+    const [smartReplies, setSmartReplies] = useState([]);
+    const [loadingReplies, setLoadingReplies] = useState(false);
+
+    async function handleGenerate() {
+        if (!aiGoal.trim()) return;
+        setAiLoading(true);
+        setAiMessage("");
+        try {
+            const result = await generateCampaignCopy({
+                audience: selectedContact
+                    ? `${selectedContact.firstName} ${selectedContact.lastName}`
+                    : "client",
+                goal: aiGoal.trim(),
+                tone: "professional and friendly",
+            });
+            setEmailForm((prev) => ({
+                ...prev,
+                subject: result.subject || prev.subject,
+                body: result.body || prev.body,
+            }));
+            setAiMessage("Generated! Review and edit before sending.");
+        } catch (error) {
+            setAiMessage(error.message || "Generation failed.");
+        } finally {
+            setAiLoading(false);
+        }
+    }
+
+    async function loadSmartReplies() {
+        if (!selectedContact) return;
+        setLoadingReplies(true);
+        try {
+            const result = await getSmartReplies({
+                contact: selectedContact,
+                messages: emailMessages.map((e) => ({
+                    direction: "inbound",
+                    body: e.body,
+                    createdAt: e.createdAt,
+                })),
+            });
+            setSmartReplies(Array.isArray(result.suggestions) ? result.suggestions : []);
+        } catch {
+            setSmartReplies([]);
+        } finally {
+            setLoadingReplies(false);
+        }
+    }
+
     return (
         <Card className="crm-card border-0">
-            <Card.Header className="card-header-clean">Send Email</Card.Header>
+            <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
+                <span>Send Email</span>
+                {selectedContact && (
+                    <Button
+                        size="sm"
+                        variant="outline-primary"
+                        disabled={loadingReplies}
+                        onClick={loadSmartReplies}
+                    >
+                        {loadingReplies ? "Generating..." : "✨ Suggest Replies"}
+                    </Button>
+                )}
+            </Card.Header>
             <Card.Body>
                 {!selectedContact ? (
                     <p className="text-muted mb-0">Select a contact to send an email.</p>
@@ -73,12 +140,59 @@ function EmailComposer({
                             }
                         />
 
-                        <div className="d-flex justify-content-end mt-3">
+                        {smartReplies.length > 0 && (
+                            <div className="d-flex flex-wrap gap-1 mt-2">
+                                {smartReplies.map((reply, idx) => (
+                                    <Button
+                                        key={idx}
+                                        size="sm"
+                                        variant="outline-secondary"
+                                        onClick={() =>
+                                            setEmailForm((prev) => ({ ...prev, body: reply }))
+                                        }
+                                    >
+                                        {reply}
+                                    </Button>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="d-flex justify-content-between align-items-center mt-3">
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline-primary"
+                                onClick={() => setShowAI((v) => !v)}
+                            >
+                                {showAI ? "Hide AI Generator" : "✨ AI Generate Email"}
+                            </Button>
                             <Button type="submit" variant="primary">
                                 <FaEnvelope className="me-2" />
                                 Send Email
                             </Button>
                         </div>
+
+                        {showAI && (
+                            <div className="mt-2 p-2 border rounded bg-light">
+                                <Form.Control
+                                    className="mb-2"
+                                    placeholder="What should this email say? (e.g. remind about tax deadline)"
+                                    value={aiGoal}
+                                    onChange={(e) => setAiGoal(e.target.value)}
+                                />
+                                <Button
+                                    size="sm"
+                                    variant="primary"
+                                    disabled={aiLoading || !aiGoal.trim()}
+                                    onClick={handleGenerate}
+                                >
+                                    {aiLoading ? "Generating..." : "Generate"}
+                                </Button>
+                                {aiMessage && (
+                                    <div className="small text-muted mt-1">{aiMessage}</div>
+                                )}
+                            </div>
+                        )}
                     </Form>
                 )}
             </Card.Body>

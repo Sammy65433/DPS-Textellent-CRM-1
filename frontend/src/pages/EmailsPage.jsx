@@ -280,6 +280,7 @@ function EmailsPage({
                                 emailForm={emailForm}
                                 setEmailForm={setEmailForm}
                                 templates={templates}
+                                emailMessages={emailMessages}
                                 onSendEmail={onSendEmail}
                             />
                         </div>
