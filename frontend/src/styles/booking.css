@@ -127,8 +127,8 @@
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
-  min-height: 78px;
-  padding: 9px;
+  min-height: 62px;
+  padding: 7px;
   border: 1px solid #d7e4df;
   border-radius: 10px;
   background: #fff;
@@ -1396,3 +1396,25 @@
     padding: 4px 8px;
   }
 }
+
+.booking-day-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 4px;
+    justify-content: center;
+}
+
+.booking-day-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.booking-day-dot.preparer-pierre { background: #2563eb; }
+.booking-day-dot.preparer-dalia { background: #9333ea; }
+.booking-day-dot.preparer-severe { background: #16a34a; }
+.booking-day-dot.preparer-jean { background: #ea580c; }
+.booking-day-dot.preparer-ricot { background: #db2777; }
+.booking-day-dot.preparer-unassigned { background: #64748b; }

@@ -998,25 +998,22 @@ async function sendAccountLinkInvitation(appointment) {
                                                     {count} booked
                                                 </span>
                                             )}
-                                            {daily.slice(0, 3).map((appointment) => (
-                                                <span
-                                                    key={appointment.id}
-                                                    className={`booking-day-chip preparer-${preparerTheme(
-                                                        appointment.tax_preparer
-                                                    )}`}
-                                                >
-                                                    <span>
-                                                        {appointment.appointment_time}
-                                                    </span>
-                                                    <span>
-                                                        {appointment.first_name}{" "}
-                                                        {appointment.last_name}
-                                                    </span>
-                                                </span>
-                                            ))}
-                                            {count > 3 && (
+                                            {count > 0 && (
+                                                <div className="booking-day-dots">
+                                                    {daily.map((appointment) => (
+                                                        <span
+                                                            key={appointment.id}
+                                                            className={`booking-day-dot preparer-${preparerTheme(
+                                                                appointment.tax_preparer
+                                                            )}`}
+                                                            title={`${appointment.appointment_time} - ${appointment.first_name} ${appointment.last_name} - ${appointment.tax_preparer}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {count > 0 && count > 6 && (
                                                 <span className="booking-day-more">
-                                                    +{count - 3} more
+                                                    +{count - 6} more
                                                 </span>
                                             )}
                                         </button>
