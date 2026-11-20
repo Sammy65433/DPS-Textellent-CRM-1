@@ -195,3 +195,22 @@
     color: #fff;
     border-color: var(--accent, #0f5c54);
 }
+
+.markdown-para {
+    margin: 0.35rem 0;
+    line-height: 1.55;
+}
+
+.markdown-list {
+    margin: 0.35rem 0 0.35rem 1.25rem;
+    padding: 0;
+    line-height: 1.55;
+}
+
+.markdown-list li {
+    margin: 0.2rem 0;
+}
+
+.markdown-spacer {
+    height: 0.4rem;
+}

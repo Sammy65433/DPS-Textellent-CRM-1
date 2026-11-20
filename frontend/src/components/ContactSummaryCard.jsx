@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, Badge, Button, Spinner } from "react-bootstrap";
+import MarkdownText from "./MarkdownText";
 import { generateContactSummary, autoTagContact } from "../api/api";
 import {
     FaUser,
@@ -149,7 +150,7 @@ function ContactSummaryCard({
                             </Button>
                             {aiSummary && (
                                 <div className="contact-ai-summary mt-2 p-2 rounded bg-light small">
-                                    {aiSummary}
+                                    <MarkdownText text={aiSummary} />
                                     {onSaveSummaryToNotes && selectedContact && (
                                         <div className="mt-2">
                                             <Button

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, Card, Badge } from "react-bootstrap";
 import { generateContactSummary } from "../api/api";
+import MarkdownText from "./MarkdownText";
 import {
     FaUser,
     FaPhone,
@@ -127,8 +128,8 @@ function EmailContactSummaryCard({ selectedContact, emailMessages = [] }) {
                                 {loadingSummary ? "Analyzing..." : "✨ AI Summary"}
                             </Button>
                             {summary && (
-                                <div className="small text-muted mt-2" style={{ whiteSpace: "pre-wrap" }}>
-                                    {summary}
+                                <div className="small text-muted mt-2">
+                                    <MarkdownText text={summary} />
                                 </div>
                             )}
                         </div>
