@@ -127,8 +127,8 @@ function CampaignsPage({
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <PageHeader
-                title="Campaigns"
-                subtitle="Build and send message campaigns to selected contacts."
+                title="Text Blasts"
+                subtitle="Create and send text/email blasts to selected contacts."
             />
 
             {alert && <Alert variant={alert.variant}>{alert.message}</Alert>}

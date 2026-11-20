@@ -117,7 +117,7 @@ function AppLayout({ children, theme, onToggleTheme }) {
           </button>
           {autoOpen && sidebarOpen && (
             <div className="sidebar-dropdown-items">
-              <NavItem to="/campaigns" icon={FaBullhorn} label="Campaigns" />
+              <NavItem to="/campaigns" icon={FaBullhorn} label="Text Blasts" />
               <NavItem to="/drip-campaigns" icon={FaPaperPlane} label="Drip Campaigns" />
               <NavItem to="/automations" icon={FaClock} label="Birthday Greeting" />
               <NavItem to="/automations" icon={FaClock} label="Out-of-Office" />
