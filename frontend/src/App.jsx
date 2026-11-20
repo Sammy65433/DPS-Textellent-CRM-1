@@ -11,6 +11,8 @@ import MediaLibraryPage from "./pages/MediaLibraryPage";
 import DripCampaignsPage from "./pages/DripCampaignsPage";
 import AutomationsPage from "./pages/AutomationsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import HelpPage from "./pages/HelpPage";
+import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -358,6 +360,24 @@ function App() {
                 onToggleTheme={toggleTheme}
                 alert={alert}
               />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage theme={theme} onToggleTheme={toggleTheme} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/help"
+          element={
+            <ProtectedRoute>
+              <HelpPage theme={theme} onToggleTheme={toggleTheme} />
             </ProtectedRoute>
           }
         />

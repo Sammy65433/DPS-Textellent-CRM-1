@@ -152,10 +152,10 @@ function AppLayout({ children, theme, onToggleTheme }) {
               </div>
             </div>
             <div className="crm-sidebar__extra-links">
-              <button type="button" className="crm-sidebar__extra-link" onClick={() => { navigate("/staff"); closeMobile(); }}>
+              <button type="button" className="crm-sidebar__extra-link" onClick={() => { navigate("/settings"); closeMobile(); }}>
                 <FaUserShield className="me-2" /> Settings
               </button>
-              <button type="button" className="crm-sidebar__extra-link" onClick={() => { window.open("https://textellent.com/knowledge-base", "_blank"); }}>
+              <button type="button" className="crm-sidebar__extra-link" onClick={() => { navigate("/help"); closeMobile(); }}>
                 <FaQuestionCircle className="me-2" /> Help
               </button>
             </div>
