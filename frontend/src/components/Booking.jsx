@@ -1366,11 +1366,11 @@ async function sendAccountLinkInvitation(appointment) {
                                             <button
                                                 type="button"
                                                 className="btn btn-success btn-sm mt-2"
-                                                disabled={isSubmitting || !service || !preparer || !time || !day || !visitFormat || !formData.first_name || !formData.last_name || !formData.phone || !formData.email}
+                                                disabled={submitting || !service || !preparer || !time || !day || !visitFormat || !formData.first_name || !formData.last_name || !formData.phone || !formData.email}
                                                 onClick={async () => {
                                                     if (!window.confirm("Book this appointment now?")) return;
                                                     // Auto-book: submit directly with current form data
-                                                    setIsSubmitting(true);
+                                                    setSubmitting(true);
                                                     setStatus({ message: "Booking...", type: "sending" });
                                                     try {
                                                         const response = await fetch(`${CRM_API_URL}/api/staff/appointments`, {
@@ -1406,11 +1406,11 @@ async function sendAccountLinkInvitation(appointment) {
                                                     } catch (error) {
                                                         setStatus({ message: error.message || "Booking failed.", type: "error" });
                                                     } finally {
-                                                        setIsSubmitting(false);
+                                                        setSubmitting(false);
                                                     }
                                                 }}
                                             >
-                                                {isSubmitting ? "Booking..." : "Book Now"}
+                                                {submitting ? "Booking..." : "Book Now"}
                                             </button>
                                         )}
                                     </div>
@@ -1520,8 +1520,6 @@ async function sendAccountLinkInvitation(appointment) {
                                     </button>
                                 </div>
                             )}
-
-                            <h2 className="mt-2">Book for {formatDate(day)}</h2>
 
                             {day < dateKey(new Date()) ? (
                                 <p>
