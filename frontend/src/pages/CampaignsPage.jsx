@@ -167,6 +167,14 @@ function CampaignsPage({
                             <option value="recent">Recent</option>
                         </select>
                     </div>
+                    <div className="d-flex gap-2 mb-2 flex-wrap">
+                        <Button size="sm" variant="outline-secondary" onClick={() => navigate("/drip-campaigns")}>
+                            Recurring Campaigns
+                        </Button>
+                        <Button size="sm" variant="outline-secondary" onClick={() => navigate("/templates")}>
+                            View Templates
+                        </Button>
+                    </div>
                     <CampaignList
                         data-tour="campaigns-list"
                         campaigns={filteredCampaigns}
