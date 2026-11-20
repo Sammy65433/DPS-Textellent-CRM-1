@@ -1199,3 +1199,47 @@
     font-weight: 600;
     font-size: 0.85rem;
 }
+
+/* ---- Contacts table mobile polish ---- */
+.contacts-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.contacts-table {
+    min-width: 720px;
+    font-size: 0.85rem;
+}
+
+.contacts-table th,
+.contacts-table td {
+    white-space: nowrap;
+    padding: 0.5rem 0.6rem;
+    vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+    .contacts-table {
+        min-width: 640px;
+        font-size: 0.8rem;
+    }
+    .contacts-table th,
+    .contacts-table td {
+        padding: 0.4rem 0.5rem;
+    }
+    .page-panel-contacts,
+    .page-panel-emails {
+        padding: 0.75rem !important;
+    }
+}
+
+/* Emails page mobile */
+@media (max-width: 768px) {
+    .panel-column {
+        margin-top: 1rem;
+    }
+    .email-thread-body {
+        max-height: 320px;
+        overflow-y: auto;
+    }
+}
