@@ -211,6 +211,7 @@ export default function Booking({ theme, onToggleTheme }) {
         ...EMPTY_CUSTOMER,
         ...(location.state?.customer || {}),
     }));
+    const [notes, setNotes] = useState("");
 
     const [submitting, setSubmitting] = useState(false);
     const [bookingError, setBookingError] = useState("");
@@ -563,6 +564,7 @@ export default function Booking({ theme, onToggleTheme }) {
                                   appointment_date: day,
                                   appointment_time: time,
                                   visit_format: visitFormat,
+                                  message: notes,
                               }
                             : {
                                   ...customer,
@@ -572,6 +574,7 @@ export default function Booking({ theme, onToggleTheme }) {
                                   appointment_time: time,
                                   duration_minutes: duration,
                                   visit_format: visitFormat,
+                                  message: notes,
                               }
                     ),
                 }
@@ -585,6 +588,7 @@ export default function Booking({ theme, onToggleTheme }) {
 
             setBookingSuccess("Appointment booked successfully.");
             setCustomer({ ...EMPTY_CUSTOMER });
+            setNotes("");
             setTime("");
             setVisitFormat("");
             setRefreshKey((current) => current + 1);
@@ -1371,18 +1375,18 @@ async function sendAccountLinkInvitation(appointment) {
                                                                     clientLast = match.lastName || "";
                                                                     clientPhone = match.phone || "";
                                                                     clientEmail = match.email || "";
-                                                                    setFormData((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast, phone: clientPhone, email: clientEmail }));
+                                                                    setCustomer((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast, phone: clientPhone, email: clientEmail }));
                                                                 } else {
                                                                     const parts = String(s.clientName).trim().split(/\s+/);
                                                                     clientFirst = parts[0] || "";
                                                                     clientLast = parts.slice(1).join(" ") || "";
-                                                                    setFormData((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast }));
+                                                                    setCustomer((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast }));
                                                                 }
                                                             } catch (e) {
                                                                 const parts = String(s.clientName).trim().split(/\s+/);
                                                                 clientFirst = parts[0] || "";
                                                                 clientLast = parts.slice(1).join(" ") || "";
-                                                                setFormData((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast }));
+                                                                setCustomer((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast }));
                                                             }
                                                         }
 
@@ -1449,7 +1453,7 @@ async function sendAccountLinkInvitation(appointment) {
                                             <button
                                                 type="button"
                                                 className="btn btn-success btn-sm mt-2"
-                                                disabled={submitting || !service || !preparer || !time || !day || !visitFormat || !formData.first_name || !formData.last_name || !formData.phone || !formData.email}
+                                                disabled={submitting || !service || !preparer || !time || !day || !visitFormat || !customer.first_name || !customer.last_name || !customer.phone || !customer.email}
                                                 onClick={async () => {
                                                     if (!window.confirm("Book this appointment now?")) return;
                                                     // Auto-book: submit directly with current form data
@@ -1463,7 +1467,7 @@ async function sendAccountLinkInvitation(appointment) {
                                                                 Authorization: `Bearer ${localStorage.getItem("token")}`,
                                                             },
                                                             body: JSON.stringify({
-                                                                ...formData,
+                                                                ...customer,
                                                                 service,
                                                                 tax_preparer: preparer,
                                                                 appointment_date: day,
@@ -1780,6 +1784,34 @@ async function sendAccountLinkInvitation(appointment) {
                                                         />
                                                     </label>
                                                 ))}
+
+                                                <label className="booking-field">
+                                                    Notes (optional)
+                                                    <textarea
+                                                        rows={2}
+                                                        value={notes}
+                                                        onChange={(event) => setNotes(event.target.value)}
+                                                        placeholder="Add a note about this client..."
+                                                    />
+                                                    <div className="booking-note-suggestions">
+                                                        {[
+                                                            "Client needs follow-up on missing documents",
+                                                            "First-time filer",
+                                                            "Referred by existing client",
+                                                            "Prefers phone contact",
+                                                            "Has complex return - schedule extra time",
+                                                        ].map((tip) => (
+                                                            <button
+                                                                key={tip}
+                                                                type="button"
+                                                                className="booking-note-chip"
+                                                                onClick={() => setNotes((prev) => (prev ? prev + " " + tip : tip))}
+                                                            >
+                                                                {tip}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </label>
 
                                                 <button
                                                     className="booking-submit"

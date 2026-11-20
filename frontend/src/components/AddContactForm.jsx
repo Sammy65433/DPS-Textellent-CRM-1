@@ -73,13 +73,33 @@ function AddContactForm({
                     <Form.Control
                         as="textarea"
                         rows={4}
-                        className="mb-3"
+                        className="mb-2"
                         placeholder="Notes"
                         value={contactForm.notes}
                         onChange={e =>
                             setContactForm(prev => ({ ...prev, notes: e.target.value }))
                         }
                     />
+                    <div className="booking-note-suggestions mb-3">
+                        {[
+                            "Client needs follow-up on missing documents",
+                            "First-time filer",
+                            "Referred by existing client",
+                            "Prefers phone contact",
+                            "Has complex return - schedule extra time",
+                            "Signed up but never booked",
+                            "Filed last year - remind to file this year",
+                        ].map((tip) => (
+                            <button
+                                key={tip}
+                                type="button"
+                                className="booking-note-chip"
+                                onClick={() => setContactForm(prev => ({ ...prev, notes: prev.notes ? prev.notes + " " + tip : tip }))}
+                            >
+                                {tip}
+                            </button>
+                        ))}
+                    </div>
 
                     <div className="d-flex gap-2">
                         <Button type="submit" variant="dark" className="w-100">

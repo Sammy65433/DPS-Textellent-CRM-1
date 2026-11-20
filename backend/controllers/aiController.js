@@ -317,7 +317,7 @@ export async function smartFollowUps(req, res) {
 
     const prompt = `You are a CRM follow-up advisor for DPS Professional Tax Services. Today is ${now}.
 
-Analyze these contacts and suggest up to 5 follow-up actions. Consider: contacts not contacted in 14+ days, contacts missing email/phone, contacts with no recent activity, contacts tagged as leads, etc.
+Analyze these contacts and suggest up to 5 follow-up actions. Consider: contacts not contacted in 14+ days, contacts missing email/phone, contacts with no recent activity, contacts tagged as leads, clients who have never scheduled an appointment, clients who have not returned this tax season (no recent bookings), and clients who signed up but never booked. Suggest re-engagement outreach for dormant clients.
 
 Contacts:
 ${JSON.stringify(contactSummary, null, 1)}

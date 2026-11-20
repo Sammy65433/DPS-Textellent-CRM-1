@@ -171,3 +171,27 @@
     opacity: 0.8;
     cursor: pointer;
 }
+
+.booking-note-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.booking-note-chip {
+    border: 1px solid var(--border-light, #d1d5db);
+    background: var(--bg-card, #f9fafb);
+    color: var(--text-soft, #374151);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.booking-note-chip:hover {
+    background: var(--accent, #0f5c54);
+    color: #fff;
+    border-color: var(--accent, #0f5c54);
+}
