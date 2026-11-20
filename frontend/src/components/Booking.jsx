@@ -1334,18 +1334,101 @@ async function sendAccountLinkInvitation(appointment) {
                                                     const s = data.suggestion;
                                                     if (s) {
                                                         const applied = [];
-                                                        if (s.service && SERVICES.includes(s.service)) { setService(s.service); applied.push(`service: ${s.service}`); }
-                                                        if (s.preparer && PREPARERS.includes(s.preparer)) { setPreparer(s.preparer); applied.push(`preparer: ${s.preparer}`); }
-                                                        if (s.duration) { setDuration(Number(s.duration)); applied.push(`duration: ${s.duration}min`); }
-                                                        if (s.visitFormat) { setVisitFormat(s.visitFormat); applied.push(`visit: ${s.visitFormat}`); }
-                                                        if (s.date) { setDay(s.date); applied.push(`date: ${s.date}`); }
-                                                        if (s.time) { setTime(s.time); applied.push(`time: ${s.time}`); }
-                                                        if (s.clientName) applied.push(`client: ${s.clientName}`);
-                                                        setAiScheduleMessage(
-                                                            applied.length > 0
-                                                                ? `Applied → ${applied.join(", ")}. Fill in the rest and click Book Now.`
-                                                                : "Could not extract scheduling details. Please fill in manually."
-                                                        );
+                                                        const chosenService = s.service && SERVICES.includes(s.service) ? s.service : null;
+                                                        const chosenPreparer = s.preparer && PREPARERS.includes(s.preparer) ? s.preparer : null;
+                                                        const chosenDuration = s.duration ? Number(s.duration) : 30;
+                                                        const chosenVisit = s.visitFormat || "in_person";
+                                                        const chosenDate = s.date || day;
+                                                        const chosenTime = s.time || null;
+
+                                                        if (chosenService) { setService(chosenService); applied.push(`service: ${chosenService}`); }
+                                                        if (chosenPreparer) { setPreparer(chosenPreparer); applied.push(`preparer: ${chosenPreparer}`); }
+                                                        if (s.duration) { setDuration(chosenDuration); applied.push(`duration: ${chosenDuration}min`); }
+                                                        if (s.visitFormat) { setVisitFormat(chosenVisit); applied.push(`visit: ${chosenVisit}`); }
+                                                        if (s.date) { setDay(chosenDate); applied.push(`date: ${chosenDate}`); }
+                                                        if (s.time) { setTime(chosenTime); applied.push(`time: ${chosenTime}`); }
+
+                                                        // Look up client details from contacts
+                                                        let clientFirst = "";
+                                                        let clientLast = "";
+                                                        let clientPhone = "";
+                                                        let clientEmail = "";
+                                                        if (s.clientName) {
+                                                            applied.push(`client: ${s.clientName}`);
+                                                            try {
+                                                                const cRes = await fetch(`${CRM_API_URL}/api/contacts`, {
+                                                                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                                                                });
+                                                                const cData = await cRes.json().catch(() => ([]));
+                                                                const list = Array.isArray(cData) ? cData : (cData.contacts || []);
+                                                                const nameLower = String(s.clientName).toLowerCase().trim();
+                                                                const match = list.find((c) => {
+                                                                    const full = `${c.firstName || ""} ${c.lastName || ""}`.toLowerCase().trim();
+                                                                    return full === nameLower || full.includes(nameLower) || nameLower.includes(full);
+                                                                });
+                                                                if (match) {
+                                                                    clientFirst = match.firstName || "";
+                                                                    clientLast = match.lastName || "";
+                                                                    clientPhone = match.phone || "";
+                                                                    clientEmail = match.email || "";
+                                                                    setFormData((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast, phone: clientPhone, email: clientEmail }));
+                                                                } else {
+                                                                    const parts = String(s.clientName).trim().split(/\s+/);
+                                                                    clientFirst = parts[0] || "";
+                                                                    clientLast = parts.slice(1).join(" ") || "";
+                                                                    setFormData((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast }));
+                                                                }
+                                                            } catch (e) {
+                                                                const parts = String(s.clientName).trim().split(/\s+/);
+                                                                clientFirst = parts[0] || "";
+                                                                clientLast = parts.slice(1).join(" ") || "";
+                                                                setFormData((prev) => ({ ...prev, first_name: clientFirst, last_name: clientLast }));
+                                                            }
+                                                        }
+
+                                                        // Auto-book if all required details are present
+                                                        const canAutoBook = chosenService && chosenPreparer && chosenDate && chosenTime && clientFirst && clientPhone && clientEmail;
+                                                        if (canAutoBook) {
+                                                            setSubmitting(true);
+                                                            setStatus({ message: "Booking...", type: "sending" });
+                                                            try {
+                                                                const bookRes = await fetch(`${CRM_API_URL}/api/staff/appointments`, {
+                                                                    method: "POST",
+                                                                    headers: {
+                                                                        "Content-Type": "application/json",
+                                                                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                                                    },
+                                                                    body: JSON.stringify({
+                                                                        first_name: clientFirst,
+                                                                        last_name: clientLast,
+                                                                        phone: clientPhone,
+                                                                        email: clientEmail,
+                                                                        service: chosenService,
+                                                                        tax_preparer: chosenPreparer,
+                                                                        appointment_date: chosenDate,
+                                                                        appointment_time: chosenTime,
+                                                                        duration_minutes: chosenDuration,
+                                                                        visit_format: chosenVisit,
+                                                                        message: s.notes || "",
+                                                                    }),
+                                                                });
+                                                                const bookData = await bookRes.json().catch(() => ({}));
+                                                                if (!bookRes.ok) throw new Error(bookData.message || "Auto-booking failed.");
+                                                                setStatus({ message: `Appointment booked for ${clientFirst} ${clientLast} on ${chosenDate} at ${chosenTime}.`, type: "success" });
+                                                                setAiScheduleMessage(`✅ Booked → ${clientFirst} ${clientLast}, ${chosenService}, ${chosenPreparer}, ${chosenDate} ${chosenTime}`);
+                                                                setAiScheduleRequest("");
+                                                            } catch (bookErr) {
+                                                                setAiScheduleMessage(`Applied → ${applied.join(", ")}. Auto-booking failed: ${bookErr.message}. Fill in the rest and click Book Now.`);
+                                                            } finally {
+                                                                setSubmitting(false);
+                                                            }
+                                                        } else {
+                                                            setAiScheduleMessage(
+                                                                applied.length > 0
+                                                                    ? `Applied → ${applied.join(", ")}. Fill in the rest and click Book Now.`
+                                                                    : "Could not extract scheduling details. Please fill in manually."
+                                                            );
+                                                        }
                                                     } else {
                                                         setAiScheduleMessage(data.raw || "Could not parse the request.");
                                                     }
@@ -1356,7 +1439,7 @@ async function sendAccountLinkInvitation(appointment) {
                                                 }
                                             }}
                                         >
-                                            {aiScheduleLoading ? "Analyzing..." : "Suggest & Apply"}
+                                            {aiScheduleLoading ? "Analyzing..." : "AI Schedule"}
                                         </button>
                                         {aiScheduleMessage && (
                                             <div className="small text-muted mt-1">{aiScheduleMessage}</div>
