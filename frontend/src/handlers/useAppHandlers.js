@@ -242,6 +242,22 @@ export function useAppHandlers({
         });
     };
 
+    const handleSaveSummaryToNotes = async (contactId, summary) => {
+        if (!contactId || !summary) return;
+        try {
+            const contact = contacts.find((c) => String(c._id) === String(contactId));
+            const existing = contact?.notes || "";
+            const newNotes = existing
+                ? `${existing}\n\nAI Summary: ${summary}`
+                : `AI Summary: ${summary}`;
+            await updateContact(contactId, { notes: newNotes });
+            await loadData();
+            showAlert("success", "Summary saved to notes.");
+        } catch (error) {
+            showAlert("danger", error.message || "Could not save summary.");
+        }
+    };
+
     const handleCancelEditContact = () => {
         setEditingContact(null);
         resetContactForm();
@@ -366,6 +382,7 @@ export function useAppHandlers({
         handleCreateTemplate,
         handleCreateContact,
         handleEditContact,
+        handleSaveSummaryToNotes,
         handleCancelEditContact,
         handleDeleteContact,
         handleToggleContact,

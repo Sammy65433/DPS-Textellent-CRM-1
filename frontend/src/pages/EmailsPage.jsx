@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Col, Row, Spinner } from "react-bootstrap";
+import { Accordion, Alert, Button, Card, Col, Row, Spinner } from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
@@ -7,8 +7,8 @@ import PageHeader from "../components/PageHeader";
 import ContactsList from "../components/ContactsList";
 import AddContactForm from "../components/AddContactForm";
 import EmailComposer from "../components/EmailComposer";
-import EmailContactSummaryCard from "../components/EmailContactSummaryCard";
 import ContactDocuments from "../components/ContactDocuments";
+import EmailContactSummaryCard from "../components/EmailContactSummaryCard";
 
 function EmailsPage({
     theme,
@@ -169,48 +169,6 @@ function EmailsPage({
                     </Col>
 
                     <Col md={5} className="panel-column">
-                        <EmailContactSummaryCard
-                            selectedContact={selectedContact}
-                            emailMessages={emailMessages}
-                        />
-
-                        {selectedContact && (
-                            <div className="d-flex flex-wrap gap-2 mb-3">
-                                <Button
-                                    variant="success"
-                                    onClick={() =>
-                                        navigate("/booking", {
-                                            state: {
-                                                customer: {
-                                                    first_name: selectedContact.firstName || "",
-                                                    last_name: selectedContact.lastName || "",
-                                                    phone: selectedContact.phone || "",
-                                                    email: selectedContact.email || "",
-                                                },
-                                            },
-                                        })
-                                    }
-                                >
-                                    Book Appointment for {selectedContact.firstName}
-                                </Button>
-
-                                <Button
-                                    variant="outline-primary"
-                                    disabled={sendingInvite || !selectedContact.email}
-                                    onClick={handleSendAccountLinkInvitation}
-                                >
-                                    {sendingInvite
-                                        ? "Sending invitation..."
-                                        : "Send account-link invitation"}
-                                </Button>
-                            </div>
-                        )}
-
-                        <ContactDocuments
-                            key={selectedContact?._id || "none"}
-                            contactId={selectedContact?._id}
-                        />
-
                         <Card className="email-history-card page-panel-emails border-0" data-tour="emails-list">
                             <Card.Header className="card-header-clean d-flex justify-content-between align-items-center">
                                 <span>Email History</span>
@@ -273,6 +231,57 @@ function EmailsPage({
                                 )}
                             </Card.Body>
                         </Card>
+
+                        {selectedContact && (
+                            <Accordion className="mb-3" defaultActiveKey="">
+                                <Accordion.Item eventKey="0">
+                                    <Accordion.Header>Contact Details</Accordion.Header>
+                                    <Accordion.Body>
+                                        <EmailContactSummaryCard
+                                            selectedContact={selectedContact}
+                                            emailMessages={emailMessages}
+                                        />
+                                        <div className="d-flex flex-wrap gap-2 mt-2">
+                                            <Button
+                                                size="sm"
+                                                variant="success"
+                                                onClick={() =>
+                                                    navigate("/booking", {
+                                                        state: {
+                                                            customer: {
+                                                                first_name: selectedContact.firstName || "",
+                                                                last_name: selectedContact.lastName || "",
+                                                                phone: selectedContact.phone || "",
+                                                                email: selectedContact.email || "",
+                                                            },
+                                                        },
+                                                    })
+                                                }
+                                            >
+                                                Book Appointment
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline-primary"
+                                                disabled={sendingInvite || !selectedContact.email}
+                                                onClick={handleSendAccountLinkInvitation}
+                                            >
+                                                {sendingInvite ? "Sending..." : "Send Link Invite"}
+                                            </Button>
+                                        </div>
+                                    </Accordion.Body>
+                                </Accordion.Item>
+                                <Accordion.Item eventKey="1">
+                                    <Accordion.Header>Documents</Accordion.Header>
+                                    <Accordion.Body>
+                                        <ContactDocuments
+                                            key={selectedContact?._id || "none"}
+                                            contactId={selectedContact?._id}
+                                        />
+                                    </Accordion.Body>
+                                </Accordion.Item>
+                            </Accordion>
+                        )}
 
                         <div className="crm-card page-panel-emails-secondary border-0" data-tour="emails-compose">
                             <EmailComposer

@@ -29,6 +29,7 @@ function ContactsPage({
     onSendMessage,
     onCreateContact,
     onEditContact,
+    onSaveSummaryToNotes,
     onDeleteContact,
     onCancelEditContact,
     onDeleteMessage,
@@ -338,6 +339,7 @@ data-tour="contacts-summary"
                                         selectedContact={selectedContact}
                                         conversation={conversation}
                                         emailMessages={emailMessages}
+                                        onSaveSummaryToNotes={onSaveSummaryToNotes}
                                     />
                                     <div className="d-flex flex-wrap gap-2 mt-2">
                                         <Button

@@ -99,6 +99,7 @@ function App() {
     handleCreateTemplate,
     handleCreateContact,
     handleEditContact,
+    handleSaveSummaryToNotes,
     handleCancelEditContact,
     handleDeleteContact,
     handleToggleContact,
@@ -208,6 +209,7 @@ function App() {
                   handleCreateContact(event, contactForm)
                 }
                 onEditContact={handleEditContact}
+                onSaveSummaryToNotes={handleSaveSummaryToNotes}
                 onDeleteContact={handleDeleteContact}
                 onCancelEditContact={handleCancelEditContact}
                 onDeleteMessage={handleDeleteMessage}

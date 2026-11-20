@@ -150,6 +150,17 @@ function ContactSummaryCard({
                             {aiSummary && (
                                 <div className="contact-ai-summary mt-2 p-2 rounded bg-light small">
                                     {aiSummary}
+                                    {onSaveSummaryToNotes && selectedContact && (
+                                        <div className="mt-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline-success"
+                                                onClick={() => onSaveSummaryToNotes(selectedContact._id, aiSummary)}
+                                            >
+                                                Save to Notes
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
