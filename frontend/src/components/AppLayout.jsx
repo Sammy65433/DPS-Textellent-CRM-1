@@ -99,6 +99,7 @@ function AppLayout({ children, theme, onToggleTheme }) {
         {sidebarOpen && <div className="crm-sidebar__section">MAIN</div>}
         <NavItem to="/dashboard" icon={FaColumns} label="Dashboard" end />
         <NavItem to="/contacts" icon={FaUsers} label="Contacts" />
+        <NavItem to="/messages" icon={FaEnvelope} label="Messages" />
         <NavItem to="/templates" icon={FaFileAlt} label="Templates" />
         <NavItem to="/emails" icon={FaEnvelope} label="Emails" />
 

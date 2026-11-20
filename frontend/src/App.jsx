@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import DashboardPage from "./pages/DashboardPage";
 import ContactsPage from "./pages/ContactsPage";
+import MessagesPage from "./pages/MessagesPage";
 import AddContactPage from "./pages/AddContactPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import CampaignsPage from "./pages/CampaignsPage";
@@ -179,6 +180,31 @@ function App() {
           element={
             <ProtectedRoute>
               <Booking theme={theme} onToggleTheme={toggleTheme} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <MessagesPage
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                alert={alert}
+                contacts={contacts}
+                messages={messages}
+                selectedContact={selectedContact}
+                conversation={conversation}
+                loadingConversation={loadingConversation}
+                messageForm={messageForm}
+                setMessageForm={setMessageForm}
+                templates={templates}
+                onSendMessage={(event) => handleSendMessage(event, messageForm)}
+                onDeleteMessage={handleDeleteMessage}
+                onDeleteConversation={handleDeleteConversation}
+                onSelectContact={handleSelectContact}
+              />
             </ProtectedRoute>
           }
         />
