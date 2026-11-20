@@ -1,5 +1,5 @@
-import { Alert, Row, Col, Card, Button, Badge, Form, Dropdown } from "react-bootstrap";
-import { FaFileAlt, FaTags, FaEye, FaLightbulb, FaMagic, FaBullhorn, FaEnvelope, FaCommentDots, FaCalendarCheck } from "react-icons/fa";
+import { Alert, Row, Col, Card, Button, Badge, Form, Modal } from "react-bootstrap";
+import { FaFileAlt, FaTags, FaEye, FaLightbulb, FaMagic, FaBullhorn, FaEnvelope, FaCommentDots, FaCalendarCheck, FaEdit } from "react-icons/fa";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
@@ -23,9 +23,13 @@ function TemplatesPage({
     templateForm,
     setTemplateForm,
     onCreateTemplate,
+    onUpdateTemplate,
     onDeleteTemplate,
 }) {
     const navigate = useNavigate();
+    const [editingTemplate, setEditingTemplate] = useState(null);
+    const [editName, setEditName] = useState("");
+    const [editBody, setEditBody] = useState("");
     const [showAI, setShowAI] = useState(false);
     const [aiGoal, setAiGoal] = useState("");
     const [aiTone, setAiTone] = useState("professional and friendly");
@@ -304,6 +308,18 @@ function TemplatesPage({
                                                         </button>
                                                         <button
                                                             type="button"
+                                                            className="template-action-btn"
+                                                            title="Edit"
+                                                            onClick={() => {
+                                                                setEditingTemplate(template);
+                                                                setEditName(template.name);
+                                                                setEditBody(template.body);
+                                                            }}
+                                                        >
+                                                            <FaEdit />
+                                                        </button>
+                                                        <button
+                                                            type="button"
                                                             className="template-action-btn template-action-delete"
                                                             title="Delete"
                                                             onClick={() => onDeleteTemplate(template._id)}
@@ -321,6 +337,52 @@ function TemplatesPage({
                     </Card>
                 </Col>
             </Row>
+
+            <Modal show={!!editingTemplate} onHide={() => setEditingTemplate(null)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Edit Template</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Template name</Form.Label>
+                        <Form.Control
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label>Template body</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={6}
+                            value={editBody}
+                            onChange={(e) => setEditBody(e.target.value)}
+                        />
+                        <div className="small text-muted mt-2">
+                            Placeholders: <code>{"{{firstName}}"}</code> <code>{"{{lastName}}"}</code> <code>{"{{fullName}}"}</code> <code>{"{{companyName}}"}</code> <code>{"{{companyPhone}}"}</code> <code>{"{{companyEmail}}"}</code> <code>{"{{companyAddress}}"}</code> <code>{"{{companyWebsite}}"}</code>
+                        </div>
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="outline-secondary" onClick={() => setEditingTemplate(null)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={async () => {
+                            if (!editingTemplate) return;
+                            try {
+                                await onUpdateTemplate(editingTemplate._id, { name: editName, body: editBody });
+                                setEditingTemplate(null);
+                            } catch (error) {
+                                alert(error.message || "Could not update template.");
+                            }
+                        }}
+                    >
+                        Save Changes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </AppLayout>
     );
 }

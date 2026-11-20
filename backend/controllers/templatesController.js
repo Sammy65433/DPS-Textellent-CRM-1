@@ -40,6 +40,38 @@ export async function getTemplates(_req, res) {
   }
 }
 
+export async function updateTemplate(req, res) {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid template ID." });
+  }
+
+  const name = String(req.body?.name ?? "").trim();
+  const body = String(req.body?.body ?? "").trim();
+
+  if (!name || name.length > 150 || !body || body.length > 10000) {
+    return res.status(400).json({
+      error: "Enter a valid template name and body.",
+    });
+  }
+
+  try {
+    const updated = await Template.findOneAndUpdate(
+      { _id: req.params.id, userId: DPS_SCOPE },
+      { $set: { name, body } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: "Template not found." });
+    }
+
+    return res.json(updated);
+  } catch (error) {
+    console.error("Update template error:", error);
+    return res.status(500).json({ error: "Failed to update template." });
+  }
+}
+
 export async function deleteTemplate(req, res) {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return res.status(400).json({ error: "Invalid template ID." });

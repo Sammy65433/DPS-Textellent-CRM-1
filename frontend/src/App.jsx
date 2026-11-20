@@ -106,6 +106,7 @@ function App() {
     handleUpdateCampaign,
     handleSendCampaign,
     handleDeleteTemplate,
+    handleUpdateTemplate,
     handleDeleteCampaign,
     handleDeleteMessage,
     handleDeleteConversation,
@@ -231,6 +232,7 @@ function App() {
                   handleCreateTemplate(event, templateForm)
                 }
                 onDeleteTemplate={handleDeleteTemplate}
+                onUpdateTemplate={handleUpdateTemplate}
               />
             </ProtectedRoute>
           }

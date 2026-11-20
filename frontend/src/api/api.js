@@ -196,6 +196,16 @@ export async function deleteTemplate(templateId) {
   );
 }
 
+export async function updateTemplate(templateId, payload) {
+  return apiResponse(
+    await fetch(`${API}/api/templates/${encodeURIComponent(templateId)}`, {
+      method: "PATCH",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
 export async function sendAIChat(payload) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);

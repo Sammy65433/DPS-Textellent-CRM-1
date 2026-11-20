@@ -13,6 +13,7 @@ import {
     sendCampaign,
     createContact,
     deleteTemplate,
+    updateTemplate,
     deleteCampaign,
     updateContact,
     deleteContact,
@@ -301,6 +302,12 @@ export function useAppHandlers({
         showAlert("danger", "Template deleted");
     };
 
+    const handleUpdateTemplate = async (templateId, payload) => {
+        await updateTemplate(templateId, payload);
+        await loadData();
+        showAlert("success", "Template updated");
+    };
+
     const handleDeleteCampaign = async campaignId => {
         await deleteCampaign(campaignId);
         await loadData();
@@ -366,6 +373,7 @@ export function useAppHandlers({
         handleUpdateCampaign,
         handleSendCampaign,
         handleDeleteTemplate,
+        handleUpdateTemplate,
         handleDeleteCampaign,
         handleDeleteMessage,
         handleDeleteConversation,
