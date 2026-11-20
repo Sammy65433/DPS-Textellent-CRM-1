@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
+import { Accordion, Alert, Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
@@ -316,52 +316,6 @@ function ContactsPage({
                 </Col>
 
                 <Col md={5}>
-                    <ContactSummaryCard
-data-tour="contacts-summary"
-                        selectedContact={selectedContact}
-                        conversation={conversation}
-                        emailMessages={emailMessages}
-                    />
-
-                    <ContactDocuments
-data-tour="contacts-documents"
-                        key={selectedContact?._id || "none"}
-                        contactId={selectedContact?._id}
-                    />
-
-
-                    {selectedContact && (
-                        <div className="d-flex flex-wrap gap-2 mb-3">
-                            <Button
-                                variant="success"
-                                onClick={() =>
-                                    navigate("/booking", {
-                                        state: {
-                                            customer: {
-                                                first_name: selectedContact.firstName || "",
-                                                last_name: selectedContact.lastName || "",
-                                                phone: selectedContact.phone || "",
-                                                email: selectedContact.email || "",
-                                            },
-                                        },
-                                    })
-                                }
-                            >
-                                Book Appointment for {selectedContact.firstName}
-                            </Button>
-
-                            <Button
-                                variant="outline-primary"
-                                disabled={sendingInvite || !selectedContact.email}
-                                onClick={handleSendAccountLinkInvitation}
-                            >
-                                {sendingInvite
-                                    ? "Sending invitation..."
-                                    : "Send account-link invitation"}
-                            </Button>
-                        </div>
-                    )}
-
                     <ConversationPanel
                         selectedContact={selectedContact}
                         conversation={conversation}
@@ -373,6 +327,60 @@ data-tour="contacts-documents"
                         onDeleteMessage={onDeleteMessage}
                         onDeleteConversation={onDeleteConversation}
                     />
+
+                    {selectedContact && (
+                        <Accordion className="mt-3" defaultActiveKey="0">
+                            <Accordion.Item eventKey="0">
+                                <Accordion.Header>Contact Details</Accordion.Header>
+                                <Accordion.Body>
+                                    <ContactSummaryCard
+data-tour="contacts-summary"
+                                        selectedContact={selectedContact}
+                                        conversation={conversation}
+                                        emailMessages={emailMessages}
+                                    />
+                                    <div className="d-flex flex-wrap gap-2 mt-2">
+                                        <Button
+                                            size="sm"
+                                            variant="success"
+                                            onClick={() =>
+                                                navigate("/booking", {
+                                                    state: {
+                                                        customer: {
+                                                            first_name: selectedContact.firstName || "",
+                                                            last_name: selectedContact.lastName || "",
+                                                            phone: selectedContact.phone || "",
+                                                            email: selectedContact.email || "",
+                                                        },
+                                                    },
+                                                })
+                                            }
+                                        >
+                                            Book Appointment
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline-primary"
+                                            disabled={sendingInvite || !selectedContact.email}
+                                            onClick={handleSendAccountLinkInvitation}
+                                        >
+                                            {sendingInvite ? "Sending..." : "Send Link Invite"}
+                                        </Button>
+                                    </div>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                            <Accordion.Item eventKey="1">
+                                <Accordion.Header>Documents</Accordion.Header>
+                                <Accordion.Body>
+                                    <ContactDocuments
+data-tour="contacts-documents"
+                                        key={selectedContact?._id || "none"}
+                                        contactId={selectedContact?._id}
+                                    />
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        </Accordion>
+                    )}
                 </Col>
 
                 <Col md={4}>

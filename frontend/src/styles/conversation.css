@@ -1,15 +1,8 @@
 .conversation-body {
-  min-height: 340px;
-  max-height: 380px;
+  min-height: 180px;
+  max-height: 300px;
   overflow-y: auto;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, #f5f9ff 100%);
-  padding: 1.25rem;
-}
-.conversation-body {
-  min-height: 500px;
-  max-height: 500px;
-  overflow-y: auto;
-  background: #f9fbfd;
   padding: 1rem;
 }
 
