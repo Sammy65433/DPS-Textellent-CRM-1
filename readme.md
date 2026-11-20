@@ -1,206 +1,128 @@
-
-https://dps-textellent-frontend.onrender.com
-
-````md
 # DPS Textellent CRM
 
-A staff-facing CRM and outreach platform for DPS Professional Tax Services. It manages contacts, SMS and email conversations, templates, campaigns, analytics, and appointments.
+A staff-facing CRM and outreach platform for DPS Professional Tax Services. Manages contacts, SMS/email conversations, templates, campaigns, analytics, appointments, and more.
 
+**Live:** https://www.dps-crm.com
 
-The CRM is a separate application from the public DPS website. The DPS booking backend stores appointments in Supabase; the CRM backend stores CRM data in MongoDB.
-
-## Tech stack
+## Tech Stack
 
 | Layer | Technology |
 | --- | --- |
-| CRM frontend | React, Vite, React Router, React Bootstrap, React Icons, Recharts, CSS |
-| CRM backend | Node.js, Express, MongoDB, Mongoose, JWT |
-| DPS booking backend | Node.js, Express, Supabase |
+| Frontend | React, Vite, React Router, React Bootstrap, React Icons, Recharts, CSS |
+| Backend | Node.js, Express, MongoDB (Mongoose), JWT |
 | Email | Resend |
-| SMS | Twilio integration; mock SMS mode used during development |
+| AI | Groq (LLM) |
 | Hosting | Render |
 
-## Applications and URLs
+## Applications & URLs
 
-- Public DPS website: `https://www.dpstaxpro.com`
-- DPS booking API: `https://dps-final-tax-website.onrender.com`
-- CRM frontend: `https://dps-textellent-frontend.onrender.com`
-- CRM backend: use the current URL shown on the CRM backend Render service. Verify it before updating frontend environment variables.
+- Public DPS website: https://www.dpstaxpro.com
+- DPS booking API: https://dps-final-tax-website.onrender.com
+- CRM frontend: https://www.dps-crm.com
+- CRM backend: https://dps-crm-1.onrender.com
 
-The CRM frontend is a Render Static Site with a rewrite from `/*` to `/index.html`, allowing React Router pages such as `/login` and `/setup-password` to open directly.
-
-## Current functionality
+## Features
 
 ### Dashboard
+- Contact, message, template, campaign, and email counts
+- Today's appointments and this week's bookings
+- New client signups alert (last 7 days)
+- AI Follow-Up Suggestions (AI analyzes contacts, suggests actions)
+- AI Revenue Insights (trends, busy periods, top services, recommendations)
+- Front-page booking messages (with delete + bulk select)
+- Quick Actions dropdown
 
-- Contact, SMS, email, template, and campaign summaries.
-- Today's active appointment count from the staff-protected appointment endpoint.
-- Link to the Booking calendar.
-- Chart showing communication activity and scheduled appointments.
-- Recent messages and emails.
-- Quick actions and follow-up prompts.
+### Contacts
+- Add/edit/delete contacts; dedicated Add Contact page
+- Textellent-style table view (columns, search, filter, bulk select)
+- Filter by status (Active/Inactive/Recent), tags, and contact lists
+- Import contacts from CSV (phone column required)
+- Custom fields (key/value pairs)
+- Contact lists (group contacts, filter by list)
+- AI Search (natural language), AI Summary (save to notes), Suggest Tags
+- Send SMS/Email, book appointments, send account-link invitations
+- Conversation history, documents, AI smart replies
+- Notes with suggested note chips
 
-The chart counts communications by message/email creation date and appointments by scheduled appointment date. These are different measures.
+### Templates
+- Create/edit/delete templates with placeholders ({{firstName}}, {{lastName}}, {{fullName}}, {{companyName}}, {{companyPhone}}, {{companyEmail}}, {{companyAddress}}, {{companyWebsite}})
+- AI Generate Template from a goal
+- Company info (DPS) reference panel
+- Action buttons: Use for Campaign, Send as SMS, Send as Email, Booking Reminder, Edit, Delete
 
-### Staff Booking calendar
+### Text Blasts (Campaigns)
+- Create SMS/email/both campaigns to selected contacts
+- AI Generate Copy from a goal + audience + tone
+- Edit campaign (name, type, status, subject, template, body, scheduled time)
+- Schedule campaigns; delete campaigns
+- Search and filter (All/Active/Inactive/Recent)
+- Recurring Campaigns + View Templates links
 
-- Month view with active appointment counts on each day.
-- Calendar on the left and booking controls on the right on wider screens.
-- Selected-day and All Appointments views.
-- Available-time lookup by date, preparer, and appointment length.
-- Create bookings for customers.
-- Edit service, preparer, date, time, and duration on existing bookings.
-- Staff edits can use 15-, 30-, or 60-minute durations. Public booking currently offers 30 or 60 minutes.
-- Cancel an appointment after a confirmation prompt.
-- Customer update and cancellation emails were tested.
-- Add an appointment customer to CRM Contacts, with duplicate checking.
-- Personal and group campaign buttons currently **only navigate and pass appointment IDs**. They do not create recipient-ready drafts or send campaigns.
+### Emails
+- View and send individual emails to contacts
+- AI Generate Email (subject + body from goal)
+- AI Suggest Replies based on email history
+- AI Summary of contact's email thread (save to notes)
+- Templates support; delete emails/conversations
 
-Appointment details are loaded through a CRM backend endpoint protected by login and staff-role checks. The CRM backend uses a server-only key to call the DPS backend. Do not put this key in frontend code.
+### Media Library
+- Upload images/PDFs (max 5MB)
+- Grid view with image previews
+- Search by name/filename
+- Delete files; reference by URL
 
-Staff appointment IDs are MongoDB ObjectIds (24-character hex strings). The CRM backend validates staff appointment routes with the ObjectId pattern and passes the ID through to the DPS backend unchanged.
+### Drip Campaigns
+- Multi-step timed email sequences
+- Each step: delay (days), subject, body; placeholders supported
+- AI Generate per step + template selector
+- Load sample drip (3-step welcome series)
+- Enroll contacts; background scheduler sends emails automatically
+- View/delete campaigns
 
-### Customer appointment management
+### Automations
+- Out-of-Office Responder (date range + SMS/Email messages)
+- After-Hours Responder (time window + SMS/Email messages)
+- Birthday Greeting (daily at 9 AM ET, SMS/Email)
+- Channels: SMS only, Email only, or SMS + Email
 
-The public DPS website has a separate, private **Manage My Appointment** page linked from a customer's booking email. Its expiring link lets the customer view and change only their appointment, including service, preparer, date, time, and 30- or 60-minute duration, or cancel it.
+### Analytics (Reports)
+- Tabs: Dashboard, Messages, Text Blast, Automations, Auto Responders
+- KPIs: Booked, Confirmed, Cancelled, Contacts, Campaigns, SMS, Emails, Templates
+- Charts: appointments by date, by service, by preparer, SMS/email activity
+- Date range filter (7/30/90 days)
+- AI Revenue Insights with priority + recommendations
 
-The DPS Supabase database has an `appointments_no_overlap` exclusion constraint to prevent overlapping active appointments for the same preparer. The DPS backend handles overlap conflicts for booking, staff edits, and customer rescheduling. Keep private manage links out of screenshots and logs.
+### Booking
+- Full calendar (Day/Week/Month views)
+- Create/edit/cancel appointments (tax + realty)
+- AI Schedule (natural language → auto-fill + auto-book)
+- Find existing contact + auto-fill client details
+- Block out time (lunch, meetings)
+- 15-min slot increments, dynamic office hours
+- Notes field with suggested note chips
+- Color-coded by preparer; real estate in teal
 
-### Contacts and communication
+### Staff Management (Admin)
+- Invite staff (email + one-time setup link, 24h expiry)
+- Deactivate/reactivate accounts; cannot deactivate self
+- Role-based access (admin/staff)
 
-- Create, search, tag-filter, edit, and delete contacts.
-- Confirmation prompt before deleting a contact.
-- View SMS and email history by contact.
-- Send individual SMS and emails.
-- Reusable templates with contact-name placeholders.
-- Import appointment customer details into Contacts through a staff-protected route.
+### Help
+- Comprehensive guides for every CRM feature (icons + cards)
 
-Importing a customer into Contacts **does not establish marketing consent**.
+### Settings
+- Account and app settings, theme toggle
 
-### Campaigns
+### Onboarding Tour
+- Each page has a guided tour; click ? button anytime
 
-- Create campaigns for selected CRM contacts using a template.
-- SMS, email, and combined channel options in the UI and send handler.
-- Search and tag-filter contacts; select individuals or all filtered contacts.
-- Preview a campaign before sending.
-- Email-only sending was tested.
-- SMS was tested in **mock mode**, not as a live Twilio production send.
-- Campaign scheduling fields and a scheduler exist, but production scheduling, delivery reporting, consent, and opt-out behavior require further testing and safeguards.
+### AI Chat (DPS CRM Assistant)
+- Ask anything about the CRM; knows all features
 
-Do not treat a campaign's `sent` status as proof every recipient received it. The current send flow needs improved per-recipient error handling.
+## Tech Stack Details
 
-### Analytics
-
-- Booking counts and trends by scheduled date, service, and preparer.
-- Contact-added and campaign-sent date-range summaries.
-- SMS, email, template, and campaign-status summaries.
-- Some timestamps and counts are approximations. Reschedule history and campaign-to-booking attribution are not recorded.
-
-### Login and staff onboarding
-
-- JWT-based CRM login with `staff` and `admin` roles.
-- Public registration is disabled.
-- Admin-only staff invitation form.
-- One-time, expiring password-setup link sent to an invited email address.
-- Invited users set their own password; accounts become active after setup.
-- Login checks `active: true`.
-- Staff invitation flow was tested end to end using a test email.
-- A staff user was confirmed unable to access `/staff` directly.
-- A staff request to `POST /api/admin/staff` returned **403 Admin access required**. The backend role check, not the hidden nav link, protects invitation creation.
-
-## Project structure
-
-```text
-frontend/
-  src/
-    api/
-    components/
-    handlers/
-    pages/
-    styles/
-backend/
-  config/
-  controllers/
-  middleware/
-  models/
-  routes/
-  services/
-```
-
-The public DPS website and its booking backend are separate from this repository.
-
-## Environment variables
-
-Example CRM frontend development variables:
-
-```env
-VITE_API_URL=http://localhost:5002
-VITE_DPS_API_URL=https://dps-final-tax-website.onrender.com
-```
-
-For the deployed CRM frontend, `VITE_API_URL` must point to the **deployed CRM backend**, not localhost. Check its current Render URL before setting this value.
-
-The CRM backend needs its MongoDB connection, JWT secret, Resend configuration, CRM frontend URL, and DPS server-to-server connection configured in its backend environment. `DPS_STAFF_API_KEY` must match the value configured on the DPS backend.
-
-**Never put backend credentials in a `VITE_` variable, a frontend `.env`, this README, screenshots, or Git.**
-
-## Local development
-
-1. Install dependencies separately in `backend/` and `frontend/`.
-2. Configure local environment files without committing them.
-3. Start the CRM backend and frontend separately.
-4. Test login, the staff appointment proxy, and booking before making broader changes.
-5. Run `npm run build` in `frontend/` before pushing.
-
-The production frontend is deployed from GitHub to Render. A local change does not affect the live site until committed, pushed, and deployed.
-
-## Security and operational limitations
-
-1. **CRM route scoping:** Contact, campaign, message, and email endpoints still need consistent authentication and user/organization scoping. Some existing flows use a browser-supplied `userId: "user123"`. Do not treat this as production-safe multi-user isolation.
-2. **Marketing consent:** Store separate SMS and email consent and opt-out state, and enforce it server-side before sending or scheduling campaigns. A booking or contact import is not marketing consent.
-3. **Campaign accuracy:** Remove the ability to manually label a campaign `sent`. Track actual successes, failures, and skipped recipients; avoid duplicate sends on retry.
-4. **Calendar-to-campaign flow:** Resolve selected appointment IDs to distinct CRM contacts, verify channel-specific consent, and create a draft before enabling personal or group campaign scheduling.
-5. **Audit logs:** Record which authenticated staff user creates, edits, or cancels an appointment, with timestamps and appropriate before/after details.
-6. **Booking hours:** Align the public form, customer manage page, staff calendar, and backend with approved tax-season and off-season hours.
-7. **Secrets:** An earlier staff API key was exposed and rotated. Confirm old credentials are unusable and check Git history for exposed values. `.gitignore` does not erase Git history.
-8. **Dependencies:** Review the high-severity npm audit finding. Test dependency fixes before deploying; do not apply breaking updates blindly.
-9. **Private links:** Customer appointment-management URLs contain access tokens. Never put them in public logs, screenshots, or campaign templates.
-
-## Next recommended work
-
-1. Secure and scope CRM contact, campaign, message, and email routes for multiple staff users.
-2. Add marketing consent and opt-out enforcement before production campaign sending.
-3. Make campaign send results reliable, including per-recipient failures and retry protection.
-4. Complete the calendar-to-campaign draft workflow; do not send directly from appointment selections.
-5. Add staff audit logs.
-6. Finalize seasonal booking hours across the DPS site and both backends.
-7. Review production SMS/Twilio compliance before enabling real SMS.
-
-## Recent fixes applied
-
-- Staff appointment update/cancel routes now validate MongoDB ObjectId format (`/^[0-9a-fA-F]{24}$/i`) instead of numeric-only IDs, resolving the `Invalid appointment ID` error.
-- Staff appointment lookups now compare IDs as strings against MongoDB ObjectId values.
-- Customer document upload flow now sends the correct customer JWT via the backend.
-- Staff document metadata/download proxy flow is intact through the DPS backend staff key.
-
-## Status update
-
-Working and tested: admin/staff JWT login; admin-only staff invitation with expiring password-setup link; staff account setup and login; staff blocked from /staff and received backend 403 on POST /api/admin/staff; staff Booking calendar with create/edit/cancel, customer emails, and Add to Contacts; customer private Manage My Appointment page; Supabase no-overlap constraint; dashboard and analytics; email-only test campaign. SMS is currently mock mode.
-
-Current next priority: secure and scope CRM contact/campaign/message/email routes. Existing code sometimes trusts browser-supplied userId "user123". Then implement channel-specific marketing consent/opt-outs and reliable campaign results. Calendar Personal/Group Campaign buttons currently only navigate with appointment IDs; they do not select eligible contacts or send anything. Keep marketing consent separate from booking.
-````
-
-
-
-```text
-I am building DPS Textellent CRM, a separate React/Vite frontend and Express/MongoDB backend connected to the DPS website's Express/Supabase booking backend. The CRM and DPS site are deployed on Render.
-
-Working and tested: admin/staff JWT login; admin-only staff invitation with expiring password-setup link; staff account setup and login; staff blocked from /staff and received backend 403 on POST /api/admin/staff; staff Booking calendar with create/edit/cancel, customer emails, and Add to Contacts; customer private Manage My Appointment page; Supabase no-overlap constraint; dashboard and analytics; email-only test campaign. SMS is currently mock mode.
-
-Recent security work: DPS_STAFF_API_KEY was exposed and rotated in both backends. git ls-files frontend/.env returned no output, so that file is not tracked in the current commit. Do not paste or log new secrets or private manage links.
-
-Current next priority: secure and scope CRM contact/campaign/message/email routes. Existing code sometimes trusts browser-supplied userId "user123". Then implement channel-specific marketing consent/opt-outs and reliable campaign results. Calendar Personal/Group Campaign buttons currently only navigate with appointment IDs; they do not select eligible contacts or send anything. Keep marketing consent separate from booking.
-
-Relevant CRM files include frontend/src/App.jsx, components/AppLayout.jsx, components/Booking.jsx, pages/StaffManagementPage.jsx, pages/SetupPasswordPage.jsx, backend/controllers/authController.js, staffController.js, contactsController.js, backend/middleware/authMiddleware.js, backend/server.js, and backend/models/User.js. Preserve working routes and test one stage at a time.
-```
-
+- **Frontend:** React, Vite, React Router, React Bootstrap, React Icons, Recharts
+- **Backend:** Node.js, Express, MongoDB (Mongoose), JWT, CORS
+- **Email:** Resend
+- **AI:** Groq (LLM)
+- **Hosting:** Render (static site + web service)
