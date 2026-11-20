@@ -81,12 +81,15 @@ const TOURS = {
     { selector: null, title: "Done! 🎉", text: "Media files can be referenced in email/campaign bodies by their URL." },
   ],
   "/drip-campaigns": [
-    { selector: null, title: "Drip Campaigns", text: "Create timed email sequences (drips) that send automatically to enrolled contacts at scheduled intervals." },
-    { selector: null, title: "Create", text: "Name your drip, add steps (each with a delay in days, subject, and body). Use {{firstName}}/{{lastName}} placeholders. Enroll contacts from the list." },
-    { selector: null, title: "AI Generate", text: "Use the 'AI Generate Step' panel to have AI draft a subject + body for any step from a goal description." },
-    { selector: null, title: "Templates", text: "Each step has a 'Use a template' dropdown to pull in an existing template's body." },
-    { selector: null, title: "Enroll", text: "Select contacts to enroll. The scheduler sends emails automatically based on each step's delay and advances to the next step." },
-    { selector: null, title: "Done! 🎉", text: "Drip campaigns run in the background. Check the list for status and step counts." },
+    { selector: null, title: "Drip Campaigns 📧", text: "Create timed email sequences (drips) that send automatically to enrolled contacts at scheduled intervals. Great for welcome series, follow-ups, and re-engagement." },
+    { selector: null, title: "Step 1 — Name it", text: "Enter a clear campaign name (e.g., 'Welcome Series' or 'April 15 Reminder'). This is for your reference only." },
+    { selector: null, title: "Step 2 — Add Steps", text: "Each step is one email. Set the delay in days (0 = send immediately on enrollment, 3 = wait 3 days, etc.), then write a subject and body. Use {{firstName}}, {{lastName}}, {{fullName}}, {{companyName}}, {{companyPhone}} placeholders — they auto-fill per contact." },
+    { selector: null, title: "Step 3 — Use a Template", text: "Each step has a 'Use a template' dropdown. Pick an existing template to auto-fill the body, then tweak as needed." },
+    { selector: null, title: "Step 4 — AI Generate", text: "Use the 'AI Generate Step' panel: pick a step number, type a goal (e.g., 'welcome new clients and ask them to upload documents'), click Generate. AI fills that step's subject + body. Review and edit before saving." },
+    { selector: null, title: "Step 5 — Enroll Contacts", text: "Check the contacts you want to enroll. They must have an email address. Click 'Create & Enroll' to start the drip." },
+    { selector: null, title: "How it runs", text: "The scheduler checks every minute. When a step's delay has passed, it sends the email and advances to the next step. When all steps are done, the enrollment completes. Drips run in the background — you don't need to be logged in." },
+    { selector: null, title: "Tips", text: "Start with delay 0 for the first email (immediate welcome), then 3-7 days for follow-ups. Keep bodies under 500 chars for best deliverability. Test on yourself first." },
+    { selector: null, title: "Done! 🎉", text: "Drip campaigns help you stay in touch automatically. Check the list for status and step progress." },
   ],
 };
 

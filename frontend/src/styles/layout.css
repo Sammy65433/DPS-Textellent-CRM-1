@@ -262,3 +262,51 @@ button.logout-btn {
 .crm-navbar .dropdown-toggle {
   white-space: nowrap;
 }
+
+/* ---- CRM Menu Dropdown polish ---- */
+.crm-navbar .dropdown-menu {
+  border: 1px solid rgba(15, 92, 84, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 92, 84, 0.18);
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.crm-navbar .dropdown-item {
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: #1f2937;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.crm-navbar .dropdown-item:hover,
+.crm-navbar .dropdown-item:focus {
+  background: linear-gradient(135deg, rgba(15, 92, 84, 0.12), rgba(110, 66, 168, 0.12));
+  color: #0f5c54;
+  transform: translateX(2px);
+}
+
+.crm-navbar .dropdown-item svg {
+  color: #6e42a8;
+}
+
+.crm-navbar .dropdown-divider {
+  margin: 0.35rem 0;
+  border-color: rgba(15, 92, 84, 0.15);
+}
+
+[data-theme="dark"] .crm-navbar .dropdown-menu {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(110, 66, 168, 0.3);
+}
+
+[data-theme="dark"] .crm-navbar .dropdown-item {
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .crm-navbar .dropdown-item:hover {
+  background: linear-gradient(135deg, rgba(15, 92, 84, 0.25), rgba(110, 66, 168, 0.25));
+  color: #5eead4;
+}

@@ -104,7 +104,17 @@ function AppLayout({ children, theme, onToggleTheme }) {
           <Navbar.Collapse id="crm-navbar-menu">
             <Nav className="ms-auto align-items-lg-center">
               <Dropdown align="end">
-                <Dropdown.Toggle variant="outline-light" size="sm" id="crm-menu-dropdown">
+                <Dropdown.Toggle
+                  variant="primary"
+                  size="sm"
+                  id="crm-menu-dropdown"
+                  style={{
+                    background: "linear-gradient(135deg, #0f5c54, #6e42a8)",
+                    border: "none",
+                    fontWeight: 700,
+                    boxShadow: "0 4px 12px rgba(15,92,84,0.35)",
+                  }}
+                >
                   ☰ Menu
                 </Dropdown.Toggle>
                 <Dropdown.Menu>

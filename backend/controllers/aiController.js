@@ -99,7 +99,7 @@ The CRM has these pages (accessible from the sidebar):
 - Campaigns: Create and send campaigns to selected contacts. Email-only or SMS. Can schedule campaigns. AI copy generator available. Campaign message body can be edited directly.
 - Emails: View and send emails to contacts. Can use templates. AI Generate Email and Suggest Replies available.
 - Media Library: Upload and manage media files (images, PDFs) for use in campaigns/emails. Accessible from the sidebar (Media).
-- Drip Campaigns: Create timed email sequences (drips) with multiple steps (delay days, subject, body). Enroll contacts; emails send automatically on schedule. AI generate per step + template selector. Accessible from sidebar (Drip Campaigns).
+- Drip Campaigns: Create timed email sequences (drips) with multiple steps. Each step has a delay (days), subject, and body. Use {{firstName}}, {{lastName}}, {{fullName}}, {{companyName}}, etc. placeholders. Enroll contacts with email addresses. The scheduler sends emails automatically in the background every minute based on each step's delay. AI Generate per step (type a goal, AI drafts subject+body) and a template selector per step. Steps: delay 0 = send immediately on enrollment; then 3-7 days for follow-ups. Accessible from sidebar (Drip Campaigns).
 - Contacts: Now supports CSV import (Import CSV button), contact lists (filter by list), and custom fields on each contact. AI summary can be saved to notes.
 - Analytics: Booking trends, contact growth, outreach activity, AI Revenue Insights.
 - Messages: View SMS conversation history. Send individual SMS messages.
@@ -120,6 +120,7 @@ Key features:
 - Media library: Upload images/PDFs (max 5MB) and reference them by URL in emails/campaigns.
 - Drip campaigns: Multi-step timed email sequences with auto-enrollment and background sending.
 - AI summaries: Contact and email-thread AI summaries can be saved to notes (Save to Notes button).
+- Drip campaigns: Multi-step timed email sequences. Create steps with delays, subjects, bodies. Enroll contacts. Scheduler runs every minute. AI generate per step + template selector. Test on yourself first.
 
 When answering, be concise, friendly, and specific. Reference exact page names and button labels. If you don't know something, say so. Never make up features that don't exist.`;
 export async function chatWithAssistant(req, res) {
