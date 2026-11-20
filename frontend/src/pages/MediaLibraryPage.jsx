@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Card, Col, Row, Spinner } from "react-bootstrap";
-import { FaTrash, FaUpload } from "react-icons/fa";
+import { FaSearch, FaTrash, FaUpload } from "react-icons/fa";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import { fetchMedia, uploadMedia, deleteMedia } from "../api/api";
@@ -10,6 +10,7 @@ function MediaLibraryPage({ theme, onToggleTheme, alert }) {
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState("");
+    const [search, setSearch] = useState("");
 
     async function load() {
         setLoading(true);
@@ -60,13 +61,29 @@ function MediaLibraryPage({ theme, onToggleTheme, alert }) {
 
     const apiUrl = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
+    const filtered = media.filter((m) => {
+        const q = search.toLowerCase().trim();
+        if (!q) return true;
+        return (m.filename || "").toLowerCase().includes(q);
+    });
+
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <PageHeader title="Media Library" subtitle="Upload and manage media files for campaigns and emails." />
             {alert && <Alert variant={alert.variant}>{alert.message}</Alert>}
             {error && <Alert variant="danger">{error}</Alert>}
 
-            <div className="mb-3">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div className="d-flex align-items-center gap-2">
+                    <FaSearch className="text-muted" />
+                    <Form.Control
+                        size="sm"
+                        placeholder="Search by name or filename..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        style={{ maxWidth: 260 }}
+                    />
+                </div>
                 <label className="btn btn-primary btn-sm" style={{ cursor: "pointer" }}>
                     <FaUpload className="me-2" />
                     {uploading ? "Uploading..." : "Upload File"}
@@ -77,16 +94,15 @@ function MediaLibraryPage({ theme, onToggleTheme, alert }) {
                         onChange={handleUpload}
                     />
                 </label>
-                <span className="small text-muted ms-2">Max 5MB per file.</span>
             </div>
 
             {loading ? (
                 <Spinner animation="border" />
-            ) : media.length === 0 ? (
-                <p className="text-muted">No media files yet.</p>
+            ) : filtered.length === 0 ? (
+                <p className="text-muted">No media files found.</p>
             ) : (
                 <Row className="g-3">
-                    {media.map((m) => (
+                    {filtered.map((m) => (
                         <Col md={3} key={m._id}>
                             <Card className="crm-card border-0">
                                 <Card.Body className="p-2">
