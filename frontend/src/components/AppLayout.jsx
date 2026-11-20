@@ -100,7 +100,6 @@ function AppLayout({ children, theme, onToggleTheme }) {
         <NavItem to="/dashboard" icon={FaColumns} label="Dashboard" end />
         <NavItem to="/contacts" icon={FaUsers} label="Contacts" />
         <NavItem to="/templates" icon={FaFileAlt} label="Templates" />
-        <NavItem to="/campaigns" icon={FaBullhorn} label="Campaigns" />
         <NavItem to="/emails" icon={FaEnvelope} label="Emails" />
 
         {sidebarOpen && <div className="crm-sidebar__section">ACCELERATE</div>}
@@ -117,6 +116,7 @@ function AppLayout({ children, theme, onToggleTheme }) {
           </button>
           {autoOpen && sidebarOpen && (
             <div className="sidebar-dropdown-items">
+              <NavItem to="/campaigns" icon={FaBullhorn} label="Campaigns" />
               <NavItem to="/drip-campaigns" icon={FaPaperPlane} label="Drip Campaigns" />
               <NavItem to="/automations" icon={FaClock} label="Birthday Greeting" />
               <NavItem to="/automations" icon={FaClock} label="Out-of-Office" />
