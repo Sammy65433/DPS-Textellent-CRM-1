@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, Form, Button } from "react-bootstrap";
 
 function AddContactForm({
@@ -7,6 +8,29 @@ function AddContactForm({
     isEditing,
     onCancelEdit,
 }) {
+    const [cfKey, setCfKey] = useState("");
+    const [cfValue, setCfValue] = useState("");
+
+    function addCustomField() {
+        const key = cfKey.trim();
+        const value = cfValue.trim();
+        if (!key) return;
+        setContactForm((prev) => ({
+            ...prev,
+            customFields: { ...(prev.customFields || {}), [key]: value },
+        }));
+        setCfKey("");
+        setCfValue("");
+    }
+
+    function removeCustomField(key) {
+        setContactForm((prev) => {
+            const next = { ...(prev.customFields || {}) };
+            delete next[key];
+            return { ...prev, customFields: next };
+        });
+    }
+
     return (
         <Card className="crm-card page-panel-contacts border-0 shadow-sm mb-4">
             <Card.Header className="card-header-clean">
@@ -99,6 +123,36 @@ function AddContactForm({
                                 {tip}
                             </button>
                         ))}
+                    </div>
+
+                    <div className="mb-3">
+                        <div className="fw-semibold small mb-1">Custom Fields</div>
+                        {Object.entries(contactForm.customFields || {}).map(([k, v]) => (
+                            <div key={k} className="d-flex gap-2 mb-1 align-items-center">
+                                <Form.Control size="sm" value={k} readOnly />
+                                <Form.Control size="sm" value={v} readOnly />
+                                <Button size="sm" variant="outline-danger" onClick={() => removeCustomField(k)}>
+                                    ×
+                                </Button>
+                            </div>
+                        ))}
+                        <div className="d-flex gap-2">
+                            <Form.Control
+                                size="sm"
+                                placeholder="Field name"
+                                value={cfKey}
+                                onChange={(e) => setCfKey(e.target.value)}
+                            />
+                            <Form.Control
+                                size="sm"
+                                placeholder="Value"
+                                value={cfValue}
+                                onChange={(e) => setCfValue(e.target.value)}
+                            />
+                            <Button size="sm" variant="outline-primary" onClick={addCustomField}>
+                                Add
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="d-flex gap-2">

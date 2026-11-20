@@ -29,6 +29,7 @@ function contactFields(body = {}) {
     tags: String(body.tags ?? "").trim(),
     notes: String(body.notes ?? "").trim(),
     birthday,
+    customFields: (body.customFields && typeof body.customFields === "object") ? body.customFields : undefined,
   };
 }
 
@@ -96,6 +97,9 @@ export async function updateContact(req, res) {
   const update = { ...fields };
   if (req.body?.birthday === undefined) {
     delete update.birthday;
+  }
+  if (fields.customFields === undefined) {
+    delete update.customFields;
   }
 
   try {
@@ -234,4 +238,116 @@ export async function importAppointmentContact(req, res) {
       message: "Could not import appointment contact.",
     });
   }
+}
+
+// --- CSV import ---
+function parseCsv(text) {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
+  if (lines.length === 0) return [];
+  // parse header
+  const parseLine = (line) => {
+    const result = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        result.push(current);
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current);
+    return result.map((v) => v.trim());
+  };
+
+  const header = parseLine(lines[0]).map((h) => h.toLowerCase());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseLine(lines[i]);
+    const obj = {};
+    header.forEach((h, idx) => {
+      obj[h] = values[idx] ?? "";
+    });
+    rows.push(obj);
+  }
+  return { header, rows };
+}
+
+export async function importContacts(req, res) {
+  const csv = String(req.body?.csv ?? "");
+  if (!csv.trim()) {
+    return res.status(400).json({ error: "CSV content is required." });
+  }
+
+  const { header, rows } = parseCsv(csv);
+  if (!header || header.length === 0) {
+    return res.status(400).json({ error: "CSV must include a header row." });
+  }
+
+  const hasPhone = header.includes("phone");
+  if (!hasPhone) {
+    return res.status(400).json({ error: "CSV must include a 'phone' column." });
+  }
+
+  let created = 0;
+  let skipped = 0;
+  const errors = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const fields = {
+      firstName: row.firstname || row.first_name || row["first name"] || "",
+      lastName: row.lastname || row.last_name || row["last name"] || "",
+      phone: String(row.phone || "").replace(/\D/g, ""),
+      email: String(row.email || "").trim().toLowerCase(),
+      tags: row.tags || "",
+      notes: row.notes || "",
+      birthday: row.birthday || "",
+    };
+
+    const validationError =
+      !/^\d{7,15}$/.test(fields.phone)
+        ? "Invalid phone"
+        : !fields.email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)
+          ? null
+          : "Invalid email";
+
+    if (validationError && validationError !== null) {
+      errors.push({ row: i + 2, error: validationError });
+      skipped++;
+      continue;
+    }
+
+    // also validate email length
+    if (fields.email.length > 254) {
+      errors.push({ row: i + 2, error: "Email too long" });
+      skipped++;
+      continue;
+    }
+
+    try {
+      // skip duplicates by phone
+      const existing = await Contact.findOne({ userId: DPS_CONTACT_SCOPE, phone: fields.phone });
+      if (existing) {
+        skipped++;
+        continue;
+      }
+      await Contact.create({ ...fields, userId: DPS_CONTACT_SCOPE });
+      created++;
+    } catch (error) {
+      errors.push({ row: i + 2, error: error.message });
+      skipped++;
+    }
+  }
+
+  return res.status(200).json({ created, skipped, total: rows.length, errors });
 }

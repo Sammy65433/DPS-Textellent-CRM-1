@@ -8,6 +8,7 @@ import {
   FaFileAlt,
   FaBullhorn,
   FaEnvelope,
+  FaImage,
   FaChartBar,
   FaSignOutAlt,
   FaUserShield,
@@ -150,6 +151,16 @@ function AppLayout({ children, theme, onToggleTheme }) {
               >
                 <FaEnvelope className="me-2" />
                 Emails
+              </Nav.Link>
+
+              <Nav.Link
+                as={NavLink}
+                to="/media"
+                className="nav-router-link"
+                onClick={closeMenu}
+              >
+                <FaImage className="me-2" />
+                Media
               </Nav.Link>
 
               <Nav.Link

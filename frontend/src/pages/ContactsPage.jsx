@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Accordion, Alert, Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
@@ -8,7 +8,7 @@ import ContactSummaryCard from "../components/ContactSummaryCard";
 import ContactDocuments from "../components/ContactDocuments";
 import ConversationPanel from "../components/ConversationPanel";
 import AddContactForm from "../components/AddContactForm";
-import { naturalLanguageSearch } from "../api/api";
+import { naturalLanguageSearch, importContacts, fetchContactLists, createContactList, deleteContactList } from "../api/api";
 
 function ContactsPage({
     theme,
@@ -40,6 +40,10 @@ function ContactsPage({
     const [aiSearchLoading, setAiSearchLoading] = useState(false);
     const [aiSearchResult, setAiSearchResult] = useState(null);
     const [activeTag, setActiveTag] = useState("");
+    const [contactLists, setContactLists] = useState([]);
+    const [activeList, setActiveList] = useState("");
+    const [importing, setImporting] = useState(false);
+    const fileInputRef = useRef(null);
     const [contactStatusFilter, setContactStatusFilter] = useState("all");
     const [sendingInvite, setSendingInvite] = useState(false);
     const [inviteFeedback, setInviteFeedback] = useState(null);
@@ -58,6 +62,31 @@ function ContactsPage({
         }
     }, [location.state?.templateId, templates]);
 
+    useEffect(() => {
+        fetchContactLists()
+            .then((data) => setContactLists(Array.isArray(data) ? data : []))
+            .catch(() => setContactLists([]));
+    }, []);
+
+    async function handleImportCsv(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setImporting(true);
+        try {
+            const text = await file.text();
+            const result = await importContacts(text);
+            alert(`Imported ${result.created} contacts (${result.skipped} skipped).`);
+            // reload contacts via parent? ContactsPage doesn't have loadData. 
+            // We'll just reload the page to refresh.
+            window.location.reload();
+        } catch (error) {
+            alert(error.message || "Import failed.");
+        } finally {
+            setImporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    }
+
     const uniqueTags = useMemo(() => {
         const tags = contacts.flatMap((contact) =>
             (contact.tags || "")
@@ -73,6 +102,13 @@ function ContactsPage({
         const search = searchTerm.toLowerCase();
 
         let base = contacts.filter((contact) => {
+            if (activeList) {
+                const list = contactLists.find((l) => l._id === activeList);
+                if (list && Array.isArray(list.contactIds)) {
+                    const idSet = new Set(list.contactIds.map(String));
+                    if (!idSet.has(String(contact._id))) return false;
+                }
+            }
             const fullName =
                 `${contact.firstName || ""} ${contact.lastName || ""}`.toLowerCase();
             const phone = (contact.phone || "").toLowerCase();
@@ -116,7 +152,7 @@ function ContactsPage({
         }
 
         return base;
-    }, [contacts, searchTerm, activeTag, aiSearchResult, contactStatusFilter]);
+    }, [contacts, searchTerm, activeTag, aiSearchResult, contactStatusFilter, activeList, contactLists]);
 
     async function handleSendAccountLinkInvitation() {
         if (!selectedContact?._id || sendingInvite) return;
@@ -281,6 +317,36 @@ function ContactsPage({
                     <option value="inactive">Inactive</option>
                     <option value="recent">Recent</option>
                 </select>
+                <select
+                    className="form-select form-select-sm"
+                    style={{ maxWidth: 180 }}
+                    value={activeList}
+                    onChange={(e) => setActiveList(e.target.value)}
+                >
+                    <option value="">All lists</option>
+                    {contactLists.map((list) => (
+                        <option key={list._id} value={list._id}>
+                            {list.name} ({list.contactIds?.length || 0})
+                        </option>
+                    ))}
+                </select>
+
+                <Button
+                    size="sm"
+                    variant="outline-secondary"
+                    disabled={importing}
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    {importing ? "Importing..." : "📥 Import CSV"}
+                </Button>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv,text/csv"
+                    style={{ display: "none" }}
+                    onChange={handleImportCsv}
+                />
+
                 <Button
                     size="sm"
                     variant={activeTag === "" ? "dark" : "outline-secondary"}

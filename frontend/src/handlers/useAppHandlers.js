@@ -69,6 +69,7 @@ export function useAppHandlers({
             birthday: "",
             tags: "",
             notes: "",
+            customFields: {},
         });
     };
 
@@ -239,6 +240,7 @@ export function useAppHandlers({
               : "",
             tags: contact.tags || "",
             notes: contact.notes || "",
+            customFields: contact.customFields || {},
         });
     };
 

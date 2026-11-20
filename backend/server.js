@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 
 import messageRoutes from "./routes/messages.js";
 import contactRoutes from "./routes/contacts.js";
+import contactListRoutes from "./routes/contactLists.js";
+import mediaRoutes from "./routes/media.js";
 import templateRoutes from "./routes/templates.js";
 import campaignRoutes from "./routes/campaigns.js";
 import aiRoutes from "./routes/aiRoutes.js";
@@ -108,6 +110,8 @@ app.post(
 );
 app.use("/api/messages", messageRoutes);
 app.use("/api/contacts", contactRoutes);
+app.use("/api/contact-lists", contactListRoutes);
+app.use("/api/media", mediaRoutes);
 app.use("/api/staff", staffDocumentRoutes);
 
 // Block time proxy (staff only)

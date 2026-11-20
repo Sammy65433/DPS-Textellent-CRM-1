@@ -58,6 +58,72 @@ export async function deleteContact(contactId) {
   );
 }
 
+export async function importContacts(csv) {
+  return apiResponse(
+    await fetch(`${API}/api/contacts/import`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify({ csv }),
+    })
+  );
+}
+
+export async function fetchContactLists() {
+  return apiResponse(await fetch(`${API}/api/contact-lists`, { headers: staffHeaders() }));
+}
+
+export async function createContactList(name) {
+  return apiResponse(
+    await fetch(`${API}/api/contact-lists`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify({ name }),
+    })
+  );
+}
+
+export async function updateContactList(listId, payload) {
+  return apiResponse(
+    await fetch(`${API}/api/contact-lists/${encodeURIComponent(listId)}`, {
+      method: "PATCH",
+      headers: staffHeaders(true),
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function deleteContactList(listId) {
+  return apiResponse(
+    await fetch(`${API}/api/contact-lists/${encodeURIComponent(listId)}`, {
+      method: "DELETE",
+      headers: staffHeaders(),
+    })
+  );
+}
+
+export async function fetchMedia() {
+  return apiResponse(await fetch(`${API}/api/media`, { headers: staffHeaders() }));
+}
+
+export async function uploadMedia(filename, mimeType, base64) {
+  return apiResponse(
+    await fetch(`${API}/api/media`, {
+      method: "POST",
+      headers: staffHeaders(true),
+      body: JSON.stringify({ filename, mimeType, data: base64 }),
+    })
+  );
+}
+
+export async function deleteMedia(mediaId) {
+  return apiResponse(
+    await fetch(`${API}/api/media/${encodeURIComponent(mediaId)}`, {
+      method: "DELETE",
+      headers: staffHeaders(),
+    })
+  );
+}
+
 export async function fetchContactDocuments(contactId) {
   const data = await apiResponse(
     await fetch(
