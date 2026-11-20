@@ -1158,3 +1158,44 @@
 .dashboard-page-tight .quick-actions-dropdown .dropdown-toggle {
   min-width: 180px;
 }
+
+/* ---- CRM Welcome Hero ---- */
+.crm-welcome-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #0f5c54 0%, #6e42a8 100%);
+    color: #fff;
+    box-shadow: 0 12px 32px rgba(15, 92, 84, 0.25);
+}
+
+.crm-welcome-hero__text h1 {
+    margin: 0 0 0.35rem;
+    font-family: "Poppins", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.crm-welcome-hero__text p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.crm-welcome-hero__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.crm-welcome-hero__actions .btn {
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}

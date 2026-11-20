@@ -313,6 +313,17 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
     return (
         <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
             <div className="dashboard-page-tight">
+            <div className="crm-welcome-hero">
+                <div className="crm-welcome-hero__text">
+                    <h1>Welcome to DPS CRM</h1>
+                    <p>Your command center for contacts, bookings, campaigns, and client communication.</p>
+                </div>
+                <div className="crm-welcome-hero__actions">
+                    <Button variant="light" size="sm" onClick={() => navigate("/contacts")}>Contacts</Button>
+                    <Button variant="light" size="sm" onClick={() => navigate("/booking")}>Booking</Button>
+                    <Button variant="light" size="sm" onClick={() => navigate("/campaigns")}>Campaigns</Button>
+                </div>
+            </div>
             <PageHeader
                 title="Dashboard"
                 subtitle="Overview of contacts, templates, messages, campaigns, and emails."
