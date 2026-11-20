@@ -1,4 +1,6 @@
-import { Card, Badge } from "react-bootstrap";
+import { useState } from "react";
+import { Button, Card, Badge } from "react-bootstrap";
+import { generateContactSummary } from "../api/api";
 import {
     FaUser,
     FaPhone,
@@ -30,6 +32,26 @@ function EmailContactSummaryCard({ selectedContact, emailMessages = [] }) {
     const tagList = selectedContact.tags
         ? selectedContact.tags.split(",").map(tag => tag.trim()).filter(Boolean)
         : [];
+
+    const [summary, setSummary] = useState("");
+    const [loadingSummary, setLoadingSummary] = useState(false);
+
+    async function handleSummary() {
+        if (!selectedContact) return;
+        setLoadingSummary(true);
+        try {
+            const result = await generateContactSummary({
+                contact: selectedContact,
+                messages: [],
+                emails: emailMessages,
+            });
+            setSummary(result.summary || "No summary available.");
+        } catch (error) {
+            setSummary(error.message || "Could not generate summary.");
+        } finally {
+            setLoadingSummary(false);
+        }
+    }
 
     return (
         <Card className="crm-card page-panel-emails-secondary border-0 mb-3">
@@ -94,6 +116,22 @@ function EmailContactSummaryCard({ selectedContact, emailMessages = [] }) {
                                 </div>
                             </div>
                         )}
+
+                        <div className="mb-3">
+                            <Button
+                                size="sm"
+                                variant="outline-primary"
+                                disabled={loadingSummary}
+                                onClick={handleSummary}
+                            >
+                                {loadingSummary ? "Analyzing..." : "✨ AI Summary"}
+                            </Button>
+                            {summary && (
+                                <div className="small text-muted mt-2" style={{ whiteSpace: "pre-wrap" }}>
+                                    {summary}
+                                </div>
+                            )}
+                        </div>
 
                         <div className="contact-activity-box">
                             <div className="fw-semibold d-flex align-items-center gap-2 mb-2">
