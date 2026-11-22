@@ -326,7 +326,8 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
                 <div className="crm-welcome-hero__actions">
                     <Button variant="light" size="sm" onClick={() => navigate("/contacts")}>Contacts</Button>
                     <Button variant="light" size="sm" onClick={() => navigate("/booking")}>Booking</Button>
-                    <Button variant="light" size="sm" onClick={() => navigate("/campaigns")}>Campaigns</Button>
+                    <Button variant="light" size="sm" onClick={() => navigate("/campaigns")}>Text Blasts</Button>
+                    <Button variant="light" size="sm" onClick={() => navigate("/drip-campaigns")}>Drip Campaigns</Button>
                 </div>
             </div>
             <PageHeader
