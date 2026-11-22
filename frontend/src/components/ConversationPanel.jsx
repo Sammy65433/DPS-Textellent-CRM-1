@@ -16,6 +16,7 @@ function ConversationPanel({
 }) {
     const [smartReplies, setSmartReplies] = useState([]);
     const [loadingReplies, setLoadingReplies] = useState(false);
+    const [sentMsg, setSentMsg] = useState("");
 
     async function loadSmartReplies() {
         if (!selectedContact) return;
@@ -128,7 +129,11 @@ function ConversationPanel({
                     </div>
                 )}
 
-                <Form onSubmit={onSendMessage}>
+                {sentMsg && (
+                    <div className="alert alert-success py-1 px-2 small mb-2">{sentMsg}</div>
+                )}
+
+                <Form onSubmit={async (e) => { await onSendMessage(e); setSentMsg("Message sent! ✅"); setTimeout(() => setSentMsg(""), 4000); }}>
                     <Form.Select
                         className="mb-2 template-select-compact"
                         value={messageForm.templateId}

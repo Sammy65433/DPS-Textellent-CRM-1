@@ -214,3 +214,11 @@
 .markdown-spacer {
     height: 0.4rem;
 }
+
+/* ---- Global alert toast (always visible) ---- */
+.alert {
+    position: sticky;
+    top: 0.5rem;
+    z-index: 1050;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}

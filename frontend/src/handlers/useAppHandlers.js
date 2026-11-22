@@ -47,7 +47,7 @@ export function useAppHandlers({
 }) {
     const showAlert = (variant, message) => {
         setAlert({ variant, message });
-        setTimeout(() => setAlert(null), 2500);
+        setTimeout(() => setAlert(null), 4000);
     };
 
     const resetTemplateForm = () => {
