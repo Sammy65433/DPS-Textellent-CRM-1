@@ -198,7 +198,7 @@ export default function Booking({ theme, onToggleTheme }) {
     const [selectedAppointmentIds, setSelectedAppointmentIds] = useState([]);
 
     const [service, setService] = useState("");
-    const [preparer, setPreparer] = useState("");
+    const [preparer, setPreparer] = useState(myPreparer || "");
     const [duration, setDuration] = useState(30);
     const [visitFormat, setVisitFormat] = useState("");
     const [time, setTime] = useState("");
@@ -259,6 +259,12 @@ export default function Booking({ theme, onToggleTheme }) {
     const [appointmentsError, setAppointmentsError] = useState("");
     const [realtyAppointments, setRealtyAppointments] = useState([]);
     const [realtyAppointmentsError, setRealtyAppointmentsError] = useState("");
+
+    const currentUser = (() => {
+        try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
+    })();
+    const isAdmin = currentUser?.role === "admin";
+    const myPreparer = isAdmin ? null : (currentUser?.name || `${currentUser?.firstName || ""} ${currentUser?.lastName || ""}`.trim());
     const [showAll, setShowAll] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -458,7 +464,11 @@ export default function Booking({ theme, onToggleTheme }) {
         }
     }, [editing?.id]);
 
-    const activeAppointments = appointments
+    const scopedAppointments = isAdmin
+        ? appointments
+        : appointments.filter((a) => !myPreparer || a.tax_preparer === myPreparer);
+
+    const activeAppointments = scopedAppointments
         .filter((appointment) =>
             ["booked", "confirmed"].includes(appointment.status)
         )
@@ -474,7 +484,8 @@ export default function Booking({ theme, onToggleTheme }) {
             .filter(
                 (appointment) =>
                     appointment.appointment_date === value &&
-                    ["pending", "confirmed"].includes(appointment.status)
+                    ["pending", "confirmed"].includes(appointment.status) &&
+                    (isAdmin || !myPreparer || (appointment.tax_preparer || "DPS Realty") === myPreparer)
             )
             .map((appointment) => ({
                 ...appointment,
@@ -1710,6 +1721,7 @@ async function sendAccountLinkInvitation(appointment) {
                                             Preparer
                                             <select
                                                 value={preparer}
+                                                disabled={!isAdmin}
                                                 onChange={(event) =>
                                                     setPreparer(event.target.value)
                                                 }
