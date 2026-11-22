@@ -1,6 +1,8 @@
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #eef4ff 0%, #f8fafc 45%, #eef7f5 100%);
+  background:
+    linear-gradient(120deg, rgba(15, 92, 84, 0.82), rgba(49, 22, 97, 0.72)),
+    url("/dps-logo.png") center / cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,11 +16,13 @@
 .login-card {
   max-width: 460px;
   margin: 0 auto;
-  background: #ffffff;
-  border: 1px solid #e5edf4;
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 20px;
   padding: 2rem;
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 16px 35px rgba(18, 27, 39, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .login-icon {
@@ -37,7 +41,8 @@
 
 .login-card h1 {
   text-align: center;
-  color: #0f172a;
+  color: #263b38;
+  font-family: "Libre Baskerville", Georgia, serif;
   font-size: 2rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
@@ -45,7 +50,7 @@
 
 .login-text {
   text-align: center;
-  color: #64748b;
+  color: #334155;
   font-size: 0.98rem;
   line-height: 1.7;
   margin-bottom: 1.5rem;

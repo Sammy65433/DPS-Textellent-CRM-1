@@ -36,9 +36,12 @@ function ResetPasswordPage({ theme, onToggleTheme }) {
     }
 
     return (
-        <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
-            <PageHeader title="Reset Password" subtitle="Set a new password for your CRM account." />
-            <div className="crm-card border-0 p-4" style={{ maxWidth: 480, margin: "0 auto" }}>
+        <section className="section login-page">
+            <div className="container">
+            <div className="login-card" style={{ maxWidth: 480, margin: "0 auto" }}>
+                <div className="login-logo-wrap"><img src="/dps-logo.png" alt="DPS" className="login-logo" /></div>
+                <h1 style={{ fontSize: "1.5rem" }}>Reset Password</h1>
+                <p className="login-text">Set a new password for your CRM account.</p>
                 {!token ? (
                     <p className="text-danger">Missing reset token.</p>
                 ) : (
@@ -62,7 +65,8 @@ function ResetPasswordPage({ theme, onToggleTheme }) {
                 )}
                 <Link to="/login">Back to login</Link>
             </div>
-        </AppLayout>
+            </div>
+        </section>
     );
 }
 

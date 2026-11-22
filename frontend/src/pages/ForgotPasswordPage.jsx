@@ -33,9 +33,12 @@ function ForgotPasswordPage({ theme, onToggleTheme }) {
     }
 
     return (
-        <AppLayout theme={theme} onToggleTheme={onToggleTheme}>
-            <PageHeader title="Forgot Password" subtitle="Reset your CRM password." />
-            <div className="crm-card border-0 p-4" style={{ maxWidth: 480, margin: "0 auto" }}>
+        <section className="section login-page">
+            <div className="container">
+            <div className="login-card" style={{ maxWidth: 480, margin: "0 auto" }}>
+                <div className="login-logo-wrap"><img src="/dps-logo.png" alt="DPS" className="login-logo" /></div>
+                <h1 style={{ fontSize: "1.5rem" }}>Forgot Password</h1>
+                <p className="login-text">Reset your CRM password.</p>
                 <form onSubmit={handleSubmit} className="d-grid gap-3">
                     <label>
                         Email
@@ -54,7 +57,8 @@ function ForgotPasswordPage({ theme, onToggleTheme }) {
                     <Link to="/login">Back to login</Link>
                 </form>
             </div>
-        </AppLayout>
+            </div>
+        </section>
     );
 }
 
