@@ -20,7 +20,7 @@ import {
     CartesianGrid,
 } from "recharts";
 import { useEffect, useState } from "react";
-import { createContact, createCampaign, getSmartFollowUps, getRevenueInsights } from "../api/api";
+import { createContact, createCampaign, getSmartFollowUps, getRevenueInsights, fetchDripCampaigns } from "../api/api";
 import { FaCalendarCheck } from "react-icons/fa";
 
 
@@ -71,8 +71,13 @@ const [appointments, setAppointments] = useState([]);
     const [actionStatus, setActionStatus] = useState({});
     const [followUps, setFollowUps] = useState([]);
     const [loadingFollowUps, setLoadingFollowUps] = useState(false);
+
+    useEffect(() => {
+        fetchDripCampaigns().then((d) => setDripCampaigns(Array.isArray(d) ? d : [])).catch(() => {});
+    }, []);
     const [revenueInsights, setRevenueInsights] = useState([]);
     const [loadingInsights, setLoadingInsights] = useState(false);
+    const [dripCampaigns, setDripCampaigns] = useState([]);
     const [selectedMessageIds, setSelectedMessageIds] = useState([]);
     const [selectedEmailIds, setSelectedEmailIds] = useState([]);
 
@@ -419,9 +424,9 @@ const activityRows = Object.values(activityByDay).sort((a, b) =>
             <StatsCards
                 contacts={contacts}
                 messages={messages}
-                templates={templates}
                 campaigns={campaigns}
                 emails={emails}
+                dripCampaigns={dripCampaigns}
             />
 
             <Row className="g-4 section-spacer">

@@ -198,7 +198,7 @@ export default function Booking({ theme, onToggleTheme }) {
     const [selectedAppointmentIds, setSelectedAppointmentIds] = useState([]);
 
     const [service, setService] = useState("");
-    const [preparer, setPreparer] = useState(myPreparer || "");
+    const [preparer, setPreparer] = useState("");
     const [duration, setDuration] = useState(30);
     const [visitFormat, setVisitFormat] = useState("");
     const [time, setTime] = useState("");
@@ -265,6 +265,10 @@ export default function Booking({ theme, onToggleTheme }) {
     })();
     const isAdmin = currentUser?.role === "admin";
     const myPreparer = isAdmin ? null : (currentUser?.name || `${currentUser?.firstName || ""} ${currentUser?.lastName || ""}`.trim());
+
+    useEffect(() => {
+        if (myPreparer && !preparer) setPreparer(myPreparer);
+    }, [myPreparer]);
     const [showAll, setShowAll] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 

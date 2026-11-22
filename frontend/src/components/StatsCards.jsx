@@ -6,9 +6,10 @@ import {
     FaFileAlt,
     FaBullhorn,
     FaEnvelope,
+    FaPaperPlane,
 } from "react-icons/fa";
 
-function StatsCards({ contacts, messages, templates, campaigns, emails = [] }) {
+function StatsCards({ contacts, messages, campaigns, emails = [], dripCampaigns = [] }) {
     const cards = [
         {
             title: "Contacts",
@@ -27,20 +28,20 @@ function StatsCards({ contacts, messages, templates, campaigns, emails = [] }) {
             to: "/contacts",
         },
         {
-            title: "Templates",
-            count: templates.length,
-            icon: <FaFileAlt />,
-            colorClass: "stat-card-templates",
-            iconClass: "stat-icon-templates",
-            to: "/templates",
-        },
-        {
-            title: "Campaigns",
+            title: "Text Blasts",
             count: campaigns.length,
             icon: <FaBullhorn />,
             colorClass: "stat-card-campaigns",
             iconClass: "stat-icon-campaigns",
             to: "/campaigns",
+        },
+        {
+            title: "Drip Campaigns",
+            count: dripCampaigns.length,
+            icon: <FaPaperPlane />,
+            colorClass: "stat-card-campaigns",
+            iconClass: "stat-icon-campaigns",
+            to: "/drip-campaigns",
         },
         {
             title: "Emails",

@@ -6,7 +6,7 @@ import { FaQuestionCircle, FaTimes } from "react-icons/fa";
 const TOURS = {
   "/dashboard": [
     { selector: null, title: "Welcome to DPS CRM 👋", text: "This is your Dashboard — your daily command center. Let's take a quick tour of everything." },
-    { selector: '[data-tour="dashboard-stats"]', title: "Stats Overview", text: "See counts for contacts, messages, templates, campaigns, and emails at a glance. These update in real time." },
+    { selector: '[data-tour="dashboard-stats"]', title: "Stats Overview", text: "See counts for contacts, messages, text blasts, drip campaigns, and emails at a glance. These update in real time. Click any card to jump to that section." },
     { selector: '[data-tour="dashboard-appointments"]', title: "Today's Appointments", text: "Appointments scheduled for today appear here. Click 'View Calendar' to open the full booking calendar." },
     { selector: '[data-tour="dashboard-week"]', title: "This Week's Bookings", text: "A quick view of all bookings this week, color-coded by preparer (blue=Pierre, purple=Dalia, green=Severe, orange=Jean, pink=Ricot). Real estate shows in teal (DPS Realty)." },
     { selector: '[data-tour="dashboard-followups"]', title: "AI Follow-Up Suggestions", text: "AI analyzes your contacts and suggests follow-ups based on days since last contact, missing info, and tags. Click 'Refresh' to re-analyze. Click a suggestion to act on it." },
