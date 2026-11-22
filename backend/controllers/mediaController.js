@@ -50,7 +50,7 @@ export async function getMediaFile(req, res) {
     return res.status(400).json({ error: "Invalid media ID." });
   }
   try {
-    const media = await Media.findOne({ _id: req.params.id, userId: DPS_SCOPE });
+    const media = await Media.findOne({ _id: req.params.id });
     if (!media) return res.status(404).json({ error: "Media not found." });
     res.set("Content-Type", media.mimeType);
     res.set("Content-Length", media.size);
