@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaSignInAlt, FaEnvelope, FaLock } from "react-icons/fa";
 import { loginUser } from "../api/authService";
 
@@ -100,6 +100,10 @@ function LoginPage() {
               />
               Show password
             </label>
+
+            <div className="login-forgot">
+              <Link to="/forgot-password">Forgot password?</Link>
+            </div>
 
             <button type="submit" className="btn" disabled={loading}>
               {loading ? "Signing In..." : "Login"}

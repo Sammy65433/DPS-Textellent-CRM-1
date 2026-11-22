@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema(
     active: { type: Boolean, default: false },
     setupTokenHash: { type: String, select: false },
     setupTokenExpiresAt: { type: Date, select: false },
+    resetTokenHash: { type: String, select: false },
+    resetTokenExpiresAt: { type: Date, select: false },
   },
   { timestamps: true }
 );

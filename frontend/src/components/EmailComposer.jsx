@@ -17,6 +17,7 @@ function EmailComposer({
     const [aiMessage, setAiMessage] = useState("");
     const [smartReplies, setSmartReplies] = useState([]);
     const [loadingReplies, setLoadingReplies] = useState(false);
+    const [sentMsg, setSentMsg] = useState("");
 
     async function handleGenerate() {
         if (!aiGoal.trim()) return;
@@ -82,7 +83,7 @@ function EmailComposer({
                 {!selectedContact ? (
                     <p className="text-muted mb-0">Select a contact to send an email.</p>
                 ) : (
-                    <Form onSubmit={onSendEmail}>
+                    <Form onSubmit={async (e) => { await onSendEmail(e); setSentMsg("Email sent successfully! ✅"); setTimeout(() => setSentMsg(""), 4000); }}>
                         <Form.Control
                             className="mb-2"
                             placeholder="To email"
@@ -155,6 +156,10 @@ function EmailComposer({
                                     </Button>
                                 ))}
                             </div>
+                        )}
+
+                        {sentMsg && (
+                            <div className="alert alert-success py-1 px-2 small mt-2 mb-2">{sentMsg}</div>
                         )}
 
                         <div className="d-flex justify-content-between align-items-center mt-3">

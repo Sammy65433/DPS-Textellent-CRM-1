@@ -200,6 +200,32 @@ router.post("/upsert-client", async (req, res) => {
             supabaseCustomerId: customerId ? String(customerId) : null,
         });
 
+        // Send a welcome + booking reminder email (best-effort, non-blocking)
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const { Resend } = await import("resend");
+                const resend = new Resend(process.env.RESEND_API_KEY);
+                const name = [firstName, lastName].filter(Boolean).join(" ") || "there";
+                await resend.emails.send({
+                    from: "appointments@dpstaxpro.com",
+                    to: normalizedEmail,
+                    subject: "Welcome to DPS Professional Tax Services — Book Your Appointment",
+                    html: `
+                        <div style="font-family:Arial,sans-serif;line-height:1.6">
+                            <h2>Welcome, ${name}! 👋</h2>
+                            <p>Thank you for creating your DPS account. We're glad to have you.</p>
+                            <p>To get started, book an appointment for tax preparation, notary, real estate, or any of our services:</p>
+                            <p><a href="https://www.dpstaxpro.com/booking" style="display:inline-block;padding:10px 18px;background:#0f5c54;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Book an Appointment</a></p>
+                            <p>If you have questions, call (973) 327-2340 or reply to this email.</p>
+                            <p>Warmly,<br/>DPS Professional Tax Services<br/>1811 Springfield Ave, Maplewood, NJ</p>
+                        </div>
+                    `,
+                });
+            } catch (emailErr) {
+                console.error("Welcome/booking reminder email failed:", emailErr);
+            }
+        }
+
         return res.status(201).json({
             message: "Contact created.",
             contactId: newContact._id,

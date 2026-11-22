@@ -15,6 +15,8 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import HelpPage from "./pages/HelpPage";
 import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -153,6 +155,8 @@ function App() {
         
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/reset-password" element={<ResetPasswordPage theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/setup-password" element={<SetupPasswordPage />} />
 
         <Route
