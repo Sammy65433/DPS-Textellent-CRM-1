@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import AppLayout from "../components/AppLayout";
-import PageHeader from "../components/PageHeader";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { FaEnvelope, FaKey } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
@@ -35,28 +33,49 @@ function ForgotPasswordPage({ theme, onToggleTheme }) {
     return (
         <section className="section login-page">
             <div className="container">
-            <div className="login-card" style={{ maxWidth: 480, margin: "0 auto" }}>
-                <div className="login-logo-wrap"><img src="/dps-logo.png" alt="DPS" className="login-logo" /></div>
-                <h1 style={{ fontSize: "1.5rem" }}>Forgot Password</h1>
-                <p className="login-text">Reset your CRM password.</p>
-                <form onSubmit={handleSubmit} className="d-grid gap-3">
-                    <label>
-                        Email
+                <div className="login-card">
+                    <div className="login-logo-wrap">
+                        <img
+                            src="/dps-logo.png"
+                            alt="DPS Professional Tax Services logo"
+                            className="login-logo"
+                        />
+                    </div>
+
+                    <div className="login-icon">
+                        <FaKey />
+                    </div>
+
+                    <h1>Forgot Password</h1>
+                    <p className="login-text">
+                        Enter your email to receive a password reset link.
+                    </p>
+
+                    <form onSubmit={handleSubmit} className="login-form">
+                        <label htmlFor="email">
+                            <FaEnvelope />
+                            <span>Email</span>
+                        </label>
                         <input
-                            className="form-control"
+                            id="email"
                             type="email"
                             required
+                            placeholder="Enter your email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                    </label>
-                    <button type="submit" className="btn btn-primary" disabled={loading}>
-                        {loading ? "Sending..." : "Send Reset Link"}
-                    </button>
-                    {status && <p className="login-status">{status}</p>}
-                    <Link to="/login">Back to login</Link>
-                </form>
-            </div>
+
+                        <button type="submit" className="btn" disabled={loading}>
+                            {loading ? "Sending..." : "Send Reset Link"}
+                        </button>
+
+                        {status && <p className="login-status">{status}</p>}
+                    </form>
+
+                    <p className="login-forgot">
+                        <Link to="/login">Back to login</Link>
+                    </p>
+                </div>
             </div>
         </section>
     );

@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import AppLayout from "../components/AppLayout";
-import PageHeader from "../components/PageHeader";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { FaLock, FaKey } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
@@ -11,6 +9,7 @@ function ResetPasswordPage({ theme, onToggleTheme }) {
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [status, setStatus] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -38,33 +37,62 @@ function ResetPasswordPage({ theme, onToggleTheme }) {
     return (
         <section className="section login-page">
             <div className="container">
-            <div className="login-card" style={{ maxWidth: 480, margin: "0 auto" }}>
-                <div className="login-logo-wrap"><img src="/dps-logo.png" alt="DPS" className="login-logo" /></div>
-                <h1 style={{ fontSize: "1.5rem" }}>Reset Password</h1>
-                <p className="login-text">Set a new password for your CRM account.</p>
-                {!token ? (
-                    <p className="text-danger">Missing reset token.</p>
-                ) : (
-                    <form onSubmit={handleSubmit} className="d-grid gap-3">
-                        <label>
-                            New password (at least 12 characters)
+                <div className="login-card">
+                    <div className="login-logo-wrap">
+                        <img
+                            src="/dps-logo.png"
+                            alt="DPS Professional Tax Services logo"
+                            className="login-logo"
+                        />
+                    </div>
+
+                    <div className="login-icon">
+                        <FaKey />
+                    </div>
+
+                    <h1>Reset Password</h1>
+                    <p className="login-text">
+                        Set a new password for your CRM account.
+                    </p>
+
+                    {!token ? (
+                        <p className="login-status">Missing reset token.</p>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="login-form">
+                            <label htmlFor="password">
+                                <FaLock />
+                                <span>New Password</span>
+                            </label>
                             <input
-                                className="form-control"
-                                type="password"
+                                id="password"
+                                type={showPassword ? "text" : "password"}
                                 minLength={12}
                                 required
+                                placeholder="At least 12 characters"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
-                        </label>
-                        <button type="submit" className="btn btn-primary" disabled={loading}>
-                            {loading ? "Resetting..." : "Reset Password"}
-                        </button>
-                        {status && <p className="login-status">{status}</p>}
-                    </form>
-                )}
-                <Link to="/login">Back to login</Link>
-            </div>
+                            <label className="login-show-password">
+                                <input
+                                    type="checkbox"
+                                    checked={showPassword}
+                                    onChange={(event) => setShowPassword(event.target.checked)}
+                                />
+                                Show password
+                            </label>
+
+                            <button type="submit" className="btn" disabled={loading}>
+                                {loading ? "Resetting..." : "Reset Password"}
+                            </button>
+
+                            {status && <p className="login-status">{status}</p>}
+                        </form>
+                    )}
+
+                    <p className="login-forgot">
+                        <Link to="/login">Back to login</Link>
+                    </p>
+                </div>
             </div>
         </section>
     );
