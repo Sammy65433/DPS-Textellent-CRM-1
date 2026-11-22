@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Campaign from "../models/Campaign.js";
 import Contact from "../models/Contact.js";
 import Template from "../models/Template.js";
+import { Resend } from "resend";
 
 const DPS_SCOPE = "user123";
 const SEND_UNAVAILABLE =
@@ -219,6 +220,89 @@ export async function deleteCampaign(req, res) {
   }
 }
 
-export async function sendCampaign(_req, res) {
-  return res.status(503).json({ error: SEND_UNAVAILABLE });
+export async function sendCampaign(req, res) {
+  if (!validId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid campaign ID." });
+  }
+
+  try {
+    const campaign = await Campaign.findOne({
+      _id: req.params.id,
+      userId: DPS_SCOPE,
+    }).populate("templateId").populate("contactIds");
+
+    if (!campaign) {
+      return res.status(404).json({ error: "Campaign not found." });
+    }
+
+    if (campaign.status === "sent") {
+      return res.status(409).json({ error: "Campaign already sent." });
+    }
+
+    const contacts = Array.isArray(campaign.contactIds) ? campaign.contactIds : [];
+    if (contacts.length === 0) {
+      return res.status(400).json({ error: "No recipients." });
+    }
+
+    // Resolve body
+    let body = campaign.body || "";
+    if (!body && campaign.templateId) {
+      body = campaign.templateId.body || "";
+    }
+    const subject = campaign.subject || campaign.name || "DPS Update";
+
+    let sentCount = 0;
+
+    if (campaign.type === "email" || campaign.type === "both") {
+      if (process.env.RESEND_API_KEY) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        for (const contact of contacts) {
+          if (!contact.email) continue;
+          const personalized = body
+            .replace(/{{firstName}}/g, contact.firstName || "")
+            .replace(/{{lastName}}/g, contact.lastName || "")
+            .replace(/{{fullName}}/g, `${contact.firstName || ""} ${contact.lastName || ""}`.trim())
+            .replace(/{{companyName}}/g, "DPS Professional Tax Services")
+            .replace(/{{companyPhone}}/g, "(973) 327-2340")
+            .replace(/{{companyEmail}}/g, "info@DPStaxpro.com")
+            .replace(/{{companyAddress}}/g, "1811 Springfield Ave, Maplewood, NJ")
+            .replace(/{{companyWebsite}}/g, "https://www.dpstaxpro.com");
+
+          try {
+            await resend.emails.send({
+              from: "DPS CRM <appointments@dpstaxpro.com>",
+              to: contact.email,
+              subject: subject.replace(/{{firstName}}/g, contact.firstName || ""),
+              text: personalized,
+            });
+            sentCount++;
+          } catch (e) {
+            console.error("Campaign email failed:", e);
+          }
+        }
+      }
+    }
+
+    if (campaign.type === "sms" || campaign.type === "both") {
+      // Mock SMS (Twilio not configured)
+      for (const contact of contacts) {
+        if (!contact.phone) continue;
+        const personalized = body
+            .replace(/{{firstName}}/g, contact.firstName || "")
+            .replace(/{{lastName}}/g, contact.lastName || "")
+            .replace(/{{fullName}}/g, `${contact.firstName || ""} ${contact.lastName || ""}`.trim());
+        console.log(`[MOCK SMS] To ${contact.phone}: ${personalized}`);
+        sentCount++;
+      }
+    }
+
+    campaign.status = "sent";
+    campaign.sentAt = new Date();
+    await campaign.save();
+
+    return res.json({ success: true, message: `Campaign sent to ${sentCount} recipient(s).`, sentCount });
+  } catch (error) {
+    console.error("Send campaign failed:", error);
+    return res.status(500).json({ error: "Failed to send campaign." });
+  }
 }

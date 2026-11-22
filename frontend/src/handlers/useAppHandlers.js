@@ -309,9 +309,13 @@ export function useAppHandlers({
     };
 
     const handleSendCampaign = async campaignId => {
-        await sendCampaign(campaignId);
-        await loadData();
-        showAlert("success", "Campaign sent");
+        try {
+            const result = await sendCampaign(campaignId);
+            await loadData();
+            showAlert("success", result?.message || "Campaign sent");
+        } catch (error) {
+            showAlert("danger", error.message || "Could not send campaign.");
+        }
     };
 
     const handleDeleteTemplate = async templateId => {

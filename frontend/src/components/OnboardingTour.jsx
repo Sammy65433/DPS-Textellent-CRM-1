@@ -45,7 +45,7 @@ const TOURS = {
     { selector: '[data-tour="campaigns-ai"]', title: "AI Generate Copy", text: "Click 'AI Generate Copy' to have AI draft a subject + body from your goal description. Choose audience and tone, then click 'Generate & Create Template'. The template auto-selects." },
     { selector: null, title: "Campaign Tips", text: "You can also type a message directly in the body field (overrides template). Use {{firstName}}/{{lastName}}/{{fullName}} placeholders. Preview shows how the message looks to a selected contact." },
     { selector: '[data-tour="campaigns-list"]', title: "Campaign List", text: "View all campaigns, their status, and recipient counts. Delete any campaign (including sent ones). Click a campaign to edit." },
-    { selector: null, title: "Note", text: "Campaign sending is currently in draft mode (consent implementation pending). Campaigns can be created, previewed, and deleted. SMS is in mock mode." },
+    { selector: null, title: "Note", text: "Campaigns can now be sent! Email campaigns send via Resend; SMS campaigns are logged in mock mode (Twilio not configured). Campaigns can be created, previewed, sent, and deleted." },
     { selector: null, title: "Done! 🎉", text: "Campaigns help you reach multiple contacts at once. Use AI to generate copy quickly." },
   ],
   "/emails": [
