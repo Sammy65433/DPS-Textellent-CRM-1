@@ -12,11 +12,23 @@ const cleanEmail = (value) =>
 const validEmail = (value) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
+const COMPANY_INFO = {
+  companyName: "DPS Professional Tax Services",
+  companyPhone: "(973) 327-2340",
+  companyEmail: "info@DPStaxpro.com",
+  companyAddress: "1811 Springfield Ave, Maplewood, NJ",
+  companyWebsite: "https://www.dpstaxpro.com",
+};
+
 function renderTemplate(body, contact) {
-  return body
+  let result = body
     .replace(/{{firstName}}/g, contact?.firstName || "")
     .replace(/{{lastName}}/g, contact?.lastName || "")
     .replace(/{{fullName}}/g, `${contact?.firstName || ""} ${contact?.lastName || ""}`.trim());
+  for (const [key, val] of Object.entries(COMPANY_INFO)) {
+    result = result.replace(new RegExp(`{{${key}}}`, "g"), val);
+  }
+  return result;
 }
 
 export async function sendEmailMessage(req, res) {
