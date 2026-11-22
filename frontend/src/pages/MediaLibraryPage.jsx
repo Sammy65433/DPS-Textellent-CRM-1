@@ -61,6 +61,11 @@ function MediaLibraryPage({ theme, onToggleTheme, alert }) {
 
     const apiUrl = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
+    function isImage(m) {
+        if (m.mimeType?.startsWith("image/")) return true;
+        return /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(m.filename || "");
+    }
+
     const filtered = media.filter((m) => {
         const q = search.toLowerCase().trim();
         if (!q) return true;
@@ -106,7 +111,7 @@ function MediaLibraryPage({ theme, onToggleTheme, alert }) {
                         <Col md={3} key={m._id}>
                             <Card className="crm-card border-0">
                                 <Card.Body className="p-2">
-                                    {m.mimeType?.startsWith("image/") ? (
+                                    {isImage(m) ? (
                                         <img
                                             src={`${apiUrl}/api/media/${m._id}/file`}
                                             alt={m.filename}
